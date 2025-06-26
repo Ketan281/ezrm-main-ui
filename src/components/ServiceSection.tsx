@@ -1,5 +1,5 @@
 import type React from "react"
-import { Box, Typography, Container, Grid } from "@mui/material"
+import { Box, Typography, Container } from "@mui/material"
 
 interface ServiceCardProps {
   icon: React.ReactNode

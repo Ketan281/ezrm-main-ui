@@ -16,7 +16,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
   productName,
   subtitle,
   rating,
-  reviewText,
+  // reviewText,
   likes,
   date,
   reviewerName,

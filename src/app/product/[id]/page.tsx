@@ -218,7 +218,7 @@ export default function ProductDetailPage() {
               {/* Product Icons */}
               <Grid container spacing={4} sx={{ mb: 3 }}>
                 {features.map((feature, index) => (
-                  <Grid >
+                  <Grid key={index}>
                     <Box
                       sx={{
                         display: "flex",

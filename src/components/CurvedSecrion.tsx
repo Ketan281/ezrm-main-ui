@@ -1,6 +1,6 @@
 import type React from "react"
 import { Box } from "@mui/material"
-import { styled } from '@mui/material/styles';
+
 const CurvedSection: React.FC = () => {
   return (
     <Box
