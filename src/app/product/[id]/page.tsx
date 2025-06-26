@@ -100,17 +100,17 @@ export default function ProductDetailPage() {
           Product Name / Product Category lorem ipsum
         </Typography>
 
-        {/* Main Content - 40% Left, 60% Right */}
+        {/* Main Content - 70% Left, 30% Right */}
         <Box sx={{ display: "flex", gap: 3 }}>
-          {/* Left Side - 40% */}
-          <Box sx={{ width: "50%" }}>
+          {/* Left Side - 70% */}
+          <Box sx={{ width: "65%" }}>
             {/* Product Image Container */}
             <Box
               sx={{
                 position: "relative",
                 width: "100%",
                 height: 400,
-                borderRadius: 2,
+                borderRadius: "30px 0px 0px 30px",
                 overflow: "hidden",
                 backgroundColor: "#f5f5f5",
                 mb: 3,
@@ -178,30 +178,33 @@ export default function ProductDetailPage() {
               </TabPanel>
             </Box>
 
-            {/* Table Container (width equal to image) */}
-            <TableContainer
-              component={Paper}
-              elevation={0}
-              sx={{
-                border: "1px solid #e0e0e0",
-                mt: 3,
-              }}
-            >
+            {/* Table Container (borderless) */}
+            <Box sx={{ mt: 3 }}>
               <Table size="small">
                 <TableBody>
                   {productDescriptionData.map((row, index) => (
-                    <TableRow key={index}>
-                      <TableCell sx={{ py: 1.5, fontWeight: 600, width: "40%" }}>{row.label}:</TableCell>
-                      <TableCell sx={{ py: 1.5 }}>{row.value}</TableCell>
+                    <TableRow key={index} sx={{ "&:last-child td": { border: 0 } }}>
+                      <TableCell
+                        sx={{
+                          py: 1.5,
+                          fontWeight: 600,
+                          width: "40%",
+                          border: "none",
+                          pl: 0,
+                        }}
+                      >
+                        {row.label}:
+                      </TableCell>
+                      <TableCell sx={{ py: 1.5, border: "none" }}>{row.value}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-            </TableContainer>
+            </Box>
           </Box>
 
-          {/* Right Side - 60% */}
-          <Box sx={{ width: "50%" }}>
+          {/* Right Side - 30% */}
+          <Box sx={{ width: "35%" }}>
             {/* Top Section - Height equal to image */}
             <Box sx={{ height: 400, display: "flex", flexDirection: "column" }}>
               {/* Product Title */}
@@ -213,9 +216,9 @@ export default function ProductDetailPage() {
               </Typography>
 
               {/* Product Icons */}
-              <Grid container spacing={2} sx={{ mb: 3 }}>
+              <Grid container spacing={4} sx={{ mb: 3 }}>
                 {features.map((feature, index) => (
-                  <Grid>
+                  <Grid >
                     <Box
                       sx={{
                         display: "flex",
@@ -226,8 +229,8 @@ export default function ProductDetailPage() {
                     >
                       <Box
                         sx={{
-                          width: 50,
-                          height: 50,
+                          width: 40,
+                          height: 40,
                           borderRadius: "50%",
                           border: `2px solid ${feature.color}`,
                           display: "flex",
@@ -239,8 +242,8 @@ export default function ProductDetailPage() {
                       >
                         <Box
                           sx={{
-                            width: 24,
-                            height: 24,
+                            width: 20,
+                            height: 20,
                             backgroundColor: feature.color,
                             borderRadius: "50%",
                             display: "flex",
@@ -251,7 +254,7 @@ export default function ProductDetailPage() {
                           <Typography
                             sx={{
                               color: "white",
-                              fontSize: "12px",
+                              fontSize: "10px",
                               fontWeight: "bold",
                             }}
                           >
@@ -262,7 +265,7 @@ export default function ProductDetailPage() {
                       <Typography
                         variant="caption"
                         sx={{
-                          fontSize: "11px",
+                          fontSize: "10px",
                           fontWeight: 500,
                           color: "#666",
                         }}
@@ -275,22 +278,22 @@ export default function ProductDetailPage() {
               </Grid>
 
               {/* Pricing Table */}
-              <Box sx={{ mt: 4, mb: 3 }}>
+              <Box sx={{ mt: 0, mb: 3 }}>
                 <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #e0e0e0" }}>
                   <Table size="small">
                     <TableHead>
                       <TableRow sx={{ backgroundColor: "#f8f9fa" }}>
-                        <TableCell sx={{ fontWeight: 600, py: 1.5 }}>Quantity</TableCell>
-                        <TableCell sx={{ fontWeight: 600, py: 1.5 }}>Price</TableCell>
-                        <TableCell sx={{ fontWeight: 600, py: 1.5 }}>Save</TableCell>
+                        <TableCell sx={{ fontWeight: 600, py: 1.5, fontSize: "12px" }}>Quantity</TableCell>
+                        <TableCell sx={{ fontWeight: 600, py: 1.5, fontSize: "12px" }}>Price</TableCell>
+                        <TableCell sx={{ fontWeight: 600, py: 1.5, fontSize: "12px" }}>Save</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
                       {pricingData.map((row, index) => (
                         <TableRow key={index}>
-                          <TableCell sx={{ py: 1.5 }}>{row.quantity}</TableCell>
-                          <TableCell sx={{ py: 1.5 }}>{row.price}</TableCell>
-                          <TableCell sx={{ py: 1.5 }}>{row.save}</TableCell>
+                          <TableCell sx={{ py: 1.5, fontSize: "12px" }}>{row.quantity}</TableCell>
+                          <TableCell sx={{ py: 1.5, fontSize: "12px" }}>{row.price}</TableCell>
+                          <TableCell sx={{ py: 1.5, fontSize: "12px" }}>{row.save}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -306,7 +309,7 @@ export default function ProductDetailPage() {
                   backgroundColor: "#ff6b35",
                   color: "white",
                   py: 1.5,
-                  fontSize: "16px",
+                  fontSize: "14px",
                   fontWeight: 500,
                   textTransform: "none",
                   borderRadius: 1,
@@ -321,39 +324,45 @@ export default function ProductDetailPage() {
 
               {/* Social Icons */}
               <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                <Typography variant="body2" sx={{ mr: 1 }}>
+                <Typography variant="body2" sx={{ mr: 1, fontSize: "12px" }}>
                   Add to Wishlist
                 </Typography>
                 <IconButton size="small" sx={{ color: "#ff6b35" }}>
-                  <FavoriteBorder />
+                  <FavoriteBorder fontSize="small" />
                 </IconButton>
                 <IconButton size="small" sx={{ color: "#25d366" }}>
-                  <WhatsApp />
+                  <WhatsApp fontSize="small" />
                 </IconButton>
                 <IconButton size="small" sx={{ color: "#ea4335" }}>
-                  <Email />
+                  <Email fontSize="small" />
                 </IconButton>
                 <IconButton size="small" sx={{ color: "#ff6b35" }}>
-                  <Share />
+                  <Share fontSize="small" />
                 </IconButton>
               </Box>
             </Box>
 
             {/* Company Specific Documents Section */}
-            <Box sx={{ mt: 16, mb: 3 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+            <Box sx={{ mt: 13, mb: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: "16px" }}>
                 Company Specific Documents
               </Typography>
 
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              {/* Connected Dropdowns - No gaps */}
+              <Box sx={{ display: "flex", flexDirection: "column" }}>
                 <FormControl fullWidth size="small">
                   <Select
                     value={companySpecific}
                     onChange={(e) => setCompanySpecific(e.target.value)}
                     sx={{
                       backgroundColor: "#f8f9fa",
+                      borderRadius: "4px 4px 0 0",
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderBottom: "none",
+                      },
                       "& .MuiSelect-select": {
                         color: companySpecific === "Documents - Company Specific" ? "#666" : "#000",
+                        fontSize: "13px",
                       },
                     }}
                   >
@@ -371,8 +380,14 @@ export default function ProductDetailPage() {
                     onChange={(e) => setFacilitySpecific(e.target.value)}
                     sx={{
                       backgroundColor: "#f8f9fa",
+                      borderRadius: 0,
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderTop: "none",
+                        borderBottom: "none",
+                      },
                       "& .MuiSelect-select": {
                         color: facilitySpecific === "Documents - Facility Specific" ? "#666" : "#000",
+                        fontSize: "13px",
                       },
                     }}
                   >
@@ -390,8 +405,14 @@ export default function ProductDetailPage() {
                     onChange={(e) => setProductSpecific(e.target.value)}
                     sx={{
                       backgroundColor: "#f8f9fa",
+                      borderRadius: 0,
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderTop: "none",
+                        borderBottom: "none",
+                      },
                       "& .MuiSelect-select": {
                         color: productSpecific === "Documents - Product Specific" ? "#666" : "#000",
+                        fontSize: "13px",
                       },
                     }}
                   >
@@ -409,8 +430,13 @@ export default function ProductDetailPage() {
                     onChange={(e) => setBatchSpecific(e.target.value)}
                     sx={{
                       backgroundColor: "#f8f9fa",
+                      borderRadius: "0 0 4px 4px",
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderTop: "none",
+                      },
                       "& .MuiSelect-select": {
                         color: batchSpecific === "Documents - Batch Specific" ? "#666" : "#000",
+                        fontSize: "13px",
                       },
                     }}
                   >
@@ -424,17 +450,9 @@ export default function ProductDetailPage() {
               </Box>
             </Box>
 
-            {/* Request For Sample Section */}
-            <Box
-              sx={{
-                p: 3,
-                backgroundColor: "#f8f9fa",
-                border: "1px solid #e0e0e0",
-                borderRadius: 2,
-                mt: 3,
-              }}
-            >
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+            {/* Request For Sample Section - No Card */}
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: "16px" }}>
                 Request For Sample
               </Typography>
 
@@ -459,7 +477,7 @@ export default function ProductDetailPage() {
               </Button>
 
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                <Typography variant="body2" sx={{ fontWeight: 500, minWidth: "fit-content" }}>
+                <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}>
                   Minimum Order Quantity:
                 </Typography>
                 <TextField
@@ -467,9 +485,10 @@ export default function ProductDetailPage() {
                   onChange={(e) => setMinOrderQty(e.target.value)}
                   size="small"
                   sx={{
-                    width: "100px",
+                    width: "80px",
                     "& .MuiOutlinedInput-root": {
                       backgroundColor: "white",
+                      fontSize: "13px",
                     },
                   }}
                 />
