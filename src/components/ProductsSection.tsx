@@ -4,17 +4,33 @@ import type React from "react"
 import { useState } from "react"
 import { Box, Typography, Container, Card, CardContent, Button, IconButton } from "@mui/material"
 import { ChevronLeft, ChevronRight } from "@mui/icons-material"
+import { useRouter } from "next/navigation"
 
-interface ProductCardProps {
+interface Product {
+  id: string
   productName: string
   description: string
   priceLabel: string
   price: string
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ productName, description, priceLabel, price }) => {
+interface ProductCardProps extends Product {
+  onClick: (productId: string) => void
+}
+
+const ProductCard: React.FC<ProductCardProps> = ({ id, productName, description, priceLabel, price, onClick }) => {
+  const handleCardClick = () => {
+    onClick(id)
+  }
+
+  const handleGetQuoteClick = (e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent card click when clicking the button
+    onClick(id)
+  }
+
   return (
     <Card
+      onClick={handleCardClick}
       sx={{
         borderRadius: "12px",
         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
@@ -24,6 +40,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ productName, description, pri
         flexShrink: 0,
         transition: "all 0.3s ease",
         overflow: "hidden",
+        cursor: "pointer",
         "&:hover": {
           boxShadow: "0 4px 16px rgba(0, 0, 0, 0.15)",
           transform: "translateY(-2px)",
@@ -181,6 +198,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ productName, description, pri
         <Button
           fullWidth
           variant="contained"
+          onClick={handleGetQuoteClick}
           sx={{
             bgcolor: "#ff7849",
             color: "white",
@@ -202,49 +220,58 @@ const ProductCard: React.FC<ProductCardProps> = ({ productName, description, pri
 }
 
 const ProductsSection: React.FC = () => {
-  const products = [
+  const router = useRouter()
+  const [currentIndex, setCurrentIndex] = useState(0)
+
+  const products: Product[] = [
     {
-      productName: "Product Name",
-      description: "Lorem ipsum lorem lorem ",
-      priceLabel: "Lorem ipsum",
-      price: "$123.78 /Bottle",
+      id: "vitamin-001",
+      productName: "Vitamin C Complex",
+      description: "High potency vitamin C supplement for immune support",
+      priceLabel: "Starting from",
+      price: "$29.99 /Bottle",
     },
     {
-      productName: "Product Name",
-      description: "Lorem ipsum lorem lorem ",
-      priceLabel: "Lorem ipsum",
-      price: "$123.78 /Bottle",
+      id: "vitamin-002",
+      productName: "Multivitamin Plus",
+      description: "Complete daily multivitamin with essential nutrients",
+      priceLabel: "Starting from",
+      price: "$45.78 /Bottle",
     },
     {
-      productName: "Product Name",
-      description: "Lorem ipsum lorem lorem ",
-      priceLabel: "Lorem ipsum",
-      price: "$123.78 /Bottle",
+      id: "vitamin-003",
+      productName: "Vitamin D3 5000IU",
+      description: "High strength vitamin D3 for bone health",
+      priceLabel: "Starting from",
+      price: "$22.50 /Bottle",
     },
     {
-      productName: "Product Name",
-      description: "Lorem ipsum lorem lorem ",
-      priceLabel: "Lorem ipsum",
-      price: "$123.78 /Bottle",
+      id: "vitamin-004",
+      productName: "B-Complex Energy",
+      description: "B-vitamin complex for energy and metabolism",
+      priceLabel: "Starting from",
+      price: "$35.99 /Bottle",
     },
     {
-      productName: "Product Name",
-      description: "Lorem ipsum lorem lorem ",
-      priceLabel: "Lorem ipsum",
-      price: "$123.78 /Bottle",
+      id: "vitamin-005",
+      productName: "Omega-3 Fish Oil",
+      description: "Premium omega-3 fatty acids for heart health",
+      priceLabel: "Starting from",
+      price: "$42.25 /Bottle",
     },
     {
-      productName: "Product Name",
-      description: "Lorem ipsum lorem lorem ",
-      priceLabel: "Lorem ipsum",
-      price: "$123.78 /Bottle",
+      id: "vitamin-006",
+      productName: "Calcium Magnesium",
+      description: "Essential minerals for bone and muscle health",
+      priceLabel: "Starting from",
+      price: "$28.75 /Bottle",
     },
   ]
 
-  const [currentIndex, setCurrentIndex] = useState(0)
-
-  // Add this after the useState declaration to debug
-  console.log("Current Index:", currentIndex, "Max Index:", Math.max(0, products.length - 4))
+  const handleProductClick = (productId: string) => {
+    // Navigate to product detail page with the product ID
+    router.push(`/product/${productId}`)
+  }
 
   const handlePrevious = () => {
     setCurrentIndex((prev) => Math.max(0, prev - 1))
@@ -363,14 +390,8 @@ const ProductsSection: React.FC = () => {
               overflow: "hidden",
             }}
           >
-            {visibleProducts.map((product, index) => (
-              <ProductCard
-                key={currentIndex + index}
-                productName={product.productName}
-                description={product.description}
-                priceLabel={product.priceLabel}
-                price={product.price}
-              />
+            {visibleProducts.map((product) => (
+              <ProductCard key={product.id} {...product} onClick={handleProductClick} />
             ))}
           </Box>
         </Box>

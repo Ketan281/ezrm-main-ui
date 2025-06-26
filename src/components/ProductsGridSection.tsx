@@ -4,22 +4,42 @@ import type React from "react"
 import { useState } from "react"
 import { Box, Typography, Container, Card, CardContent, Button, IconButton } from "@mui/material"
 import { ChevronLeft, ChevronRight } from "@mui/icons-material"
+import { useRouter } from "next/navigation"
 
-interface ProductGridCardProps {
+interface Product {
+  id: string
   productName: string
   productDescription: string
   price: string
   priceDescription: string
+  image?: string
+}
+
+interface ProductGridCardProps extends Product {
+  onClick: (productId: string) => void
 }
 
 const ProductGridCard: React.FC<ProductGridCardProps> = ({
+  id,
   productName,
   productDescription,
   price,
   priceDescription,
+  image,
+  onClick,
 }) => {
+  const handleCardClick = () => {
+    onClick(id)
+  }
+
+  const handleGetQuoteClick = (e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent card click when clicking the button
+    onClick(id)
+  }
+
   return (
     <Card
+      onClick={handleCardClick}
       sx={{
         borderRadius: "18px",
         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
@@ -28,6 +48,7 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
         height: "320px",
         transition: "all 0.3s ease",
         overflow: "hidden",
+        cursor: "pointer",
         "&:hover": {
           boxShadow: "0 4px 16px rgba(0, 0, 0, 0.12)",
           transform: "translateY(-2px)",
@@ -44,18 +65,17 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
             alignItems: "center",
             justifyContent: "center",
             position: "relative",
-            // Remove px: 3, py: 2 padding
           }}
         >
           {/* Product Image */}
           <Box
             component="img"
-            src="/productGrid.png"
-            alt="Product"
+            src={image || "/productGrid.png"}
+            alt={productName}
             sx={{
               width: "100%",
               height: "100%",
-              objectFit: "contain", // Change from "contain" to "cover"
+              objectFit: "contain",
             }}
           />
         </Box>
@@ -64,6 +84,7 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
         <Button
           fullWidth
           variant="contained"
+          onClick={handleGetQuoteClick}
           sx={{
             bgcolor: "#ff6b35",
             color: "white",
@@ -153,33 +174,47 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
 
 const ProductsGridSection: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1)
+  const router = useRouter()
 
-  const products = [
+  const products: Product[] = [
     {
-      productName: "Product Name",
-      productDescription: "Lorem ipsum ipsum lorem",
+      id: "prod-001",
+      productName: "Premium Protein Powder",
+      productDescription: "High-quality whey protein supplement",
       price: "$123.78 /Bottle",
-      priceDescription: "Lorem ipsum",
+      priceDescription: "Per 2kg bottle",
+      image: "/productGrid.png",
     },
     {
-      productName: "Product Name",
-      productDescription: "Lorem ipsum ipsum lorem",
-      price: "$123.78 /Bottle",
-      priceDescription: "Lorem ipsum",
+      id: "prod-002",
+      productName: "Organic Vitamin Complex",
+      productDescription: "Natural vitamin and mineral blend",
+      price: "$89.99 /Bottle",
+      priceDescription: "Per 120 capsules",
+      image: "/productGrid.png",
     },
     {
-      productName: "Product Name",
-      productDescription: "Lorem ipsum ipsum lorem",
-      price: "$123.78 /Bottle",
-      priceDescription: "Lorem ipsum",
+      id: "prod-003",
+      productName: "Energy Boost Formula",
+      productDescription: "Natural energy enhancement supplement",
+      price: "$156.50 /Bottle",
+      priceDescription: "Per 90 tablets",
+      image: "/productGrid.png",
     },
     {
-      productName: "Product Name",
-      productDescription: "Lorem ipsum ipsum lorem",
-      price: "$123.78 /Bottle",
-      priceDescription: "Lorem ipsum",
+      id: "prod-004",
+      productName: "Immunity Support",
+      productDescription: "Immune system strengthening formula",
+      price: "$67.25 /Bottle",
+      priceDescription: "Per 60 capsules",
+      image: "/productGrid.png",
     },
   ]
+
+  const handleProductClick = (productId: string) => {
+    // Navigate to product detail page with the product ID
+    router.push(`/product/${productId}`)
+  }
 
   const handlePrevious = () => {
     setCurrentPage((prev) => Math.max(1, prev - 1))
@@ -192,7 +227,7 @@ const ProductsGridSection: React.FC = () => {
   return (
     <Box
       sx={{
-       bgcolor: "#f1f5f9",
+        bgcolor: "#f1f5f9",
         py: { xs: 4, md: 6 },
       }}
     >
@@ -245,8 +280,8 @@ const ProductsGridSection: React.FC = () => {
                 },
               }}
             >
-               <ChevronLeft sx={{ fontSize: 16, color: "#666", mr: -0.5 }} />
-                <ChevronLeft sx={{ fontSize: 16, color: "#666" }} />
+              <ChevronLeft sx={{ fontSize: 16, color: "#666", mr: -0.5 }} />
+              <ChevronLeft sx={{ fontSize: 16, color: "#666" }} />
             </IconButton>
             <IconButton
               onClick={handleNext}
@@ -260,8 +295,8 @@ const ProductsGridSection: React.FC = () => {
                 },
               }}
             >
-               <ChevronRight sx={{ fontSize: 16, color: "#666", mr: -0.5 }} />
-                <ChevronRight sx={{ fontSize: 16, color: "#666" }} />
+              <ChevronRight sx={{ fontSize: 16, color: "#666", mr: -0.5 }} />
+              <ChevronRight sx={{ fontSize: 16, color: "#666" }} />
             </IconButton>
           </Box>
         </Box>
@@ -276,14 +311,8 @@ const ProductsGridSection: React.FC = () => {
             pb: 2,
           }}
         >
-          {products.map((product, index) => (
-            <ProductGridCard
-              key={index}
-              productName={product.productName}
-              productDescription={product.productDescription}
-              price={product.price}
-              priceDescription={product.priceDescription}
-            />
+          {products.map((product) => (
+            <ProductGridCard key={product.id} {...product} onClick={handleProductClick} />
           ))}
         </Box>
       </Container>

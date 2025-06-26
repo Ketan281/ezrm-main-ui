@@ -124,7 +124,7 @@ const FeaturedCategory: React.FC = () => {
           {categoryRows.map((row, rowIndex) => (
             <Grid container spacing={2} key={rowIndex} justifyContent="center">
               {row.map((category, cardIndex) => (
-                <Grid >
+                <Grid key={cardIndex}>
                   <CategoryCard title={category.title} isHighlighted={category.isHighlighted} />
                 </Grid>
               ))}
