@@ -294,7 +294,7 @@ export default function RegisterPage() {
                       fontWeight: 600,
                       color: "#333",
                       mb: 3,
-                      fontSize: "24px",
+                      fontSize: "20px",
                     }}
                   >
                     Almost Done
