@@ -1,5 +1,6 @@
 "use client"
-import { Box, Typography, TextField, Button, Link, Container } from "@mui/material"
+import { useState } from "react"
+import { Box, Typography, TextField, Button, Container } from "@mui/material"
 import { ThemeProvider, createTheme } from "@mui/material/styles"
 import Image from "next/image"
 
@@ -15,6 +16,55 @@ const theme = createTheme({
 })
 
 export default function RegisterPage() {
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [email, setEmail] = useState("")
+  const [emailError, setEmailError] = useState("")
+
+  // Email validation function
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const publicDomains = [
+      "gmail.com",
+      "yahoo.com",
+      "hotmail.com",
+      "outlook.com",
+      "aol.com",
+      "icloud.com",
+      "live.com",
+      "msn.com",
+      "rediffmail.com",
+    ]
+
+    if (!email) {
+      return "Email is required"
+    }
+
+    if (!emailRegex.test(email)) {
+      return "Please enter a valid email address"
+    }
+
+    const domain = email.split("@")[1]?.toLowerCase()
+    if (publicDomains.includes(domain)) {
+      return "Public email domains are not allowed. Please enter a valid company email address."
+    }
+
+    return ""
+  }
+
+  const handleSubmit = () => {
+    const error = validateEmail(email)
+    setEmailError(error)
+
+    if (!error) {
+      setShowSuccess(true)
+    }
+  }
+
+  const handleBackToHome = () => {
+    // Add navigation logic here
+    console.log("Navigate to home")
+  }
+
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ height: "100vh", position: "relative", overflow: "hidden" }}>
@@ -29,7 +79,6 @@ export default function RegisterPage() {
           }}
           priority
         />
-
         {/* Left Side Content - Welcome Text (35% width) */}
         <Box
           sx={{
@@ -52,7 +101,6 @@ export default function RegisterPage() {
             }}
           >
             <Typography
-            //   variant="h3"
               sx={{
                 color: "white",
                 fontWeight: 600,
@@ -90,8 +138,7 @@ export default function RegisterPage() {
             </Typography>
           </Box>
         </Box>
-
-        {/* Right Side Overlay - Login Form (65% width) */}
+        {/* Right Side Overlay - Registration Form or Success Message (65% width) */}
         <Box
           sx={{
             position: "absolute",
@@ -121,116 +168,208 @@ export default function RegisterPage() {
               }}
             >
               {/* Logo */}
-              <Box sx={{ mb: 1,mt:4 }}>
+              <Box sx={{ mb: 1, mt: 4 }}>
                 <Image src="/ezrm-logo.png" alt="EZRM Logo" width={200} height={60} style={{ objectFit: "contain" }} />
               </Box>
 
-              {/* Welcome Text */}
-              <Typography
-                // variant="h4"
-                sx={{
-                  fontWeight: 600,
-                  color: "#333",
-                  mb: 1,
-                  fontSize: "20px",
-                }}
-              >
-                Buyer Registration
-              </Typography>
-
-              
-
-              {/* Login Form */}
-              <Box sx={{ width: "100%", maxWidth: "500px" }}>
-                <Typography
-                // variant="body1"
-                sx={{
-                  color: "rgba(90, 96, 127, 1)",
-                  mt:4,
-                  mb: 2,
-                  fontSize: "15px",
-                  fontWeight:700
-                }}
-              >
-                Step 1 : Provide your Email ID
-              </Typography>
-                <TextField
-                  fullWidth
-                  placeholder="Email"
-                  variant="standard"
-                  sx={{
-                    mb: 4,
-                    "& .MuiInput-underline:before": {
-                      borderBottomColor: "#e0e0e0",
-                    },
-                    "& .MuiInput-underline:hover:not(.Mui-disabled):before": {
-                      borderBottomColor: "#FF7A59",
-                    },
-                    "& .MuiInput-underline:after": {
-                      borderBottomColor: "#FF7A59",
-                    },
-                    "& .MuiInputBase-input": {
-                      padding: "12px 0",
-                      fontSize: "1rem",
-                      color: "#333",
-                      "&::placeholder": {
-                        color: "#999",
-                        opacity: 1,
-                      },
-                    },
-                  }}
-                />
-
-                <Button
-                  fullWidth
-                  variant="contained"
-                  sx={{
-                    backgroundColor: "#FF7A59",
-                    color: "white",
-                    py: 1.8,
-                    borderRadius: "8px",
-                    fontSize: "1rem",
-                    fontWeight: 500,
-                    textTransform: "none",
-                    mb: 2,
-                    maxWidth: "500px",
-                    "&:hover": {
-                      backgroundColor: "#FF5722",
-                    },
-                  }}
-                >
-                  Submit
-                </Button>
-
-                <Box sx={{ textAlign: "left" }}>
+              {/* Conditional Rendering */}
+              {!showSuccess ? (
+                // Registration Form
+                <>
                   <Typography
-                    variant="body2"
                     sx={{
-                      color: "#666",
-                      fontSize: "0.9rem",
+                      fontWeight: 600,
+                      color: "#333",
+                      mb: 1,
+                      fontSize: "20px",
                     }}
                   >
-                    <Link
-                      href="#"
+                    Buyer Registration
+                  </Typography>
+
+                  <Box sx={{ width: "100%", maxWidth: "500px" }}>
+                    <Typography
                       sx={{
-                        color: "rgba(246, 57, 24, 1)",
-                        textDecoration: "none",
+                        color: "rgba(90, 96, 127, 1)",
+                        mt: 4,
+                        mb: 2,
+                        fontSize: "15px",
+                        fontWeight: 700,
+                      }}
+                    >
+                      Step 1 : Provide your Email ID
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      placeholder="Email"
+                      variant="standard"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value)
+                        // Clear error when user starts typing
+                        if (emailError) {
+                          setEmailError("")
+                        }
+                      }}
+                      error={!!emailError}
+                      sx={{
+                        mb: emailError ? 1 : 4,
+                        "& .MuiInput-underline:before": {
+                          borderBottomColor: emailError ? "#f44336" : "#e0e0e0",
+                        },
+                        "& .MuiInput-underline:hover:not(.Mui-disabled):before": {
+                          borderBottomColor: emailError ? "#f44336" : "#FF7A59",
+                        },
+                        "& .MuiInput-underline:after": {
+                          borderBottomColor: emailError ? "#f44336" : "#FF7A59",
+                        },
+                        "& .MuiInputBase-input": {
+                          padding: "12px 0",
+                          fontSize: "1rem",
+                          color: "#333",
+                          "&::placeholder": {
+                            color: "#999",
+                            opacity: 1,
+                          },
+                        },
+                      }}
+                    />
+                    {emailError && (
+                      <Typography
+                        sx={{
+                          color: "#f44336",
+                          fontSize: "12px",
+                          mb: 3,
+                          textAlign: "left",
+                          width: "100%",
+                        }}
+                      >
+                        {emailError}
+                      </Typography>
+                    )}
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      onClick={handleSubmit}
+                      sx={{
+                        backgroundColor: "#FF7A59",
+                        color: "white",
+                        py: 1.8,
+                        borderRadius: "8px",
+                        fontSize: "1rem",
                         fontWeight: 500,
-                        fontSize:11,
+                        textTransform: "none",
+                        mb: 2,
+                        maxWidth: "500px",
                         "&:hover": {
-                          textDecoration: "underline",
+                          backgroundColor: "#FF5722",
                         },
                       }}
                     >
-                     Public email domains are not allowed. Please enter a valid company email address.
-                    </Link>
+                      Submit
+                    </Button>
+                  </Box>
+                </>
+              ) : (
+                // Success Message
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    textAlign: "center",
+                    width: "100%",
+                    maxWidth: "500px",
+                    mt: 4,
+                  }}
+                >
+                  {/* Success Icon */}
+                  <Box sx={{ mb: 3 }}>
+                    <Image src="/success.png" alt="Success" width={50} height={50} style={{ objectFit: "contain" }} />
+                  </Box>
+
+                  {/* Almost Done Heading */}
+                  <Typography
+                    sx={{
+                      fontWeight: 600,
+                      color: "#333",
+                      mb: 3,
+                      fontSize: "24px",
+                    }}
+                  >
+                    Almost Done
                   </Typography>
+
+                  {/* Verification Message */}
+                  <Typography
+                    sx={{
+                      color: "#666",
+                      fontSize: "16px",
+                      lineHeight: 1.5,
+                      mb: 1,
+                    }}
+                  >
+                    Verify your email to start your EZRM registration.
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      color: "#666",
+                      fontSize: "16px",
+                      lineHeight: 1.5,
+                      mb: 1,
+                    }}
+                  >
+                    We sent a verification link to
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      color: "#333",
+                      fontSize: "16px",
+                      fontWeight: 600,
+                      mb: 2,
+                    }}
+                  >
+                    {email || "shruti@ezrm.in"}
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      color: "#666",
+                      fontSize: "14px",
+                      mb: 4,
+                    }}
+                  >
+                    Check your spam folder if you can't find it.
+                  </Typography>
+
+                  {/* Back to Home Button */}
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    onClick={handleBackToHome}
+                    sx={{
+                      backgroundColor: "#FF7A59",
+                      color: "white",
+                      py: 1.8,
+                      borderRadius: "8px",
+                      fontSize: "1rem",
+                      fontWeight: 500,
+                      textTransform: "none",
+                      maxWidth: "500px",
+                      "&:hover": {
+                        backgroundColor: "#FF5722",
+                      },
+                    }}
+                  >
+                    Back To Home
+                  </Button>
                 </Box>
-              </Box>
+              )}
             </Box>
           </Container>
         </Box>
-
         {/* Mobile Responsive Overlay */}
         <Box
           sx={{
@@ -248,4 +387,3 @@ export default function RegisterPage() {
     </ThemeProvider>
   )
 }
-
