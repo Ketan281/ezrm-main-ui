@@ -20,9 +20,7 @@ const Navbar: React.FC = () => {
   const handleFavouriteClick = () =>{
     router.push("/favourite")
   }
-  const handleProductClick = () =>{
-    router.push("/product")
-  }
+
   return (
     <AppBar
       position="static"

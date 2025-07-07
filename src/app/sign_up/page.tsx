@@ -353,7 +353,7 @@ export default function RegisterPage() {
                       mb: 4,
                     }}
                   >
-                    Check your spam folder if you can't find it.
+                    Check your spam folder if you cant find it.
                   </Typography>
 
                   {/* Back to Home Button */}
