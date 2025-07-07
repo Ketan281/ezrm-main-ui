@@ -17,7 +17,12 @@ const Navbar: React.FC = () => {
   const handleSignInClick = () => {
     router.push("/sign_in")
   }
-
+  const handleFavouriteClick = () =>{
+    router.push("/favourite")
+  }
+  const handleProductClick = () =>{
+    router.push("/product")
+  }
   return (
     <AppBar
       position="static"
@@ -48,7 +53,7 @@ const Navbar: React.FC = () => {
           {/* Navigation Links - Hidden on mobile */}
           {!isMobile && (
             <Box sx={{ display: "flex", gap: 3 }}>
-              {["About", "Products", "Tools", "Certifications"].map((item) => (
+              {["About", "Product", "Tools", "Certifications"].map((item) => (
                 <Link key={item} href={`/${item.toLowerCase()}`} passHref>
                   <Typography
                     component="a"
@@ -82,6 +87,7 @@ const Navbar: React.FC = () => {
               <SearchIcon sx={{ color: "#666", fontSize: 20 }} />
             </IconButton>
             <IconButton
+             onClick={handleFavouriteClick}
               sx={{
                 bgcolor: "white",
                 width: 40,
