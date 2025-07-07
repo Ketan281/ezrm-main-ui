@@ -2,7 +2,7 @@
 import { Box, Typography, TextField, Button, Link, Container } from "@mui/material"
 import { ThemeProvider, createTheme } from "@mui/material/styles"
 import Image from "next/image"
-
+import { useRouter } from "next/navigation"
 const theme = createTheme({
   palette: {
     primary: {
@@ -15,6 +15,11 @@ const theme = createTheme({
 })
 
 export default function LoginPage() {
+      const router = useRouter()
+    
+      const handleSignInClick = () => {
+        router.push("/sign_up")
+      }
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ height: "100vh", position: "relative", overflow: "hidden" }}>
@@ -243,7 +248,7 @@ export default function LoginPage() {
                   </Link>
                 </Box>
 
-                <Box sx={{ textAlign: "center" }}>
+                <Box sx={{ textAlign: "center" }} onClick={handleSignInClick}>
                   <Typography
                     variant="body2"
                     sx={{

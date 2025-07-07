@@ -14,11 +14,12 @@ const theme = createTheme({
     fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
   },
 })
-
+import { useRouter } from "next/navigation"
 export default function RegisterPage() {
   const [showSuccess, setShowSuccess] = useState(false)
   const [email, setEmail] = useState("")
   const [emailError, setEmailError] = useState("")
+          const router = useRouter()
 
   // Email validation function
   const validateEmail = (email: string) => {
@@ -62,7 +63,7 @@ export default function RegisterPage() {
 
   const handleBackToHome = () => {
     // Add navigation logic here
-    console.log("Navigate to home")
+    router.push("/")
   }
 
   return (
@@ -268,6 +269,17 @@ export default function RegisterPage() {
                     >
                       Submit
                     </Button>
+                    <Typography
+                        sx={{
+                          color: "#f44336",
+                          fontSize: "12px",
+                          mb: 3,
+                          textAlign: "left",
+                          width: "100%",
+                        }}
+                      >
+                        Public email domains are not allowed. Please enter a valid company email address.
+                      </Typography>
                   </Box>
                 </>
               ) : (
