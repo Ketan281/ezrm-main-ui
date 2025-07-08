@@ -1,6 +1,5 @@
 "use client"
-import type React from "react"
-import { useState } from "react"
+import React, { useState } from "react"
 import {
   Box,
   Typography,
@@ -17,9 +16,8 @@ import {
   Paper,
   Container,
 } from "@mui/material"
-import { Close, Add, Remove } from "@mui/icons-material"
-import Image from "next/image"
-
+import { Add, Remove } from "@mui/icons-material"
+import { useRouter } from "next/navigation"
 interface CartItem {
   id: number
   name: string
@@ -53,21 +51,17 @@ const ShoppingCart: React.FC = () => {
   ])
 
   const [discount, setDiscount] = useState("")
-
+  const router = useRouter();
   const updateQuantity = (id: number, newQuantity: number) => {
     if (newQuantity < 1) return
     setCartItems((items) => items.map((item) => (item.id === id ? { ...item, quantity: newQuantity } : item)))
   }
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const total = subtotal // Add discount logic here if needed
-
-  const handleClose = () => {
-    console.log("Close cart")
-  }
+  const total = subtotal
 
   const handleCheckout = () => {
-    console.log("Proceed to checkout")
+    router.push('/checkout')
   }
 
   return (
@@ -103,10 +97,7 @@ const ShoppingCart: React.FC = () => {
 
         <Box
           sx={{
-            // display: "flex",
-            // gap: 4,
             flexDirection: { xs: "column", lg: "row" },
-            // width:100
           }}
         >
           {/* Main Cart Content */}
@@ -117,10 +108,10 @@ const ShoppingCart: React.FC = () => {
                 backgroundColor: "white",
                 borderRadius: 1,
                 mb: 3,
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                // boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
               }}
             >
-              <Table>
+              <Table sx={{ borderCollapse: "separate", borderSpacing: "0 8px" }}>
                 <TableHead>
                   <TableRow>
                     <TableCell
@@ -130,6 +121,7 @@ const ShoppingCart: React.FC = () => {
                         fontSize: "0.875rem",
                         py: 2,
                         borderBottom: "1px solid rgba(234, 104, 36, 1)",
+                        backgroundColor: "transparent",
                       }}
                     >
                       Item
@@ -142,6 +134,7 @@ const ShoppingCart: React.FC = () => {
                         fontSize: "0.875rem",
                         py: 2,
                         borderBottom: "1px solid rgba(234, 104, 36, 1)",
+                        backgroundColor: "transparent",
                       }}
                     >
                       Price
@@ -154,6 +147,7 @@ const ShoppingCart: React.FC = () => {
                         fontSize: "0.875rem",
                         py: 2,
                         borderBottom: "1px solid rgba(234, 104, 36, 1)",
+                        backgroundColor: "transparent",
                       }}
                     >
                       Quantity
@@ -166,6 +160,7 @@ const ShoppingCart: React.FC = () => {
                         fontSize: "0.875rem",
                         py: 2,
                         borderBottom: "1px solid rgba(234, 104, 36, 1)",
+                        backgroundColor: "transparent",
                       }}
                     >
                       Subtotal
@@ -174,32 +169,40 @@ const ShoppingCart: React.FC = () => {
                 </TableHead>
                 <TableBody>
                   {cartItems.map((item) => (
-                    <TableRow key={item.id} sx={{
-                      background: "#fafafa"
-                    }}
+                    <TableRow 
+                      key={item.id} 
+                      sx={{
+                        "& td": {
+                          backgroundColor: "#fafafa",
+                          border: "none",
+                          "&:first-of-type": {
+                            borderTopLeftRadius: "20px",
+                            borderBottomLeftRadius: "20px",
+                          },
+                          "&:last-of-type": {
+                            borderTopRightRadius: "20px",
+                            borderBottomRightRadius: "20px",
+                          },
+                        },
+                      }}
                     >
-                      <TableCell sx={{ py: 2, borderBottom: "1px solid #f0f0f0" }}>
+                      <TableCell sx={{ py: 2 }}>
                         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                           <Box
                             sx={{
                               width: 60,
                               height: 60,
+                              backgroundColor: "#ffa500",
                               borderRadius: 1,
-                              overflow: "hidden",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
                               flexShrink: 0,
                             }}
                           >
-                            <Image
-                              src={item.image || "/placeholder.svg"}
-                              alt={item.name}
-                              width={60}
-                              height={60}
-                              style={{
-                                width: "100%",
-                                height: "100%",
-                                objectFit: "cover",
-                              }}
-                            />
+                            <Typography sx={{ fontSize: "24px", fontWeight: "bold", color: "white" }}>
+                              📦
+                            </Typography>
                           </Box>
                           <Box>
                             <Typography
@@ -225,7 +228,7 @@ const ShoppingCart: React.FC = () => {
                           </Box>
                         </Box>
                       </TableCell>
-                      <TableCell align="center" sx={{ py: 2, borderBottom: "1px solid #f0f0f0" }}>
+                      <TableCell align="center" sx={{ py: 2 }}>
                         <Typography
                           sx={{
                             fontWeight: 600,
@@ -236,7 +239,7 @@ const ShoppingCart: React.FC = () => {
                           ${item.price.toFixed(2)}
                         </Typography>
                       </TableCell>
-                      <TableCell align="center" sx={{ py: 2, borderBottom: "1px solid #f0f0f0" }}>
+                      <TableCell align="center" sx={{ py: 2 }}>
                         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
                           <IconButton
                             size="small"
@@ -272,7 +275,7 @@ const ShoppingCart: React.FC = () => {
                                 letterSpacing: "0.5px",
                               }}
                             >
-                              IN STOCK
+                              IN STOCK: 6
                             </Typography>
                           </Box>
                           <IconButton
@@ -292,7 +295,7 @@ const ShoppingCart: React.FC = () => {
                           </IconButton>
                         </Box>
                       </TableCell>
-                      <TableCell align="right" sx={{ py: 2, borderBottom: "1px solid #f0f0f0" }}>
+                      <TableCell align="right" sx={{ py: 2 }}>
                         <Typography
                           sx={{
                             fontWeight: 600,
@@ -308,55 +311,47 @@ const ShoppingCart: React.FC = () => {
                 </TableBody>
               </Table>
             </TableContainer>
-
-
-
           </Box>
-          <Box display={"flex"} justifyContent={"space-between"} sx={{
-            background:"#fafafa"
-          }}>
 
-          
-          {/* Shipping Address */}
-          <Box
-            sx={{
-              // backgroundColor: "white",
-              borderRadius: 1,
-              p: 5,
-              // boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-            }}
-          >
-            <Typography
-              sx={{
-                color: "#ff6b35",
-                fontWeight: 600,
-                fontSize: "0.95rem",
-                mb: 2,
-              }}
-            >
-              Shipping Address
-            </Typography>
-            <Box sx={{ color: "#666", fontSize: "0.875rem", lineHeight: 1.6 }}>
-              <Typography sx={{ fontSize: "0.75rem", mb: 0.5 }}>Loreal Gummersbach Jaunstrasse</Typography>
-              <Typography sx={{ fontSize: "0.75rem", mb: 0.5 }}>Gummersbach Jaunstrasse</Typography>
-              <Typography sx={{ fontSize: "0.75rem", mb: 0.5 }}>Gummersbach Jaunstrasse Gummersbach</Typography>
-              <Typography sx={{ fontSize: "0.75rem", mb: 0.5 }}>Postcode: 234534-007</Typography>
-              <Typography sx={{ fontSize: "0.75rem" }}>Number: 234-234-2344</Typography>
+          {/* Bottom Section */}
+          <Box sx={{ display: "flex", justifyContent: "space-between", backgroundColor: "#fafafa" }}>
+            {/* Shipping Address */}
+            <Box sx={{ p: 5 }}>
+              <Typography
+                sx={{
+                  color: "#ff6b35",
+                  fontWeight: 600,
+                  fontSize: "0.95rem",
+                  mb: 2,
+                }}
+              >
+                Shipping Address
+              </Typography>
+              <Box sx={{ color: "#666", fontSize: "0.875rem", lineHeight: 1.6 }}>
+                <Typography sx={{ fontSize: "0.75rem", mb: 0.5 }}>
+                  Loreal Gummersbach Jaunstrasse
+                </Typography>
+                <Typography sx={{ fontSize: "0.75rem", mb: 0.5 }}>
+                  Gummersbach Jaunstrasse
+                </Typography>
+                <Typography sx={{ fontSize: "0.75rem", mb: 0.5 }}>
+                  Gummersbach Jaunstrasse Gummersbach
+                </Typography>
+                <Typography sx={{ fontSize: "0.75rem", mb: 0.5 }}>
+                  Postcode: 234534-007
+                </Typography>
+                <Typography sx={{ fontSize: "0.75rem" }}>
+                  Number: 234-234-2344
+                </Typography>
+              </Box>
             </Box>
-          </Box>
-          {/* Order Summary */}
-          <Box
-            sx={{
-              width: { xs: "100%", lg: "400px" },
-              flexShrink: 0,
-            }}
-          >
+
+            {/* Order Summary */}
             <Box
               sx={{
-                // backgroundColor: "white",
-                borderRadius: 1,
+                width: { xs: "100%", lg: "400px" },
+                flexShrink: 0,
                 p: 3,
-                // boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
               }}
             >
               {/* Subtotal */}
@@ -400,20 +395,16 @@ const ShoppingCart: React.FC = () => {
                   sx={{
                     "& .MuiOutlinedInput-root": {
                       fontSize: "0.875rem",
-                      backgroundColor: "#fafafa",
+                      backgroundColor: "#f5f5f5",
                       "& fieldset": {
-                        borderColor: "transparent",
+                        border: "none",
                       },
                       "&:hover fieldset": {
-                        borderColor: "#ccc",
+                        border: "none",
                       },
                       "&.Mui-focused fieldset": {
-                        borderColor: "#ff6b35",
+                        border: "2px solid #ff6b35",
                       },
-                    },
-                    "& .MuiInputBase-input::placeholder": {
-                      color: "#999",
-                      opacity: 1,
                     },
                   }}
                 />
@@ -472,11 +463,10 @@ const ShoppingCart: React.FC = () => {
               </Button>
             </Box>
           </Box>
-          </Box>
         </Box>
       </Paper>
     </Container>
   )
 }
 
-export default ShoppingCart
+export default ShoppingCart;
