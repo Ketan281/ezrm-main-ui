@@ -20,7 +20,9 @@ const Navbar: React.FC = () => {
   const handleFavouriteClick = () =>{
     router.push("/favourite")
   }
-
+  const handleCartClick = () =>{
+    router.push("/cart")
+  }
   return (
     <AppBar
       position="static"
@@ -98,6 +100,7 @@ const Navbar: React.FC = () => {
               <HeartIcon sx={{ color: "#666", fontSize: 20 }} />
             </IconButton>
             <IconButton
+            onClick={handleCartClick}
               sx={{
                 bgcolor: "white",
                 width: 40,
