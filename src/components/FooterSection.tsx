@@ -10,11 +10,11 @@ const FooterSection: React.FC = () => {
         borderRadius: "0 0 20px 20px",
         py: { xs: 4, md: 6 },
         px: { xs: 2, md: 4 },
-        mx: { xs: 1, md: 2 },
-        mb: 2,
+        // Removed mx and mb properties that were causing white space
+        width: "100%", // Ensure full width
       }}
     >
-      <Container maxWidth="lg">
+      <Container maxWidth={false} sx={{ px: 0 }}>
         {/* Main Content Grid */}
         <Grid container spacing={26} sx={{ mb: 4 }}>
           {/* Left Side - Contact Information */}
@@ -33,7 +33,6 @@ const FooterSection: React.FC = () => {
               >
                 GET IN TOUCH
               </Typography>
-
               {/* Main Heading */}
               <Typography
                 variant="h3"
@@ -47,7 +46,6 @@ const FooterSection: React.FC = () => {
               >
                 Request More Information
               </Typography>
-
               {/* Description */}
               <Typography
                 sx={{
@@ -61,7 +59,6 @@ const FooterSection: React.FC = () => {
                 Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem lorem lorem lorem lorem lorem lorem lorem lorem
                 lorem lorem lorem lorem lorem
               </Typography>
-
               {/* Contact Details */}
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 {/* Email */}
@@ -69,13 +66,11 @@ const FooterSection: React.FC = () => {
                   <Email sx={{ color: "white", fontSize: 20 }} />
                   <Typography sx={{ color: "white", fontSize: "0.95rem" }}>Email@gmail.com</Typography>
                 </Box>
-
                 {/* Phone */}
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   <Phone sx={{ color: "white", fontSize: 20 }} />
                   <Typography sx={{ color: "white", fontSize: "0.95rem" }}>1 124 152 424</Typography>
                 </Box>
-
                 {/* Address */}
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   <LocationOn sx={{ color: "white", fontSize: 20 }} />
@@ -84,7 +79,6 @@ const FooterSection: React.FC = () => {
               </Box>
             </Box>
           </Grid>
-
           {/* Right Side - Contact Form */}
           <Grid mt={4}>
             <Box
@@ -101,12 +95,11 @@ const FooterSection: React.FC = () => {
               <TextField
                 placeholder="Name"
                 variant="standard"
-                
                 sx={{
                   "& .MuiInput-root": {
                     color: "white",
                     fontSize: "1rem",
-                    width:"400px",
+                    width: "400px",
                     "&:before": {
                       borderBottomColor: "rgba(255, 255, 255, 0.5)",
                     },
@@ -126,7 +119,6 @@ const FooterSection: React.FC = () => {
                   },
                 }}
               />
-
               {/* Email Field */}
               <TextField
                 placeholder="Email"
@@ -155,7 +147,6 @@ const FooterSection: React.FC = () => {
                   },
                 }}
               />
-
               {/* Number Field */}
               <TextField
                 placeholder="Number"
@@ -184,7 +175,6 @@ const FooterSection: React.FC = () => {
                   },
                 }}
               />
-
               {/* Contact Us Button */}
               <Button
                 variant="contained"
@@ -208,7 +198,6 @@ const FooterSection: React.FC = () => {
             </Box>
           </Grid>
         </Grid>
-
         {/* Bottom Section */}
         <Box
           sx={{
@@ -241,7 +230,6 @@ const FooterSection: React.FC = () => {
               </Typography>
             ))}
           </Box>
-
           {/* Center - Logo */}
           <Typography
             sx={{
@@ -253,7 +241,6 @@ const FooterSection: React.FC = () => {
           >
             ezrm
           </Typography>
-
           {/* Right - Social Icons */}
           <Box sx={{ display: "flex", gap: 1 }}>
             <IconButton
