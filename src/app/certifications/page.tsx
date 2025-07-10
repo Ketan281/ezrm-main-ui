@@ -51,7 +51,7 @@ const Certifications: React.FC = () => {
   const displayedCertifications = certificationsData.slice(0, 3)
 
   return (
-    <Box sx={{ width: "100%", backgroundColor: "#fafafa", py: { xs: 3, md: 5 } }}>
+    <Box sx={{ width: "100%", backgroundColor: "#fafafa", py: { xs: 3, md: 0 } }}>
       <Container maxWidth={false} sx={{ width: "100%", px: 0 }}>
         <Box
           sx={{
