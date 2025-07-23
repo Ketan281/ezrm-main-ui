@@ -8,7 +8,7 @@ import FooterSection from "@/components/FooterSection"
 
 interface ClientLayoutProps {
   children: React.ReactNode
-}
+} 
 
 const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
   const pathname = usePathname()
