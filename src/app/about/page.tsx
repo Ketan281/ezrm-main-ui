@@ -1190,7 +1190,7 @@ const PixelPerfectClone: React.FC = () => {
                   mb: 2,
                 }}
               >
-                Whether you're scaling a wellness brand or developing clinical-grade formulations, EZRM.ai gives you the
+                Whether youre scaling a wellness brand or developing clinical-grade formulations, EZRM.ai gives you the
                 tools, transparency, and trust to grow globally with confidence.
               </Typography>
 
