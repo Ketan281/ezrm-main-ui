@@ -1,8 +1,8 @@
 "use client"
+
 import type React from "react"
 import { Box } from "@mui/material"
 import Hero from "@/components/Hero"
-// import CurvedSection from "@/components/CurvedSection"
 import FeaturedCategory from "@/components/FeaturedCategory"
 import ProductsSection from "@/components/ProductsSection"
 import ServicesSection from "@/components/ServiceSection"
@@ -27,7 +27,6 @@ const HomePage: React.FC = () => {
         }}
       >
         <Hero />
-        {/* <CurvedSection /> */}
       </Box>
 
       {/* Featured Category Section */}
@@ -35,9 +34,14 @@ const HomePage: React.FC = () => {
 
       {/* Products Section */}
       <ProductsSection />
+
       <ServicesSection />
+
       <FlashSaleSection />
+
+      {/* Products Grid Section - Now with real API data */}
       <ProductsGridSection />
+
       <ReviewsSection />
 
       {/* Additional White Section */}

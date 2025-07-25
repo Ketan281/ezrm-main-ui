@@ -1,108 +1,119 @@
 "use client"
-import React from "react"
-import { Box, Typography, Card, CardMedia, CardContent, Button, IconButton, Container } from "@mui/material"
-import { Favorite, FavoriteBorder } from "@mui/icons-material"
 
-// Mock data for products
-const products = [
-  {
-    id: 1,
-    title: "Loreal Ipsum",
-    subtitle: "Turmeric Powder",
-    productCode: "12345678",
-    image: "/product.png?height=278&width=421",
-    isFavorite: false,
-  },
-  {
-    id: 2,
-    title: "Loreal Ipsum",
-    subtitle: "Turmeric Powder",
-    productCode: "12345678",
-    image: "/product.png?height=278&width=421",
-    isFavorite: false,
-  },
-  {
-    id: 3,
-    title: "Loreal Ipsum",
-    subtitle: "Turmeric Powder",
-    productCode: "12345678",
-    image: "/product.png?height=278&width=421",
-    isFavorite: false,
-  },
-  {
-    id: 4,
-    title: "Loreal Ipsum",
-    subtitle: "Turmeric Powder",
-    productCode: "12345678",
-    image: "/product.png?height=278&width=421",
-    isFavorite: false,
-  },
-  {
-    id: 5,
-    title: "Loreal Ipsum",
-    subtitle: "Turmeric Powder",
-    productCode: "12345678",
-    image: "/product.png?height=278&width=421",
-    isFavorite: false,
-  },
-  {
-    id: 6,
-    title: "Loreal Ipsum",
-    subtitle: "Turmeric Powder",
-    productCode: "12345678",
-    image: "/product.png?height=278&width=421",
-    isFavorite: false,
-  },
-  {
-    id: 7,
-    title: "Loreal Ipsum",
-    subtitle: "Turmeric Powder",
-    productCode: "12345678",
-    image: "/product.png?height=278&width=421",
-    isFavorite: false,
-  },
-  {
-    id: 8,
-    title: "Loreal Ipsum",
-    subtitle: "Turmeric Powder",
-    productCode: "12345678",
-    image: "/product.png?height=278&width=421",
-    isFavorite: false,
-  },
-  {
-    id: 9,
-    title: "Loreal Ipsum",
-    subtitle: "Turmeric Powder",
-    productCode: "12345678",
-    image: "/product.png?height=278&width=421",
-    isFavorite: false,
-  },
-]
+import React from "react"
+import {
+  Box,
+  Typography,
+  Card,
+  CardMedia,
+  CardContent,
+  Button,
+  IconButton,
+  Container,
+  CircularProgress,
+  Alert,
+  Pagination,
+  Badge,
+} from "@mui/material"
+import { Favorite, FavoriteBorder, ShoppingCart, Add, Remove } from "@mui/icons-material"
+import { useProductListing } from "@/api/handlers"
+import { useAppStore } from "@/store/use-app-store"
+import type { Product } from "@/api/services"
 
 const ProductPage: React.FC = () => {
-  const [favorites, setFavorites] = React.useState<number[]>([])
+  const [page, setPage] = React.useState(1)
+  const {
+    toggleFavorite,
+    isFavorite,
+    addToCart,
+    updateCartItemQuantity,
+    removeFromCart,
+    getCartItemQuantity,
+    cart,
+    cartTotal,
+  } = useAppStore()
 
-  const toggleFavorite = (productId: number) => {
-    setFavorites((prev) => (prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]))
+  const {
+    data: response,
+    isLoading,
+    error,
+    isError,
+  } = useProductListing({
+    page,
+    limit: 9, // Show 9 products (3 rows of 3)
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  })
+
+  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    setPage(value)
   }
+
+  const getProductImage = (product: Product) => {
+    // Use bannerImage if available, otherwise use first image, otherwise use placeholder
+    if (product.bannerImage) {
+      return product.bannerImage.startsWith("http")
+        ? product.bannerImage
+        : `${process.env.NEXT_PUBLIC_API_URL}/${product.bannerImage}`
+    }
+
+    if (product.images && product.images.length > 0) {
+      const firstImage = product.images[0]
+      return firstImage.startsWith("http") ? firstImage : `${process.env.NEXT_PUBLIC_API_URL}/${firstImage}`
+    }
+
+    return "/placeholder.svg?height=278&width=421"
+  }
+
+  if (isLoading) {
+    return (
+      <Container maxWidth="xl" sx={{ py: 4, display: "flex", justifyContent: "center" }}>
+        <CircularProgress />
+      </Container>
+    )
+  }
+
+  if (isError) {
+    return (
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Alert severity="error">
+          Error loading products: {error instanceof Error ? error.message : "Something went wrong"}
+        </Alert>
+      </Container>
+    )
+  }
+
+  const products = response?.products || []
+  const pagination = response?.pagination
 
   return (
     <Container maxWidth="xl" sx={{ py: { xs: 2, md: 4 }, px: { xs: 1, md: 3 } }}>
-      {/* Section Title */}
-      <Typography
-        variant="h4"
-        sx={{
-          fontWeight: 600,
-          color: "#333",
-          mb: { xs: 2, md: 3 },
-          fontSize: { xs: "1.5rem", md: "2rem" },
-          fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-        }}
-      >
-        Products
-      </Typography>
+      {/* Header with Cart Info */}
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: 600,
+            color: "#333",
+            fontSize: { xs: "1.5rem", md: "2rem" },
+            fontFamily: '"Poppins", "Roboto", "Helvetica", "Arial", sans-serif',
+          }}
+        >
+          Products
+        </Typography>
 
-      {/* Products Grid - Responsive Layout */}
+        {/* Cart Summary */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Badge badgeContent={cart.length} color="primary">
+            <IconButton>
+              <ShoppingCart />
+            </IconButton>
+          </Badge>
+          <Typography variant="h6">Total: ₹{cartTotal.toLocaleString()}</Typography>
+        </Box>
+      </Box>
+
+      {/* Products Grid */}
       <Box
         sx={{
           display: "flex",
@@ -110,7 +121,6 @@ const ProductPage: React.FC = () => {
           gap: { xs: 2, md: 3 },
         }}
       >
-        {/* Create rows of exactly 3 cards each */}
         {Array.from({ length: Math.ceil(products.length / 3) }, (_, rowIndex) => (
           <Box
             key={rowIndex}
@@ -121,191 +131,273 @@ const ProductPage: React.FC = () => {
               flexWrap: { xs: "wrap", md: "nowrap" },
             }}
           >
-            {products.slice(rowIndex * 3, rowIndex * 3 + 3).map((product) => (
-              <Card
-                key={product.id}
-                sx={{
-                  // Responsive width calculation
-                  width: {
-                    xs: "calc(100vw - 32px)", // Full width minus padding on mobile
-                    sm: "calc(50vw - 24px)", // Half width minus gap on small tablets
-                    md: "calc(33.333vw - 32px)", // One third minus gaps on desktop
-                    lg: "calc(30vw - 24px)", // Slightly smaller on large screens
-                    xl: "min(28vw, 421px)", // Cap at 421px on extra large screens
-                  },
-                  maxWidth: "421px", // Never exceed original design width
-                  minWidth: { xs: "280px", md: "320px" }, // Minimum usable width
-                  // Responsive height with aspect ratio preservation
-                  height: {
-                    xs: "auto",
-                    md: "min(28vw, 380px)", // Maintain aspect ratio, cap at 443px
-                  },
-                  minHeight: { xs: "400px", md: "420px" },
-                  display: "flex",
-                  flexDirection: "column",
-                  borderRadius: { xs: "8px", md: "12px" },
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
-                    transform: "translateY(-2px)",
-                  },
-                }}
-              >
-                {/* Product Image Container */}
-                <Box
-                  sx={{
-                    position: "relative",
-                    // Responsive height maintaining aspect ratio (278/421 ≈ 0.66)
-                    height: {
-                      xs: "60vw",
-                      sm: "30vw",
-                      md: "22vw",
-                      lg: "20vw",
-                      xl: "min(18.5vw, 278px)",
-                    },
-                    maxHeight: "278px",
-                    minHeight: { xs: "200px", md: "220px" },
-                    width: "100%",
-                    overflow: "hidden",
-                    borderTopLeftRadius: { xs: "8px", md: "12px" },
-                    borderTopRightRadius: { xs: "8px", md: "12px" },
-                  }}
-                >
-                  <CardMedia
-                    component="img"
-                    image={product.image}
-                    alt={product.title}
-                    sx={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                  />
-                  {/* Watermark */}
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      top: "50%",
-                      left: "50%",
-                      transform: "translate(-50%, -50%)",
-                      color: "rgba(255, 255, 255, 0.6)",
-                      fontSize: { xs: "1rem", md: "1.2rem" },
-                      fontWeight: 600,
-                      textShadow: "0 2px 4px rgba(0,0,0,0.3)",
-                      pointerEvents: "none",
-                    }}
-                  >
-                    Greenjeeva
-                  </Box>
-                </Box>
+            {products.slice(rowIndex * 3, rowIndex * 3 + 3).map((product) => {
+              const quantity = getCartItemQuantity(product._id)
 
-                {/* Product Content */}
-                <CardContent
+              return (
+                <Card
+                  key={product._id}
                   sx={{
-                    flexGrow: 1,
+                    width: {
+                      xs: "calc(100vw - 32px)",
+                      sm: "calc(50vw - 24px)",
+                      md: "calc(33.333vw - 32px)",
+                      lg: "calc(30vw - 24px)",
+                      xl: "min(28vw, 421px)",
+                    },
+                    maxWidth: "421px",
+                    minWidth: { xs: "280px", md: "320px" },
+                    height: {
+                      xs: "auto",
+                      md: "min(28vw, 380px)",
+                    },
+                    minHeight: { xs: "400px", md: "420px" },
                     display: "flex",
                     flexDirection: "column",
-                    p: { xs: 1.5, md: 2 },
-                    "&:last-child": {
-                      pb: { xs: 1.5, md: 2 },
+                    borderRadius: { xs: "8px", md: "12px" },
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                      boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+                      transform: "translateY(-2px)",
                     },
                   }}
                 >
-                  {/* Product Title */}
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      fontWeight: 600,
-                      color: "#333",
-                      fontSize: { xs: "0.9rem", md: "1rem" },
-                      mb: 0.5,
-                      fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-                    }}
-                  >
-                    {product.title}
-                  </Typography>
-
-                  {/* Product Subtitle */}
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: "#666",
-                      fontSize: { xs: "0.8rem", md: "0.875rem" },
-                      mb: 1,
-                      fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-                    }}
-                  >
-                    {product.subtitle}
-                  </Typography>
-
-                  {/* Product Code */}
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: "#999",
-                      fontSize: { xs: "0.7rem", md: "0.75rem" },
-                      mb: { xs: 1.5, md: 2 },
-                      fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-                    }}
-                  >
-                    Product Code: {product.productCode}
-                  </Typography>
-
-                  {/* Bottom Actions */}
+                  {/* Product Image Container */}
                   <Box
                     sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      mt: "auto",
+                      position: "relative",
+                      height: {
+                        xs: "60vw",
+                        sm: "30vw",
+                        md: "22vw",
+                        lg: "20vw",
+                        xl: "min(18.5vw, 278px)",
+                      },
+                      maxHeight: "278px",
+                      minHeight: { xs: "200px", md: "220px" },
+                      width: "100%",
+                      overflow: "hidden",
+                      borderTopLeftRadius: { xs: "8px", md: "12px" },
+                      borderTopRightRadius: { xs: "8px", md: "12px" },
                     }}
                   >
-                    {/* Favorite Button */}
-                    <IconButton
-                      onClick={() => toggleFavorite(product.id)}
+                    <CardMedia
+                      component="img"
+                      image={getProductImage(product)}
+                      alt={product.name}
                       sx={{
-                        color: favorites.includes(product.id) ? "#ff4444" : "#ccc",
-                        p: { xs: 0.25, md: 0.5 },
-                        "&:hover": {
-                          backgroundColor: "rgba(255, 68, 68, 0.1)",
-                        },
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
                       }}
-                    >
-                      {favorites.includes(product.id) ? (
-                        <Favorite sx={{ fontSize: { xs: 18, md: 20 } }} />
-                      ) : (
-                        <FavoriteBorder sx={{ fontSize: { xs: 18, md: 20 } }} />
-                      )}
-                    </IconButton>
-
-                    {/* Buy Button */}
-                    <Button
-                      variant="contained"
+                    />
+                    {/* Watermark */}
+                    <Box
                       sx={{
-                        backgroundColor: "#ff6b35",
-                        color: "white",
-                        fontSize: { xs: "0.7rem", md: "0.75rem" },
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        color: "rgba(255, 255, 255, 0.6)",
+                        fontSize: { xs: "1rem", md: "1.2rem" },
                         fontWeight: 600,
-                        textTransform: "uppercase",
-                        px: { xs: 2, md: 2.5 },
-                        py: { xs: 0.5, md: 0.75 },
-                        borderRadius: "6px",
-                        minWidth: { xs: "50px", md: "60px" },
-                        "&:hover": {
-                          backgroundColor: "#e55a2b",
-                        },
+                        textShadow: "0 2px 4px rgba(0,0,0,0.3)",
+                        pointerEvents: "none",
                       }}
                     >
-                      BUY
-                    </Button>
+                      Greenjeeva
+                    </Box>
+                    {/* Stock Status Badge */}
+                    {!product.inStock && (
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          top: 8,
+                          right: 8,
+                          backgroundColor: "rgba(255, 0, 0, 0.8)",
+                          color: "white",
+                          px: 1,
+                          py: 0.5,
+                          borderRadius: "4px",
+                          fontSize: "0.7rem",
+                          fontWeight: 600,
+                        }}
+                      >
+                        Out of Stock
+                      </Box>
+                    )}
                   </Box>
-                </CardContent>
-              </Card>
-            ))}
+
+                  {/* Product Content */}
+                  <CardContent
+                    sx={{
+                      flexGrow: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      p: { xs: 1.5, md: 2 },
+                      "&:last-child": {
+                        pb: { xs: 1.5, md: 2 },
+                      },
+                    }}
+                  >
+                    {/* Product Title */}
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: 600,
+                        color: "#333",
+                        fontSize: { xs: "0.9rem", md: "1rem" },
+                        mb: 0.5,
+                        fontFamily: '"Poppins", "Roboto", "Helvetica", "Arial", sans-serif',
+                      }}
+                    >
+                      {product.name}
+                    </Typography>
+
+                    {/* Product Description */}
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: "#666",
+                        fontSize: { xs: "0.8rem", md: "0.875rem" },
+                        mb: 1,
+                        fontFamily: '"Poppins", "Roboto", "Helvetica", "Arial", sans-serif',
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {product.description || product.category}
+                    </Typography>
+
+                    {/* Price */}
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        color: "#ff6b35",
+                        fontSize: { xs: "0.9rem", md: "1rem" },
+                        fontWeight: 600,
+                        mb: 0.5,
+                      }}
+                    >
+                      ₹{product.price.toLocaleString()}
+                    </Typography>
+
+                    {/* Product Code */}
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: "#999",
+                        fontSize: { xs: "0.7rem", md: "0.75rem" },
+                        mb: { xs: 1.5, md: 2 },
+                        fontFamily: '"Poppins", "Roboto", "Helvetica", "Arial", sans-serif',
+                      }}
+                    >
+                      Product Code: {product.uniqueId}
+                    </Typography>
+
+                    {/* Bottom Actions */}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        mt: "auto",
+                      }}
+                    >
+                      {/* Favorite Button */}
+                      <IconButton
+                        onClick={() => toggleFavorite(product._id)}
+                        sx={{
+                          color: isFavorite(product._id) ? "#ff4444" : "#ccc",
+                          p: { xs: 0.25, md: 0.5 },
+                          "&:hover": {
+                            backgroundColor: "rgba(255, 68, 68, 0.1)",
+                          },
+                        }}
+                      >
+                        {isFavorite(product._id) ? (
+                          <Favorite sx={{ fontSize: { xs: 18, md: 20 } }} />
+                        ) : (
+                          <FavoriteBorder sx={{ fontSize: { xs: 18, md: 20 } }} />
+                        )}
+                      </IconButton>
+
+                      {/* Cart Controls */}
+                      {quantity === 0 ? (
+                        <Button
+                          variant="contained"
+                          disabled={!product.inStock}
+                          onClick={() =>
+                            addToCart({
+                              id: product._id,
+                              name: product.name,
+                              price: product.price,
+                              image: getProductImage(product),
+                              uniqueId: product.uniqueId,
+                            })
+                          }
+                          sx={{
+                            backgroundColor: product.inStock ? "#ff6b35" : "#ccc",
+                            color: "white",
+                            fontSize: { xs: "0.7rem", md: "0.75rem" },
+                            fontWeight: 600,
+                            textTransform: "uppercase",
+                            px: { xs: 2, md: 2.5 },
+                            py: { xs: 0.5, md: 0.75 },
+                            borderRadius: "6px",
+                            minWidth: { xs: "50px", md: "60px" },
+                            "&:hover": {
+                              backgroundColor: product.inStock ? "#e55a2b" : "#ccc",
+                            },
+                          }}
+                        >
+                          {product.inStock ? "BUY" : "SOLD OUT"}
+                        </Button>
+                      ) : (
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <IconButton onClick={() => updateCartItemQuantity(product._id, quantity - 1)} size="small">
+                            <Remove />
+                          </IconButton>
+                          <Typography sx={{ minWidth: 20, textAlign: "center" }}>{quantity}</Typography>
+                          <IconButton onClick={() => updateCartItemQuantity(product._id, quantity + 1)} size="small">
+                            <Add />
+                          </IconButton>
+                          <Button
+                            variant="outlined"
+                            color="error"
+                            onClick={() => removeFromCart(product._id)}
+                            sx={{ ml: 1, fontSize: "0.7rem" }}
+                          >
+                            Remove
+                          </Button>
+                        </Box>
+                      )}
+                    </Box>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </Box>
         ))}
       </Box>
+
+      {/* Pagination */}
+      {pagination && pagination.totalPages > 1 && (
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+          <Pagination
+            count={pagination.totalPages}
+            page={page}
+            onChange={handlePageChange}
+            color="primary"
+            size="large"
+            showFirstButton
+            showLastButton
+          />
+        </Box>
+      )}
     </Container>
   )
 }

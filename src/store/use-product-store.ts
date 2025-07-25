@@ -1,0 +1,154 @@
+import { create } from "zustand"
+import { devtools, persist } from "zustand/middleware"
+
+interface CartItem {
+  id: string
+  name: string
+  price: number
+  quantity: number
+  image?: string
+  uniqueId: string
+}
+
+interface ProductFilters {
+  category?: string
+  minPrice?: number
+  maxPrice?: number
+  inStock?: boolean
+  sortBy?: string
+  sortOrder?: "asc" | "desc"
+}
+
+interface ProductState {
+  // Favorites state
+  favorites: string[]
+
+  // Cart state
+  cart: CartItem[]
+  cartTotal: number
+
+  // Filters state
+  filters: ProductFilters
+  searchQuery: string
+
+  // UI state
+  viewMode: "grid" | "list"
+
+  // Actions
+  toggleFavorite: (productId: string) => void
+  isFavorite: (productId: string) => boolean
+
+  addToCart: (item: Omit<CartItem, "quantity">) => void
+  removeFromCart: (id: string) => void
+  updateCartItemQuantity: (id: string, quantity: number) => void
+  clearCart: () => void
+  getCartItemQuantity: (productId: string) => number
+
+  setFilters: (filters: Partial<ProductFilters>) => void
+  clearFilters: () => void
+  setSearchQuery: (query: string) => void
+
+  setViewMode: (mode: "grid" | "list") => void
+}
+
+export const useProductStore = create<ProductState>()(
+  devtools(
+    persist(
+      (set, get) => ({
+        // Initial state
+        favorites: [],
+        cart: [],
+        cartTotal: 0,
+        filters: {},
+        searchQuery: "",
+        viewMode: "grid",
+
+        // Favorite actions
+        toggleFavorite: (productId) => {
+          const { favorites } = get()
+          const newFavorites = favorites.includes(productId)
+            ? favorites.filter((id) => id !== productId)
+            : [...favorites, productId]
+          set({ favorites: newFavorites })
+        },
+
+        isFavorite: (productId) => {
+          const { favorites } = get()
+          return favorites.includes(productId)
+        },
+
+        // Cart actions
+        addToCart: (item) => {
+          const { cart } = get()
+          const existingItem = cart.find((cartItem) => cartItem.id === item.id)
+
+          if (existingItem) {
+            set({
+              cart: cart.map((cartItem) =>
+                cartItem.id === item.id ? { ...cartItem, quantity: cartItem.quantity + 1 } : cartItem,
+              ),
+            })
+          } else {
+            set({ cart: [...cart, { ...item, quantity: 1 }] })
+          }
+
+          // Update cart total
+          const newCart = get().cart
+          const total = newCart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+          set({ cartTotal: total })
+        },
+
+        removeFromCart: (id) => {
+          const { cart } = get()
+          const newCart = cart.filter((item) => item.id !== id)
+          const total = newCart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+          set({ cart: newCart, cartTotal: total })
+        },
+
+        updateCartItemQuantity: (id, quantity) => {
+          if (quantity <= 0) {
+            get().removeFromCart(id)
+            return
+          }
+
+          const { cart } = get()
+          const newCart = cart.map((item) => (item.id === id ? { ...item, quantity } : item))
+          const total = newCart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+          set({ cart: newCart, cartTotal: total })
+        },
+
+        clearCart: () => set({ cart: [], cartTotal: 0 }),
+
+        getCartItemQuantity: (productId) => {
+          const { cart } = get()
+          const item = cart.find((item) => item.id === productId)
+          return item?.quantity || 0
+        },
+
+        // Filter actions
+        setFilters: (newFilters) => {
+          const { filters } = get()
+          set({ filters: { ...filters, ...newFilters } })
+        },
+
+        clearFilters: () => set({ filters: {} }),
+
+        setSearchQuery: (query) => set({ searchQuery: query }),
+
+        // UI actions
+        setViewMode: (mode) => set({ viewMode: mode }),
+      }),
+      {
+        name: "product-store",
+        partialize: (state) => ({
+          favorites: state.favorites,
+          cart: state.cart,
+          cartTotal: state.cartTotal,
+          filters: state.filters,
+          viewMode: state.viewMode,
+        }),
+      },
+    ),
+    { name: "product-store" },
+  ),
+)
