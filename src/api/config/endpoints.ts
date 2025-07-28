@@ -10,13 +10,10 @@ export const ENDPOINTS = {
 
   // Product endpoints
   PRODUCTS: {
-    LISTING: "/api/v1/public/products/listing",
+    LISTING: "/public/products/listing",
     DETAIL: (id: string) => `/api/public/products/${id}`,
     SEARCH: "/api/public/products/search",
     CATEGORIES: "/api/public/products/categories",
-    CREATE: "/products",
-    UPDATE: (id: string) => `/products/${id}`,
-    DELETE: (id: string) => `/products/${id}`,
   },
 
   // Order endpoints
@@ -30,8 +27,9 @@ export const ENDPOINTS = {
 
   // Customer Reviews endpoints
   REVIEWS: {
-    LIST: "/reviews",
-    PRODUCT_REVIEWS: (productId: string) => `/products/${productId}/reviews`,
+    LISTING: "/public/customer-reviews/listing",
+    DETAIL: (id: string) => `/api/public/customer-reviews/${id}`,
+    PRODUCT_REVIEWS: (productId: string) => `/api/public/products/${productId}/reviews`,
     CREATE: "/reviews",
     UPDATE: (id: string) => `/reviews/${id}`,
     DELETE: (id: string) => `/reviews/${id}`,

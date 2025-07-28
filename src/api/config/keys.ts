@@ -26,6 +26,9 @@ export const QUERY_KEYS = {
   // Review keys
   REVIEWS: {
     ALL: ["reviews"] as const,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    LISTING: (params?: Record<string, any>) => ["reviews", "listing", params] as const,
+    DETAIL: (id: string) => ["reviews", "detail", id] as const,
     PRODUCT: (productId: string) => ["reviews", "product", productId] as const,
     USER: (userId: string) => ["reviews", "user", userId] as const,
   },

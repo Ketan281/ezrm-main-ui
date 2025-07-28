@@ -1,26 +1,37 @@
-import type React from "react"
-import { Box, Typography, Container, Card, CardContent, Avatar } from "@mui/material"
+"use client"
+
+import React from "react"
+
+import { Box, Typography, Container, Card, CardContent, Avatar, CircularProgress, Alert } from "@mui/material"
 import { ThumbUp, ThumbDown, Star } from "@mui/icons-material"
+import { useReviewListing } from "@/api/handlers"
+import type { CustomerReview } from "@/api/services"
 
 interface ReviewCardProps {
-  productName: string
-  subtitle: string
-  rating: number
-  reviewText: string
-  likes: number
-  date: string
-  reviewerName: string
+  review: CustomerReview
 }
 
-const ReviewCard: React.FC<ReviewCardProps> = ({
-  productName,
-  subtitle,
-  rating,
-  // reviewText,
-  likes,
-  date,
-  reviewerName,
-}) => {
+const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
+  // Format date
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })
+  }
+
+  // Get customer initials for avatar
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
   return (
     <Card
       sx={{
@@ -102,11 +113,10 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
                   fontWeight: 600,
                 }}
               >
-                {likes}
+                {review.helpfulVotes}
               </Typography>
             </Box>
           </Box>
-
           {/* Dislike Thumb in Circle */}
           <Box
             sx={{
@@ -142,11 +152,14 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
             sx={{
               width: 48,
               height: 48,
-              bgcolor: "#d0d0d0",
-              color: "transparent",
+              bgcolor: "#ff7849",
+              color: "white",
+              fontWeight: 600,
+              fontSize: "1rem",
             }}
-          />
-
+          >
+            {getInitials(review.customer.name)}
+          </Avatar>
           {/* Product Name */}
           <Typography
             sx={{
@@ -154,11 +167,11 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
               color: "#333",
               fontSize: "1.1rem",
               mr: 2,
+              flex: 1,
             }}
           >
-            {productName}
+            {review.product.name}
           </Typography>
-
           {/* Star Rating */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.2 }}>
             {[...Array(5)].map((_, index) => (
@@ -166,23 +179,24 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
                 key={index}
                 sx={{
                   fontSize: 18,
-                  color: index < rating ? "#ff7849" : "#e0e0e0",
+                  color: index < review.rating ? "#ff7849" : "#e0e0e0",
                 }}
               />
             ))}
           </Box>
         </Box>
 
-        {/* Subtitle */}
+        {/* Title */}
         <Typography
           sx={{
-            color: "#666",
-            fontSize: "0.9rem",
-            mb: 2,
+            color: "#333",
+            fontSize: "1rem",
+            fontWeight: 600,
+            mb: 1,
             lineHeight: 1.4,
           }}
         >
-          {subtitle}
+          {review.title}
         </Typography>
 
         {/* Review Text */}
@@ -190,26 +204,37 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
           <Typography
             sx={{
               color: "#666",
-              fontSize: "0.75rem",
-              lineHeight: 1.5,
-              mb: 2,
+              fontSize: "0.875rem",
+              lineHeight: 1.6,
+              display: "-webkit-box",
+              WebkitLineClamp: 6,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
             }}
           >
-            Lorem ipsum lorem lorem lorem Lorem ipsum lorem lorem lorem ipsum lorem lorem Lorem ipsum lorem lorem lorem
-            lorem lorem ipsum lorem lorem lorem lorem lorem
-          </Typography>
-
-          <Typography
-            sx={{
-              color: "#666",
-              fontSize: "0.75rem",
-              lineHeight: 1.5,
-            }}
-          >
-            Lorem ipsum lorem lorem lorem Lorem ipsum lorem lorem lorem ipsum lorem lorem Lorem ipsum lorem lorem lorem
-            lorem lorem ipsum lorem i
+            {review.review}
           </Typography>
         </Box>
+
+        {/* Verified Purchase Badge */}
+        {review.isVerifiedPurchase && (
+          <Box sx={{ mb: 2 }}>
+            <Typography
+              sx={{
+                color: "#4caf50",
+                fontSize: "0.75rem",
+                fontWeight: 600,
+                bgcolor: "#e8f5e8",
+                px: 1,
+                py: 0.5,
+                borderRadius: 1,
+                display: "inline-block",
+              }}
+            >
+              ✓ Verified Purchase
+            </Typography>
+          </Box>
+        )}
 
         {/* Bottom Section - Date and Reviewer */}
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 3 }}>
@@ -220,9 +245,8 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
               fontWeight: 500,
             }}
           >
-            {date}
+            {formatDate(review.createdAt)}
           </Typography>
-
           <Typography
             sx={{
               color: "#333",
@@ -230,54 +254,179 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
               fontWeight: 500,
             }}
           >
-            -{reviewerName}
+            - {review.customer.name}
           </Typography>
         </Box>
+
+        {/* Order ID */}
+        <Typography
+          sx={{
+            color: "#999",
+            fontSize: "0.75rem",
+            mt: 1,
+            textAlign: "center",
+          }}
+        >
+          Order: {review.order}
+        </Typography>
       </CardContent>
     </Card>
   )
 }
 
 const ReviewsSection: React.FC = () => {
-  const reviews = [
-    {
-      productName: "Product Name",
-      subtitle: "Lorem ipsum lorem lorem lorem",
-      rating: 4,
-      reviewText:
-        "Lorem ipsum lorem lorem lorem Lorem ipsum lorem lorem lorem ipsum lorem lorem Lorem ipsum lorem lorem lorem lorem lorem ipsum lorem lorem lorem lorem lorem",
-      likes: 3,
-      date: "15.5.2025",
-      reviewerName: "David Warmbey",
-    },
-    {
-      productName: "Product Name",
-      subtitle: "Lorem ipsum lorem lorem lorem",
-      rating: 5,
-      reviewText:
-        "Lorem ipsum lorem lorem lorem Lorem ipsum lorem lorem lorem ipsum lorem lorem Lorem ipsum lorem lorem lorem lorem lorem ipsum lorem lorem lorem lorem lorem",
-      likes: 5,
-      date: "15.5.2025",
-      reviewerName: "Sarah Johnson",
-    },
-    {
-      productName: "Product Name",
-      subtitle: "Lorem ipsum lorem lorem lorem",
-      rating: 4,
-      reviewText:
-        "Lorem ipsum lorem lorem lorem Lorem ipsum lorem lorem lorem ipsum lorem lorem Lorem ipsum lorem lorem lorem lorem lorem ipsum lorem lorem lorem lorem lorem",
-      likes: 2,
-      date: "15.5.2025",
-      reviewerName: "Mike Chen",
-    },
-  ]
+  const {
+    data: response,
+    isLoading,
+    error,
+    isError,
+  } = useReviewListing({
+    page: 1,
+    pageSize: 3, // Get 3 reviews for display
+    status: "published",
+  })
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log("Reviews Loading:", isLoading)
+    console.log("Reviews Error:", error)
+    console.log("Reviews Response:", response)
+  }, [isLoading, error, response])
+
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          bgcolor: "#fafafa",
+          py: { xs: 6, md: 8 },
+        }}
+      >
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: "center", mb: 10 }}>
+            <Typography
+              variant="h3"
+              sx={{
+                fontWeight: 600,
+                color: "#2c5530",
+                fontSize: { xs: "2rem", md: "2.5rem" },
+                position: "relative",
+                display: "inline-block",
+                "&::after": {
+                  content: '""',
+                  position: "absolute",
+                  bottom: -8,
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  width: 60,
+                  height: 3,
+                  bgcolor: "#ff7849",
+                  borderRadius: 1.5,
+                },
+              }}
+            >
+              Reviews
+            </Typography>
+          </Box>
+          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+            <CircularProgress />
+          </Box>
+        </Container>
+      </Box>
+    )
+  }
+
+  if (isError) {
+    return (
+      <Box
+        sx={{
+          bgcolor: "#fafafa",
+          py: { xs: 6, md: 8 },
+        }}
+      >
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: "center", mb: 10 }}>
+            <Typography
+              variant="h3"
+              sx={{
+                fontWeight: 600,
+                color: "#2c5530",
+                fontSize: { xs: "2rem", md: "2.5rem" },
+                position: "relative",
+                display: "inline-block",
+                "&::after": {
+                  content: '""',
+                  position: "absolute",
+                  bottom: -8,
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  width: 60,
+                  height: 3,
+                  bgcolor: "#ff7849",
+                  borderRadius: 1.5,
+                },
+              }}
+            >
+              Reviews
+            </Typography>
+          </Box>
+          <Alert severity="error" sx={{ mb: 2 }}>
+            <Typography variant="h6">Error loading reviews</Typography>
+            <Typography variant="body2">{error instanceof Error ? error.message : "Something went wrong"}</Typography>
+          </Alert>
+        </Container>
+      </Box>
+    )
+  }
+
+  const reviews = response?.data?.reviews || []
+
+  if (reviews.length === 0) {
+    return (
+      <Box
+        sx={{
+          bgcolor: "#fafafa",
+          py: { xs: 6, md: 8 },
+        }}
+      >
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: "center", mb: 10 }}>
+            <Typography
+              variant="h3"
+              sx={{
+                fontWeight: 600,
+                color: "#2c5530",
+                fontSize: { xs: "2rem", md: "2.5rem" },
+                position: "relative",
+                display: "inline-block",
+                "&::after": {
+                  content: '""',
+                  position: "absolute",
+                  bottom: -8,
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  width: 60,
+                  height: 3,
+                  bgcolor: "#ff7849",
+                  borderRadius: 1.5,
+                },
+              }}
+            >
+              Reviews
+            </Typography>
+          </Box>
+          <Typography variant="h6" sx={{ textAlign: "center", color: "#666" }}>
+            No reviews available at the moment.
+          </Typography>
+        </Container>
+      </Box>
+    )
+  }
 
   return (
     <Box
       sx={{
         bgcolor: "#fafafa",
         py: { xs: 6, md: 8 },
-        // height: "90vh"
       }}
     >
       <Container maxWidth="lg">
@@ -309,7 +458,7 @@ const ReviewsSection: React.FC = () => {
               },
             }}
           >
-            Reviews
+            Reviews ({response?.data?.total || 0})
           </Typography>
         </Box>
 
@@ -319,21 +468,12 @@ const ReviewsSection: React.FC = () => {
             display: "flex",
             gap: 5,
             justifyContent: "center",
-            mb:10,
+            mb: 10,
             flexWrap: { xs: "wrap", lg: "nowrap" },
           }}
         >
-          {reviews.map((review, index) => (
-            <ReviewCard
-              key={index}
-              productName={review.productName}
-              subtitle={review.subtitle}
-              rating={review.rating}
-              reviewText={review.reviewText}
-              likes={review.likes}
-              date={review.date}
-              reviewerName={review.reviewerName}
-            />
+          {reviews.map((review) => (
+            <ReviewCard key={review._id} review={review} />
           ))}
         </Box>
       </Container>
