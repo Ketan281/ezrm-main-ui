@@ -1,5 +1,6 @@
 import { create } from "zustand"
 import { devtools, persist } from "zustand/middleware"
+import type { Customer } from "@/api/services/customerAuth"
 
 interface CartItem {
   id: string
@@ -11,6 +12,10 @@ interface CartItem {
 }
 
 interface AppState {
+  // Customer auth state
+  customer: Customer | null
+  isAuthenticated: boolean
+
   // Product-related state
   favorites: string[]
   cart: CartItem[]
@@ -18,6 +23,10 @@ interface AppState {
 
   // UI state
   theme: "light" | "dark"
+
+  // Customer auth actions
+  setCustomer: (customer: Customer) => void
+  clearCustomer: () => void
 
   // Actions
   toggleFavorite: (productId: string) => void
@@ -37,10 +46,16 @@ export const useAppStore = create<AppState>()(
     persist(
       (set, get) => ({
         // Initial state
+        customer: null,
+        isAuthenticated: false,
         favorites: [],
         cart: [],
         cartTotal: 0,
         theme: "light",
+
+        // Customer auth actions
+        setCustomer: (customer) => set({ customer, isAuthenticated: true }),
+        clearCustomer: () => set({ customer: null, isAuthenticated: false }),
 
         // Favorite actions
         toggleFavorite: (productId) => {
@@ -110,6 +125,8 @@ export const useAppStore = create<AppState>()(
       {
         name: "app-store",
         partialize: (state) => ({
+          customer: state.customer,
+          isAuthenticated: state.isAuthenticated,
           favorites: state.favorites,
           cart: state.cart,
           cartTotal: state.cartTotal,

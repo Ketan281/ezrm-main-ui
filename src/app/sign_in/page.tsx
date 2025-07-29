@@ -1,8 +1,13 @@
 "use client"
-import { Box, Typography, TextField, Button, Link, Container } from "@mui/material"
+
+import type React from "react"
+import { useState } from "react"
+import { Box, Typography, TextField, Button, Link, Container, Alert, CircularProgress } from "@mui/material"
 import { ThemeProvider, createTheme } from "@mui/material/styles"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
+import { useCustomerLogin } from "@/api/handlers"
+
 const theme = createTheme({
   palette: {
     primary: {
@@ -15,11 +20,57 @@ const theme = createTheme({
 })
 
 export default function LoginPage() {
-      const router = useRouter()
-    
-      const handleSignInClick = () => {
-        router.push("/sign_up")
-      }
+  const router = useRouter()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
+
+  const loginMutation = useCustomerLogin()
+
+  const validateForm = () => {
+    const newErrors: { email?: string; password?: string } = {}
+
+    if (!email) {
+      newErrors.email = "Email is required"
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Email is invalid"
+    }
+
+    if (!password) {
+      newErrors.password = "Password is required"
+    } else if (password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters"
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!validateForm()) {
+      return
+    }
+
+    try {
+      await loginMutation.mutateAsync({
+        email,
+        password,
+      })
+
+      // Redirect to home page on successful login
+      router.push("/")
+    } catch (error) {
+      console.error("Login error:", error)
+      // Error is handled by the mutation's onError callback
+    }
+  }
+
+  const handleSignUpClick = () => {
+    router.push("/sign_up")
+  }
+
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ height: "100vh", position: "relative", overflow: "hidden" }}>
@@ -57,7 +108,6 @@ export default function LoginPage() {
             }}
           >
             <Typography
-            //   variant="h3"
               sx={{
                 color: "white",
                 fontWeight: 600,
@@ -126,13 +176,12 @@ export default function LoginPage() {
               }}
             >
               {/* Logo */}
-              <Box sx={{ mb: 1,mt:4 }}>
+              <Box sx={{ mb: 1, mt: 4 }}>
                 <Image src="/ezrm-logo.png" alt="EZRM Logo" width={200} height={60} style={{ objectFit: "contain" }} />
               </Box>
 
               {/* Welcome Text */}
               <Typography
-                // variant="h4"
                 sx={{
                   fontWeight: 600,
                   color: "#333",
@@ -142,7 +191,6 @@ export default function LoginPage() {
               >
                 Welcome Back
               </Typography>
-
               <Typography
                 variant="body1"
                 sx={{
@@ -154,12 +202,33 @@ export default function LoginPage() {
                 Sign in to your Account
               </Typography>
 
+              {/* Error Alert */}
+              {loginMutation.isError && (
+                <Alert severity="error" sx={{ width: "100%", maxWidth: "500px", mb: 3 }}>
+                  {loginMutation.error instanceof Error
+                    ? loginMutation.error.message
+                    : "Login failed. Please try again."}
+                </Alert>
+              )}
+
+              {/* Success Alert */}
+              {loginMutation.isSuccess && (
+                <Alert severity="success" sx={{ width: "100%", maxWidth: "500px", mb: 3 }}>
+                  Login successful! Redirecting...
+                </Alert>
+              )}
+
               {/* Login Form */}
-              <Box sx={{ width: "100%", maxWidth: "500px" }}>
+              <Box component="form" onSubmit={handleLogin} sx={{ width: "100%", maxWidth: "500px" }}>
                 <TextField
                   fullWidth
                   placeholder="Email"
                   variant="standard"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  error={!!errors.email}
+                  helperText={errors.email}
+                  disabled={loginMutation.isPending}
                   sx={{
                     mb: 4,
                     "& .MuiInput-underline:before": {
@@ -182,12 +251,16 @@ export default function LoginPage() {
                     },
                   }}
                 />
-
                 <TextField
                   fullWidth
                   placeholder="Password"
                   type="password"
                   variant="standard"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  error={!!errors.password}
+                  helperText={errors.password}
+                  disabled={loginMutation.isPending}
                   sx={{
                     mb: 4,
                     "& .MuiInput-underline:before": {
@@ -210,10 +283,11 @@ export default function LoginPage() {
                     },
                   }}
                 />
-
                 <Button
                   fullWidth
+                  type="submit"
                   variant="contained"
+                  disabled={loginMutation.isPending}
                   sx={{
                     backgroundColor: "#FF7A59",
                     color: "white",
@@ -227,11 +301,20 @@ export default function LoginPage() {
                     "&:hover": {
                       backgroundColor: "#FF5722",
                     },
+                    "&:disabled": {
+                      backgroundColor: "#ccc",
+                    },
                   }}
                 >
-                  Login
+                  {loginMutation.isPending ? (
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <CircularProgress size={20} color="inherit" />
+                      Signing in...
+                    </Box>
+                  ) : (
+                    "Login"
+                  )}
                 </Button>
-
                 <Box sx={{ textAlign: "right", mb: 3 }}>
                   <Link
                     href="#"
@@ -247,8 +330,7 @@ export default function LoginPage() {
                     Forgot Password?
                   </Link>
                 </Box>
-
-                <Box sx={{ textAlign: "center" }} onClick={handleSignInClick}>
+                <Box sx={{ textAlign: "center" }} onClick={handleSignUpClick}>
                   <Typography
                     variant="body2"
                     sx={{

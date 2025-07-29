@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Query keys for React Query
 export const QUERY_KEYS = {
   // Auth keys
@@ -6,10 +7,15 @@ export const QUERY_KEYS = {
     PROFILE: ["auth", "profile"] as const,
   },
 
+  // Customer Auth keys
+  CUSTOMER_AUTH: {
+    USER: ["customer_auth", "user"] as const,
+    PROFILE: ["customer_auth", "profile"] as const,
+  },
+
   // Product keys
   PRODUCTS: {
     ALL: ["products"] as const,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     LISTING: (params?: Record<string, any>) => ["products", "listing", params] as const,
     DETAIL: (id: string) => ["products", "detail", id] as const,
     SEARCH: (query: string) => ["products", "search", query] as const,
@@ -26,7 +32,6 @@ export const QUERY_KEYS = {
   // Review keys
   REVIEWS: {
     ALL: ["reviews"] as const,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     LISTING: (params?: Record<string, any>) => ["reviews", "listing", params] as const,
     DETAIL: (id: string) => ["reviews", "detail", id] as const,
     PRODUCT: (productId: string) => ["reviews", "product", productId] as const,
