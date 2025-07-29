@@ -44,4 +44,15 @@ export const QUERY_KEYS = {
     DETAIL: (id: string) => ["shipments", "detail", id] as const,
     TRACKING: (trackingNumber: string) => ["shipments", "tracking", trackingNumber] as const,
   },
+    CATEGORIES: {
+    ALL: ["categories"] as const,
+    LISTING: (params?: Record<string, any>) => ["categories", "listing", params] as const,
+    DETAIL: (id: string) => ["categories", "detail", id] as const,
+    FEATURED: ["categories", "featured"] as const,
+  },
+    CERTIFICATES: {
+    ALL: ["certificates"] as const,
+    LISTING: (params?: Record<string, any>) => ["certificates", "listing", params] as const,
+    DETAIL: (id: string) => ["certificates", "detail", id] as const,
+  },
 } as const

@@ -56,4 +56,13 @@ export const ENDPOINTS = {
     DETAIL: (id: string) => `/shipments/${id}`,
     TRACK: (trackingNumber: string) => `/shipments/track/${trackingNumber}`,
   },
+    CATEGORIES: {
+    LISTING: "/public/categories/listing",
+    DETAIL: (id: string) => `/public/categories/${id}`,
+    FEATURED: "/public/categories/listing?tag=Featured",
+  },
+    CERTIFICATES: {
+    LISTING: "/public/certificates/listing",
+    DETAIL: (id: string) => `/api/public/certificates/${id}`,
+  },
 } as const
