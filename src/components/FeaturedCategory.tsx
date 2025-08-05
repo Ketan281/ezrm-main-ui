@@ -12,7 +12,12 @@ interface CategoryCardProps {
 }
 
 const CategoryCard: React.FC<CategoryCardProps> = ({ category, isHighlighted = false }) => {
-  const getImageUrl = (imageUrl: string) => {
+  const getImageUrl = (imageUrl: string | undefined | null) => {
+    // Check if imageUrl exists and is a string
+    if (!imageUrl || typeof imageUrl !== "string") {
+      return "./vitIcon.png" // Return default icon if no image URL
+    }
+
     if (imageUrl.startsWith("http")) {
       return imageUrl
     }
@@ -242,7 +247,7 @@ const FeaturedCategory: React.FC = () => {
           </Box>
         )}
 
-        {/* Debug Info (remove in production) */}
+
       </Container>
     </Box>
   )

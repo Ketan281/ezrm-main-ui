@@ -22,8 +22,11 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
     })
   }
 
-  // Get customer initials for avatar
-  const getInitials = (name: string) => {
+  // Get customer initials for avatar - with null checks
+  const getInitials = (name: string | undefined | null) => {
+    if (!name || typeof name !== "string") {
+      return "??" // Return default initials if name is null/undefined
+    }
     return name
       .split(" ")
       .map((n) => n[0])
@@ -31,6 +34,10 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
       .toUpperCase()
       .slice(0, 2)
   }
+
+  // Safe access to customer data with fallbacks
+  const customerName = review.customer?.name || "Anonymous User"
+  const productName = review.product?.name || "Unknown Product"
 
   return (
     <Card
@@ -113,7 +120,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
                   fontWeight: 600,
                 }}
               >
-                {review.helpfulVotes}
+                {review.helpfulVotes || 0}
               </Typography>
             </Box>
           </Box>
@@ -158,7 +165,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
               fontSize: "1rem",
             }}
           >
-            {getInitials(review.customer.name)}
+            {getInitials(customerName)}
           </Avatar>
           {/* Product Name */}
           <Typography
@@ -170,7 +177,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
               flex: 1,
             }}
           >
-            {review.product.name}
+            {productName}
           </Typography>
           {/* Star Rating */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.2 }}>
@@ -179,7 +186,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
                 key={index}
                 sx={{
                   fontSize: 18,
-                  color: index < review.rating ? "#ff7849" : "#e0e0e0",
+                  color: index < (review.rating || 0) ? "#ff7849" : "#e0e0e0",
                 }}
               />
             ))}
@@ -196,7 +203,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
             lineHeight: 1.4,
           }}
         >
-          {review.title}
+          {review.title || "No title provided"}
         </Typography>
 
         {/* Review Text */}
@@ -212,7 +219,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
               overflow: "hidden",
             }}
           >
-            {review.review}
+            {review.review || "No review text provided"}
           </Typography>
         </Box>
 
@@ -254,7 +261,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
               fontWeight: 500,
             }}
           >
-            - {review.customer.name}
+            - {customerName}
           </Typography>
         </Box>
 
@@ -267,7 +274,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
             textAlign: "center",
           }}
         >
-          Order: {review.order}
+          Order: {review.order || "N/A"}
         </Typography>
       </CardContent>
     </Card>

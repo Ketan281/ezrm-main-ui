@@ -9,6 +9,8 @@ import { ThemeProvider } from "@mui/material"
 import { theme } from "@/theme/theme"
 import Navbar from "@/components/Navbar"
 import FooterSection from "@/components/FooterSection"
+import { useAppStore } from "@/store/use-app-store"
+import { customerAuthService } from "@/api/services/customerAuth"
 
 interface ClientLayoutProps {
   children: React.ReactNode
@@ -16,6 +18,7 @@ interface ClientLayoutProps {
 
 const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
   const pathname = usePathname()
+  const { setCustomer, clearCustomer } = useAppStore()
 
   // Create QueryClient instance
   const [queryClient] = useState(
@@ -38,7 +41,19 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
   const [mounted, setMounted] = useState(false)
   useEffect(() => {
     setMounted(true)
-  }, [])
+
+    // Check for stored authentication data on mount
+    const storedToken = customerAuthService.getStoredToken()
+    const storedCustomer = customerAuthService.getStoredCustomer()
+
+    if (storedToken && storedCustomer) {
+      // Restore authentication state
+      setCustomer(storedCustomer)
+    } else {
+      // Clear any invalid state
+      clearCustomer()
+    }
+  }, [setCustomer, clearCustomer])
 
   // Define routes where navbar and footer should be hidden
   const hideNavbarFooterRoutes = ["/sign_in", "/register", "/sign-in", "/sign_up"]

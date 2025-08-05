@@ -6,6 +6,7 @@ export { customerAuthService } from "./customerAuth"
 export { customerSignupService } from "./customerSignup"
 export { categoryService } from "./categories"
 export { certificateService } from "./certificates"
+export { customerOrderService } from "./customerOrders"
 export type { Product, ProductsResponse, ProductListingParams } from "./products"
 export type { User, LoginCredentials, RegisterData, AuthResponse } from "./authService"
 export type { Order, OrderItem, CreateOrderData } from "./orders"
@@ -21,3 +22,10 @@ export type {
 } from "./customerSignup"
 export type { Category, CategoriesResponse, CategoryListingParams } from "./categories"
 export type { Certificate, CertificatesResponse, CertificateListingParams, AssetLink } from "./certificates"
+export type {
+  CustomerOrder,
+  CustomerOrderItem,
+  CustomerOrderAddress,
+  CustomerOrdersResponse,
+  CustomerOrdersParams,
+} from "./customerOrders"
