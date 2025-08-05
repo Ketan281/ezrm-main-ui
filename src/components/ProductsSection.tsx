@@ -4,7 +4,8 @@ import type React from "react"
 import { useState } from "react"
 import { Box, Typography, Container, Card, CardContent, Button, IconButton } from "@mui/material"
 import { ChevronLeft, ChevronRight } from "@mui/icons-material"
-import { useRouter } from "next/navigation"
+// import { useRouter } from "next/navigation"
+import QuoteFormModal from "./quote-form-modal"
 
 interface Product {
   id: string
@@ -15,17 +16,17 @@ interface Product {
 }
 
 interface ProductCardProps extends Product {
-  onClick: (productId: string) => void
+  onClick: (productId: string, productName: string) => void
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ id, productName, description, priceLabel, price, onClick }) => {
   const handleCardClick = () => {
-    onClick(id)
+    onClick(id, productName)
   }
 
   const handleGetQuoteClick = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent card click when clicking the button
-    onClick(id)
+    onClick(id, productName)
   }
 
   return (
@@ -135,7 +136,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, productName, description,
             </Box>
           </Box>
         </Box>
-
         {/* Content Section with padding */}
         <Box sx={{ p: 2, flex: 1, display: "flex", flexDirection: "column" }}>
           {/* Product Name */}
@@ -150,7 +150,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, productName, description,
           >
             {productName}
           </Typography>
-
           {/* Description */}
           <Typography
             variant="body2"
@@ -164,7 +163,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, productName, description,
           >
             {description}
           </Typography>
-
           {/* Price Section */}
           <Box
             sx={{
@@ -193,7 +191,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, productName, description,
             </Typography>
           </Box>
         </Box>
-
         {/* Get Quote Button - Flush with bottom */}
         <Button
           fullWidth
@@ -221,8 +218,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, productName, description,
 }
 
 const ProductsSection: React.FC = () => {
-  const router = useRouter()
+  // const router = useRouter()
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<string>("")
 
   const products: Product[] = [
     {
@@ -269,9 +268,10 @@ const ProductsSection: React.FC = () => {
     },
   ]
 
-  const handleProductClick = (productId: string) => {
+  const handleProductClick = (productId: string, productName: string) => {
     // Navigate to product detail page with the product ID
-    router.push(`/product/${productId}`)
+    setSelectedProduct(productName)
+    setIsQuoteModalOpen(true)
   }
 
   const handlePrevious = () => {
@@ -286,118 +286,125 @@ const ProductsSection: React.FC = () => {
   const visibleProducts = products.slice(currentIndex, currentIndex + 4)
 
   return (
-    <Box
-      sx={{
-        bgcolor: "white",
-        py: { xs: 4, md: 6 },
-      }}
-    >
-      <Container maxWidth="lg">
-        {/* Main Horizontal Layout */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 2,
-          }}
-        >
-          {/* Left Side - Title and Navigation */}
-          <Box
-            sx={{
-              minWidth: "200px",
-              flexShrink: 0,
-            }}
-          >
-            {/* Section Title with Orange Bar */}
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                mb: 2,
-              }}
-            >
-              <Box
-                sx={{
-                  width: 4,
-                  height: 32,
-                  bgcolor: "#ff7849",
-                  mr: 2,
-                }}
-              />
-              <Typography
-                variant="h4"
-                sx={{
-                  fontWeight: 600,
-                  color: "#333",
-                  fontSize: { xs: "1.3rem", md: "1.8rem" },
-                  lineHeight: 1.2,
-                }}
-              >
-                Products you may
-                <br />
-                like
-              </Typography>
-            </Box>
-
-            {/* Navigation Arrows */}
-            <Box sx={{ display: "flex", gap: 1 }}>
-              <IconButton
-                onClick={handlePrevious}
-                disabled={currentIndex === 0}
-                sx={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: "4px",
-                  "&:hover": {
-                    bgcolor: "#f5f5f5",
-                  },
-                  "&:disabled": {
-                    opacity: 0.5,
-                    cursor: "not-allowed",
-                  },
-                }}
-              >
-                <ChevronLeft sx={{ fontSize: 16, color: "#666", mr: -0.5 }} />
-                <ChevronLeft sx={{ fontSize: 16, color: "#666" }} />
-              </IconButton>
-              <IconButton
-                onClick={handleNext}
-                disabled={currentIndex >= Math.max(0, products.length - 4)}
-                sx={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: "4px",
-                  "&:hover": {
-                    bgcolor: "#f5f5f5",
-                  },
-                  "&:disabled": {
-                    opacity: 0.5,
-                    cursor: "not-allowed",
-                  },
-                }}
-              >
-                <ChevronRight sx={{ fontSize: 16, color: "#666", mr: -0.5 }} />
-                <ChevronRight sx={{ fontSize: 16, color: "#666" }} />
-              </IconButton>
-            </Box>
-          </Box>
-
-          {/* Right Side - Products Grid (Fixed 4 cards, no scroll) */}
+    <>
+      <Box
+        sx={{
+          bgcolor: "white",
+          py: { xs: 4, md: 6 },
+        }}
+      >
+        <Container maxWidth="lg">
+          {/* Main Horizontal Layout */}
           <Box
             sx={{
               display: "flex",
+              alignItems: "center",
               gap: 2,
-              flex: 1,
-              overflow: "hidden",
             }}
           >
-            {visibleProducts.map((product) => (
-              <ProductCard key={product.id} {...product} onClick={handleProductClick} />
-            ))}
+            {/* Left Side - Title and Navigation */}
+            <Box
+              sx={{
+                minWidth: "200px",
+                flexShrink: 0,
+              }}
+            >
+              {/* Section Title with Orange Bar */}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  mb: 2,
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 4,
+                    height: 32,
+                    bgcolor: "#ff7849",
+                    mr: 2,
+                  }}
+                />
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 600,
+                    color: "#333",
+                    fontSize: { xs: "1.3rem", md: "1.8rem" },
+                    lineHeight: 1.2,
+                  }}
+                >
+                  Products you may
+                  <br />
+                  like
+                </Typography>
+              </Box>
+              {/* Navigation Arrows */}
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <IconButton
+                  onClick={handlePrevious}
+                  disabled={currentIndex === 0}
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: "4px",
+                    "&:hover": {
+                      bgcolor: "#f5f5f5",
+                    },
+                    "&:disabled": {
+                      opacity: 0.5,
+                      cursor: "not-allowed",
+                    },
+                  }}
+                >
+                  <ChevronLeft sx={{ fontSize: 16, color: "#666", mr: -0.5 }} />
+                  <ChevronLeft sx={{ fontSize: 16, color: "#666" }} />
+                </IconButton>
+                <IconButton
+                  onClick={handleNext}
+                  disabled={currentIndex >= Math.max(0, products.length - 4)}
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: "4px",
+                    "&:hover": {
+                      bgcolor: "#f5f5f5",
+                    },
+                    "&:disabled": {
+                      opacity: 0.5,
+                      cursor: "not-allowed",
+                    },
+                  }}
+                >
+                  <ChevronRight sx={{ fontSize: 16, color: "#666", mr: -0.5 }} />
+                  <ChevronRight sx={{ fontSize: 16, color: "#666" }} />
+                </IconButton>
+              </Box>
+            </Box>
+            {/* Right Side - Products Grid (Fixed 4 cards, no scroll) */}
+            <Box
+              sx={{
+                display: "flex",
+                gap: 2,
+                flex: 1,
+                overflow: "hidden",
+              }}
+            >
+              {visibleProducts.map((product) => (
+                <ProductCard key={product.id} {...product} onClick={handleProductClick} />
+              ))}
+            </Box>
           </Box>
-        </Box>
-      </Container>
-    </Box>
+        </Container>
+      </Box>
+
+      {/* Quote Form Modal */}
+      <QuoteFormModal
+        isOpen={isQuoteModalOpen}
+        onClose={() => setIsQuoteModalOpen(false)}
+        productName={selectedProduct}
+      />
+    </>
   )
 }
 

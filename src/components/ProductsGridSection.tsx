@@ -4,7 +4,8 @@ import type React from "react"
 import { useState } from "react"
 import { Box, Typography, Container, Card, CardContent, Button, IconButton } from "@mui/material"
 import { ChevronLeft, ChevronRight } from "@mui/icons-material"
-import { useRouter } from "next/navigation"
+// import { useRouter } from "next/navigation"
+import QuoteFormModal from "./quote-form-modal"
 
 interface Product {
   id: string
@@ -16,7 +17,7 @@ interface Product {
 }
 
 interface ProductGridCardProps extends Product {
-  onClick: (productId: string) => void
+  onClick: (productId: string, productName: string) => void
 }
 
 const ProductGridCard: React.FC<ProductGridCardProps> = ({
@@ -29,12 +30,12 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
   onClick,
 }) => {
   const handleCardClick = () => {
-    onClick(id)
+    onClick(id, productName)
   }
 
   const handleGetQuoteClick = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent card click when clicking the button
-    onClick(id)
+    onClick(id, productName)
   }
 
   return (
@@ -79,7 +80,6 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
             }}
           />
         </Box>
-
         {/* Get Quote Button */}
         <Button
           fullWidth
@@ -100,7 +100,6 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
         >
           Get Quote
         </Button>
-
         {/* Content Section */}
         <Box sx={{ p: 2.5, flex: 1, display: "flex", flexDirection: "column" }}>
           {/* Product Name and Price Row */}
@@ -122,7 +121,6 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
             >
               {productName}
             </Typography>
-
             <Typography
               sx={{
                 color: "#3498db",
@@ -135,7 +133,6 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
               {price}
             </Typography>
           </Box>
-
           {/* Description and Price Description Row */}
           <Box
             sx={{
@@ -154,7 +151,6 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
             >
               {productDescription}
             </Typography>
-
             <Typography
               sx={{
                 color: "#3498db",
@@ -174,7 +170,9 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
 
 const ProductsGridSection: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1)
-  const router = useRouter()
+  // const router = useRouter()
+  const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<string>("")
 
   const products: Product[] = [
     {
@@ -211,9 +209,10 @@ const ProductsGridSection: React.FC = () => {
     },
   ]
 
-  const handleProductClick = (productId: string) => {
+  const handleProductClick = (productId: string, productName: string) => {
     // Navigate to product detail page with the product ID
-    router.push(`/product/${productId}`)
+    setSelectedProduct(productName)
+    setIsQuoteModalOpen(true)
   }
 
   const handlePrevious = () => {
@@ -225,98 +224,105 @@ const ProductsGridSection: React.FC = () => {
   }
 
   return (
-    <Box
-      sx={{
-        bgcolor: "#f1f5f9",
-        py: { xs: 4, md: 6 },
-      }}
-    >
-      <Container maxWidth="lg">
-        {/* Section Header */}
-        <Box sx={{ mb: 4 }}>
-          {/* Title with Orange Bar */}
+    <>
+      <Box
+        sx={{
+          bgcolor: "#f1f5f9",
+          py: { xs: 4, md: 6 },
+        }}
+      >
+        <Container maxWidth="lg">
+          {/* Section Header */}
+          <Box sx={{ mb: 4 }}>
+            {/* Title with Orange Bar */}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                mb: 2,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 4,
+                  height: 32,
+                  bgcolor: "#ff7849",
+                  mr: 2,
+                }}
+              />
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 600,
+                  color: "#333",
+                  fontSize: { xs: "1.8rem", md: "2.2rem" },
+                }}
+              >
+                Products
+              </Typography>
+            </Box>
+            {/* Navigation Arrows */}
+            <Box sx={{ display: "flex", gap: 1, ml: 6 }}>
+              <IconButton
+                onClick={handlePrevious}
+                disabled={currentPage === 1}
+                sx={{
+                  width: 24,
+                  height: 24,
+                  p: 0,
+                  color: "#666",
+                  "&:hover": {
+                    bgcolor: "#f5f5f5",
+                  },
+                  "&:disabled": {
+                    opacity: 0.5,
+                  },
+                }}
+              >
+                <ChevronLeft sx={{ fontSize: 16, color: "#666", mr: -0.5 }} />
+                <ChevronLeft sx={{ fontSize: 16, color: "#666" }} />
+              </IconButton>
+              <IconButton
+                onClick={handleNext}
+                sx={{
+                  width: 24,
+                  height: 24,
+                  p: 0,
+                  color: "#666",
+                  "&:hover": {
+                    bgcolor: "#f5f5f5",
+                  },
+                }}
+              >
+                <ChevronRight sx={{ fontSize: 16, color: "#666", mr: -0.5 }} />
+                <ChevronRight sx={{ fontSize: 16, color: "#666" }} />
+              </IconButton>
+            </Box>
+          </Box>
+          {/* Products Grid */}
           <Box
             sx={{
               display: "flex",
-              alignItems: "center",
-              mb: 2,
+              gap: 3,
+              justifyContent: "flex-start",
+              overflowX: "auto",
+              pb: 2,
             }}
           >
-            <Box
-              sx={{
-                width: 4,
-                height: 32,
-                bgcolor: "#ff7849",
-                mr: 2,
-              }}
-            />
-            <Typography
-              variant="h4"
-              sx={{
-                fontWeight: 600,
-                color: "#333",
-                fontSize: { xs: "1.8rem", md: "2.2rem" },
-              }}
-            >
-              Products
-            </Typography>
+            {products.map((product) => (
+              <ProductGridCard key={product.id} {...product} onClick={handleProductClick} />
+            ))}
           </Box>
+        </Container>
+      </Box>
 
-          {/* Navigation Arrows */}
-          <Box sx={{ display: "flex", gap: 1, ml: 6 }}>
-            <IconButton
-              onClick={handlePrevious}
-              disabled={currentPage === 1}
-              sx={{
-                width: 24,
-                height: 24,
-                p: 0,
-                color: "#666",
-                "&:hover": {
-                  bgcolor: "#f5f5f5",
-                },
-                "&:disabled": {
-                  opacity: 0.5,
-                },
-              }}
-            >
-              <ChevronLeft sx={{ fontSize: 16, color: "#666", mr: -0.5 }} />
-              <ChevronLeft sx={{ fontSize: 16, color: "#666" }} />
-            </IconButton>
-            <IconButton
-              onClick={handleNext}
-              sx={{
-                width: 24,
-                height: 24,
-                p: 0,
-                color: "#666",
-                "&:hover": {
-                  bgcolor: "#f5f5f5",
-                },
-              }}
-            >
-              <ChevronRight sx={{ fontSize: 16, color: "#666", mr: -0.5 }} />
-              <ChevronRight sx={{ fontSize: 16, color: "#666" }} />
-            </IconButton>
-          </Box>
-        </Box>
-
-        {/* Products Grid */}
-        <Box
-          sx={{
-            display: "flex",
-            gap: 3,
-            justifyContent: "flex-start",
-            overflowX: "auto",
-            pb: 2,
-          }}
-        >
-          {products.map((product) => (
-            <ProductGridCard key={product.id} {...product} onClick={handleProductClick} />
-          ))}
-        </Box>
-      </Container>
-    </Box>
+      {/* Quote Form Modal */}
+      <QuoteFormModal
+        isOpen={isQuoteModalOpen}
+        onClose={() => setIsQuoteModalOpen(false)}
+        productName={selectedProduct}
+      />
+    </>
   )
 }
 
