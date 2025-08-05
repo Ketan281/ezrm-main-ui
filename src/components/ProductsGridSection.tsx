@@ -4,7 +4,8 @@ import type React from "react"
 import { useState } from "react"
 import { Box, Typography, Container, Card, CardContent, Button, IconButton } from "@mui/material"
 import { ChevronLeft, ChevronRight } from "@mui/icons-material"
-// import { useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
+import { useAppStore } from "@/store/use-app-store"
 import QuoteFormModal from "./quote-form-modal"
 
 interface Product {
@@ -18,6 +19,8 @@ interface Product {
 
 interface ProductGridCardProps extends Product {
   onClick: (productId: string, productName: string) => void
+  onButtonClick: (productId: string, productName: string) => void
+  isAuthenticated: boolean
 }
 
 const ProductGridCard: React.FC<ProductGridCardProps> = ({
@@ -28,14 +31,16 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
   priceDescription,
   image,
   onClick,
+  onButtonClick,
+  isAuthenticated,
 }) => {
   const handleCardClick = () => {
     onClick(id, productName)
   }
 
-  const handleGetQuoteClick = (e: React.MouseEvent) => {
+  const handleButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent card click when clicking the button
-    onClick(id, productName)
+    onButtonClick(id, productName)
   }
 
   return (
@@ -80,11 +85,11 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
             }}
           />
         </Box>
-        {/* Get Quote Button */}
+        {/* Button */}
         <Button
           fullWidth
           variant="contained"
-          onClick={handleGetQuoteClick}
+          onClick={handleButtonClick}
           sx={{
             bgcolor: "#ff6b35",
             color: "white",
@@ -98,7 +103,7 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
             },
           }}
         >
-          Get Quote
+          {isAuthenticated ? "Buy" : "Get Quote"}
         </Button>
         {/* Content Section */}
         <Box sx={{ p: 2.5, flex: 1, display: "flex", flexDirection: "column" }}>
@@ -170,7 +175,8 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
 
 const ProductsGridSection: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1)
-  // const router = useRouter()
+  const router = useRouter()
+  const { isAuthenticated } = useAppStore()
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<string>("")
 
@@ -209,10 +215,20 @@ const ProductsGridSection: React.FC = () => {
     },
   ]
 
-  const handleProductClick = (productId: string, productName: string) => {
-    // Navigate to product detail page with the product ID
-    setSelectedProduct(productName)
-    setIsQuoteModalOpen(true)
+  const handleCardClick = (productId: string) => {
+    // Always redirect to detail page when clicking on card
+    router.push(`/product/detail/${productId}`)
+  }
+
+  const handleButtonClick = (productId: string, productName: string) => {
+    if (isAuthenticated) {
+      // If authenticated, redirect to detail page
+      router.push(`/product/detail/${productId}`)
+    } else {
+      // If not authenticated, open quote form modal
+      setSelectedProduct(productName)
+      setIsQuoteModalOpen(true)
+    }
   }
 
   const handlePrevious = () => {
@@ -310,12 +326,17 @@ const ProductsGridSection: React.FC = () => {
             }}
           >
             {products.map((product) => (
-              <ProductGridCard key={product.id} {...product} onClick={handleProductClick} />
+              <ProductGridCard
+                key={product.id}
+                {...product}
+                onClick={handleCardClick}
+                onButtonClick={handleButtonClick}
+                isAuthenticated={isAuthenticated}
+              />
             ))}
           </Box>
         </Container>
       </Box>
-
       {/* Quote Form Modal */}
       <QuoteFormModal
         isOpen={isQuoteModalOpen}

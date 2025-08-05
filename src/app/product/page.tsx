@@ -1,5 +1,4 @@
 "use client"
-
 import React from "react"
 import {
   Box,
@@ -18,10 +17,12 @@ import {
 import { Favorite, FavoriteBorder, ShoppingCart, Add, Remove } from "@mui/icons-material"
 import { useProductListing } from "@/api/handlers"
 import { useAppStore } from "@/store/use-app-store"
+import { useRouter } from "next/navigation"
 import type { Product } from "@/api/services"
 
 const ProductPage: React.FC = () => {
   const [page, setPage] = React.useState(1)
+  const router = useRouter()
   const {
     toggleFavorite,
     isFavorite,
@@ -47,6 +48,16 @@ const ProductPage: React.FC = () => {
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
     setPage(value)
+  }
+
+  const handleCardClick = (productId: string, event: React.MouseEvent) => {
+    // Prevent navigation if clicking on interactive elements
+    const target = event.target as HTMLElement
+    const isInteractiveElement = target.closest("button") || target.closest('[role="button"]')
+
+    if (!isInteractiveElement) {
+      router.push(`/product/detail/${productId}`)
+    }
   }
 
   const getProductImage = (product: Product) => {
@@ -137,6 +148,7 @@ const ProductPage: React.FC = () => {
               return (
                 <Card
                   key={product._id}
+                  onClick={(e) => handleCardClick(product._id, e)}
                   sx={{
                     width: {
                       xs: "calc(100vw - 32px)",
@@ -157,6 +169,7 @@ const ProductPage: React.FC = () => {
                     borderRadius: { xs: "8px", md: "12px" },
                     boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                     transition: "all 0.3s ease",
+                    cursor: "pointer",
                     "&:hover": {
                       boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
                       transform: "translateY(-2px)",
@@ -254,7 +267,6 @@ const ProductPage: React.FC = () => {
                     >
                       {product.name}
                     </Typography>
-
                     {/* Product Description */}
                     <Typography
                       variant="body2"
@@ -271,7 +283,6 @@ const ProductPage: React.FC = () => {
                     >
                       {product.description || product.category}
                     </Typography>
-
                     {/* Price */}
                     <Typography
                       variant="h6"
@@ -284,7 +295,6 @@ const ProductPage: React.FC = () => {
                     >
                       ₹{product.price.toLocaleString()}
                     </Typography>
-
                     {/* Product Code */}
                     <Typography
                       variant="body2"
@@ -297,7 +307,6 @@ const ProductPage: React.FC = () => {
                     >
                       Product Code: {product.uniqueId}
                     </Typography>
-
                     {/* Bottom Actions */}
                     <Box
                       sx={{
@@ -309,7 +318,10 @@ const ProductPage: React.FC = () => {
                     >
                       {/* Favorite Button */}
                       <IconButton
-                        onClick={() => toggleFavorite(product._id)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggleFavorite(product._id)
+                        }}
                         sx={{
                           color: isFavorite(product._id) ? "#ff4444" : "#ccc",
                           p: { xs: 0.25, md: 0.5 },
@@ -324,13 +336,13 @@ const ProductPage: React.FC = () => {
                           <FavoriteBorder sx={{ fontSize: { xs: 18, md: 20 } }} />
                         )}
                       </IconButton>
-
                       {/* Cart Controls */}
                       {quantity === 0 ? (
                         <Button
                           variant="contained"
                           disabled={!product.inStock}
-                          onClick={() =>
+                          onClick={(e) => {
+                            e.stopPropagation()
                             addToCart({
                               id: product._id,
                               name: product.name,
@@ -338,7 +350,7 @@ const ProductPage: React.FC = () => {
                               image: getProductImage(product),
                               uniqueId: product.uniqueId,
                             })
-                          }
+                          }}
                           sx={{
                             backgroundColor: product.inStock ? "#ff6b35" : "#ccc",
                             color: "white",
@@ -358,17 +370,32 @@ const ProductPage: React.FC = () => {
                         </Button>
                       ) : (
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                          <IconButton onClick={() => updateCartItemQuantity(product._id, quantity - 1)} size="small">
+                          <IconButton
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              updateCartItemQuantity(product._id, quantity - 1)
+                            }}
+                            size="small"
+                          >
                             <Remove />
                           </IconButton>
                           <Typography sx={{ minWidth: 20, textAlign: "center" }}>{quantity}</Typography>
-                          <IconButton onClick={() => updateCartItemQuantity(product._id, quantity + 1)} size="small">
+                          <IconButton
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              updateCartItemQuantity(product._id, quantity + 1)
+                            }}
+                            size="small"
+                          >
                             <Add />
                           </IconButton>
                           <Button
                             variant="outlined"
                             color="error"
-                            onClick={() => removeFromCart(product._id)}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              removeFromCart(product._id)
+                            }}
                             sx={{ ml: 1, fontSize: "0.7rem" }}
                           >
                             Remove

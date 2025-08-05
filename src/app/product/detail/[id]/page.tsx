@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
+import { useParams } from "next/navigation"
 import {
   Box,
   Typography,
@@ -23,9 +23,13 @@ import {
   Tabs,
   Tab,
   Container,
+  CircularProgress,
+  Alert,
 } from "@mui/material"
 import { FavoriteBorder, WhatsApp, Email, Share } from "@mui/icons-material"
 import Image from "next/image"
+import { useProductDetail } from "@/api/handlers/productDetailsHandler"
+import QuoteFormModal from "@/components/quote-form-modal"
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -35,7 +39,6 @@ interface TabPanelProps {
 
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props
-
   return (
     <div
       role="tabpanel"
@@ -50,8 +53,17 @@ function TabPanel(props: TabPanelProps) {
 }
 
 export default function ProductDetailPage() {
+  const params = useParams()
+  const productId = params.id as string
+
+  // Fetch product details
+  const { data: response, isLoading, error, isError } = useProductDetail(productId)
+
   // Tab state
   const [tabValue, setTabValue] = useState(1) // Product Description is active by default
+
+  // Quote modal state
+  const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false)
 
   // Dropdown states
   const [companySpecific, setCompanySpecific] = useState("Documents - Company Specific")
@@ -64,25 +76,74 @@ export default function ProductDetailPage() {
     setTabValue(newValue)
   }
 
+  const handlePlaceEnquiry = () => {
+    setIsQuoteModalOpen(true)
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <Container maxWidth="xl" sx={{ py: 4, display: "flex", justifyContent: "center" }}>
+        <CircularProgress />
+      </Container>
+    )
+  }
+
+  // Error state
+  if (isError) {
+    return (
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Alert severity="error">
+          Error loading product details: {error instanceof Error ? error.message : "Something went wrong"}
+        </Alert>
+      </Container>
+    )
+  }
+
+  const product = response?.data
+
+  if (!product) {
+    return (
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Alert severity="warning">Product not found</Alert>
+      </Container>
+    )
+  }
+
+  // Get product image
+  const getProductImage = () => {
+    if (product.bannerImage) {
+      return product.bannerImage.startsWith("http")
+        ? product.bannerImage
+        : `${process.env.NEXT_PUBLIC_API_URL}/${product.bannerImage}`
+    }
+    if (product.images && product.images.length > 0) {
+      const firstImage = product.images[0]
+      return firstImage.startsWith("http") ? firstImage : `${process.env.NEXT_PUBLIC_API_URL}/${firstImage}`
+    }
+    return "/placeholder.svg?height=400&width=600"
+  }
+
   // Data
   const pricingData = [
-    { quantity: "25 KG", price: "$17.50", save: "10%" },
-    { quantity: "50 KG", price: "$17.50", save: "10%" },
-    { quantity: "100 KG", price: "$17.50", save: "10%" },
+    { quantity: "25 KG", price: `₹${product.price.toLocaleString()}`, save: "10%" },
+    { quantity: "50 KG", price: `₹${(product.price * 0.95).toLocaleString()}`, save: "15%" },
+    { quantity: "100 KG", price: `₹${(product.price * 0.9).toLocaleString()}`, save: "20%" },
   ]
 
   const productDescriptionData = [
-    { label: "Product Category", value: "Category ABCD" },
-    { label: "Product ID", value: "M123456" },
-    { label: "Product Type", value: "lorem ipsum" },
-    { label: "Product Usage", value: "Lorem ipsum lorem ipsum lorem CONSECTETUR consectetur lorem ipsum" },
+    { label: "Product Category", value: product.category || "N/A" },
+    { label: "Product ID", value: product.uniqueId },
+    { label: "Product Type", value: product.appearance || "N/A" },
+    { label: "Product Usage", value: product.description },
+    { label: "Stock Status", value: product.inStock ? "In Stock" : "Out of Stock" },
   ]
 
   const features = [
     { label: "Allergen Free", color: "#ff6b35" },
     { label: "GMO Free", color: "#ff6b35" },
     { label: "Vegan", color: "#ff6b35" },
-    { label: "Allergen Free", color: "#ff6b35" },
+    { label: "Quality Assured", color: "#ff6b35" },
   ]
 
   return (
@@ -97,7 +158,7 @@ export default function ProductDetailPage() {
             color: "#333",
           }}
         >
-          Product Name / Product Category lorem ipsum
+          {product.name} / {product.category}
         </Typography>
 
         {/* Main Content - 70% Left, 30% Right */}
@@ -116,7 +177,12 @@ export default function ProductDetailPage() {
                 mb: 3,
               }}
             >
-              <Image src="/detailProduct.png" alt="Product Image" fill style={{ objectFit: "cover" }} />
+              <Image
+                src={getProductImage() || "/placeholder.svg"}
+                alt={product.name}
+                fill
+                style={{ objectFit: "cover" }}
+              />
             </Box>
 
             {/* Three Tabs Container */}
@@ -162,12 +228,18 @@ export default function ProductDetailPage() {
                     Product Description
                   </Typography>
                   <Typography variant="body2" sx={{ lineHeight: 1.6, color: "#666", mb: 3 }}>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore
-                    et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-                    aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-                    cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-                    culpa qui officia deserunt mollit anim id est laborum.
+                    {product.description}
                   </Typography>
+                  {product.appearance && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                        Appearance:
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: "#666" }}>
+                        {product.appearance}
+                      </Typography>
+                    </Box>
+                  )}
                 </Box>
               </TabPanel>
 
@@ -209,10 +281,10 @@ export default function ProductDetailPage() {
             <Box sx={{ height: 400, display: "flex", flexDirection: "column" }}>
               {/* Product Title */}
               <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
-                Product Name / <span style={{ fontWeight: 400 }}>Product Category</span>
+                {product.name} / <span style={{ fontWeight: 400 }}>{product.category}</span>
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                lorem ipsum
+                {product.uniqueId}
               </Typography>
 
               {/* Product Icons */}
@@ -305,8 +377,10 @@ export default function ProductDetailPage() {
               <Button
                 variant="contained"
                 fullWidth
+                onClick={handlePlaceEnquiry}
+                disabled={!product.inStock}
                 sx={{
-                  backgroundColor: "#ff6b35",
+                  backgroundColor: product.inStock ? "#ff6b35" : "#ccc",
                   color: "white",
                   py: 1.5,
                   fontSize: "14px",
@@ -315,11 +389,11 @@ export default function ProductDetailPage() {
                   borderRadius: 1,
                   mb: 2,
                   "&:hover": {
-                    backgroundColor: "#e55a2b",
+                    backgroundColor: product.inStock ? "#e55a2b" : "#ccc",
                   },
                 }}
               >
-                Place a Enquiry
+                {product.inStock ? "Place an Enquiry" : "Out of Stock"}
               </Button>
 
               {/* Social Icons */}
@@ -347,7 +421,6 @@ export default function ProductDetailPage() {
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: "16px" }}>
                 Company Specific Documents
               </Typography>
-
               {/* Connected Dropdowns - No gaps */}
               <Box sx={{ display: "flex", flexDirection: "column" }}>
                 <FormControl fullWidth size="small">
@@ -373,7 +446,6 @@ export default function ProductDetailPage() {
                     <MenuItem value="doc2">Company Document 2</MenuItem>
                   </Select>
                 </FormControl>
-
                 <FormControl fullWidth size="small">
                   <Select
                     value={facilitySpecific}
@@ -398,7 +470,6 @@ export default function ProductDetailPage() {
                     <MenuItem value="doc2">Facility Document 2</MenuItem>
                   </Select>
                 </FormControl>
-
                 <FormControl fullWidth size="small">
                   <Select
                     value={productSpecific}
@@ -423,7 +494,6 @@ export default function ProductDetailPage() {
                     <MenuItem value="doc2">Product Document 2</MenuItem>
                   </Select>
                 </FormControl>
-
                 <FormControl fullWidth size="small">
                   <Select
                     value={batchSpecific}
@@ -455,7 +525,6 @@ export default function ProductDetailPage() {
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, fontSize: "16px" }}>
                 Request For Sample
               </Typography>
-
               <Button
                 variant="contained"
                 fullWidth
@@ -475,7 +544,6 @@ export default function ProductDetailPage() {
               >
                 Request Now
               </Button>
-
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "13px" }}>
                   Minimum Order Quantity:
@@ -497,6 +565,14 @@ export default function ProductDetailPage() {
           </Box>
         </Box>
       </Box>
+
+      {/* Quote Form Modal */}
+      <QuoteFormModal
+        isOpen={isQuoteModalOpen}
+        onClose={() => setIsQuoteModalOpen(false)}
+        productName={product.name}
+        productId={product._id}
+      />
     </Container>
   )
 }

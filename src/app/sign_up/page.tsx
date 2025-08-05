@@ -483,7 +483,8 @@ export default function RegisterPage() {
         )}
 
         <Grid container spacing={3}>
-          <Grid>
+          {/* Row 1: Name and Phone */}
+          <Grid >
             <TextField
               fullWidth
               label="Name *"
@@ -507,6 +508,8 @@ export default function RegisterPage() {
               disabled={completeSignupMutation.isPending}
             />
           </Grid>
+
+          {/* Row 2: Company Name (Full Width) */}
           <Grid >
             <TextField
               fullWidth
@@ -519,6 +522,8 @@ export default function RegisterPage() {
               disabled={completeSignupMutation.isPending}
             />
           </Grid>
+
+          {/* Row 3: Industry and Website */}
           <Grid >
             <FormControl fullWidth error={!!formErrors.industry}>
               <InputLabel>Industry *</InputLabel>
@@ -553,6 +558,8 @@ export default function RegisterPage() {
               disabled={completeSignupMutation.isPending}
             />
           </Grid>
+
+          {/* Row 4: Employee Count and Annual Revenue */}
           <Grid >
             <TextField
               fullWidth
@@ -564,7 +571,7 @@ export default function RegisterPage() {
               disabled={completeSignupMutation.isPending}
             />
           </Grid>
-          <Grid>
+          <Grid >
             <TextField
               fullWidth
               label="Annual Revenue"
@@ -574,6 +581,8 @@ export default function RegisterPage() {
               disabled={completeSignupMutation.isPending}
             />
           </Grid>
+
+          {/* Row 5: Business Type and Tax ID */}
           <Grid >
             <FormControl fullWidth>
               <InputLabel>Business Type</InputLabel>
@@ -591,7 +600,7 @@ export default function RegisterPage() {
               </Select>
             </FormControl>
           </Grid>
-          <Grid>
+          <Grid >
             <TextField
               fullWidth
               label="Tax ID"
@@ -601,7 +610,9 @@ export default function RegisterPage() {
               disabled={completeSignupMutation.isPending}
             />
           </Grid>
-          <Grid>
+
+          {/* Row 6: Registration Number and Contact Person */}
+          <Grid >
             <TextField
               fullWidth
               label="Registration Number"
@@ -611,7 +622,7 @@ export default function RegisterPage() {
               disabled={completeSignupMutation.isPending}
             />
           </Grid>
-          <Grid>
+          <Grid >
             <TextField
               fullWidth
               label="Contact Person *"
@@ -623,7 +634,9 @@ export default function RegisterPage() {
               disabled={completeSignupMutation.isPending}
             />
           </Grid>
-          <Grid>
+
+          {/* Row 7: Contact Person Phone and Email */}
+          <Grid >
             <TextField
               fullWidth
               label="Contact Person Phone *"
@@ -635,7 +648,7 @@ export default function RegisterPage() {
               disabled={completeSignupMutation.isPending}
             />
           </Grid>
-          <Grid>
+          <Grid >
             <TextField
               fullWidth
               label="Contact Person Email *"
@@ -647,6 +660,8 @@ export default function RegisterPage() {
               disabled={completeSignupMutation.isPending}
             />
           </Grid>
+
+          {/* Row 8: Notes (Full Width) */}
           <Grid>
             <TextField
               fullWidth

@@ -1,7 +1,8 @@
 import type React from "react"
 import { Box, Typography, TextField, Button, Container } from "@mui/material"
-
+import { useAppStore } from "@/store/use-app-store"
 const Hero: React.FC = () => {
+  const { isAuthenticated } = useAppStore()
   return (
     <Container maxWidth="lg" sx={{
         // border:"1px solid red"
@@ -98,7 +99,7 @@ const Hero: React.FC = () => {
               },
             }}
           >
-            Request Quote
+            {isAuthenticated? 'Buy' : 'Request Quote'}
           </Button>
         </Box>
       </Box>

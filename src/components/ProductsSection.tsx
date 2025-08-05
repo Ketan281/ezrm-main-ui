@@ -4,7 +4,8 @@ import type React from "react"
 import { useState } from "react"
 import { Box, Typography, Container, Card, CardContent, Button, IconButton } from "@mui/material"
 import { ChevronLeft, ChevronRight } from "@mui/icons-material"
-// import { useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
+import { useAppStore } from "@/store/use-app-store"
 import QuoteFormModal from "./quote-form-modal"
 
 interface Product {
@@ -17,16 +18,27 @@ interface Product {
 
 interface ProductCardProps extends Product {
   onClick: (productId: string, productName: string) => void
+  onButtonClick: (productId: string, productName: string) => void
+  isAuthenticated: boolean
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ id, productName, description, priceLabel, price, onClick }) => {
+const ProductCard: React.FC<ProductCardProps> = ({
+  id,
+  productName,
+  description,
+  priceLabel,
+  price,
+  onClick,
+  onButtonClick,
+  isAuthenticated,
+}) => {
   const handleCardClick = () => {
     onClick(id, productName)
   }
 
-  const handleGetQuoteClick = (e: React.MouseEvent) => {
+  const handleButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent card click when clicking the button
-    onClick(id, productName)
+    onButtonClick(id, productName)
   }
 
   return (
@@ -191,11 +203,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, productName, description,
             </Typography>
           </Box>
         </Box>
-        {/* Get Quote Button - Flush with bottom */}
+        {/* Button - Flush with bottom */}
         <Button
           fullWidth
           variant="contained"
-          onClick={handleGetQuoteClick}
+          onClick={handleButtonClick}
           sx={{
             bgcolor: "#ff7849",
             color: "white",
@@ -204,13 +216,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, productName, description,
             borderRadius: "0 0 12px 12px",
             textTransform: "none",
             fontSize: "0.9rem",
-            // mb:2,
             "&:hover": {
               bgcolor: "#e66a3c",
             },
           }}
         >
-          Get Quote
+          {isAuthenticated ? "Buy" : "Get Quote"}
         </Button>
       </CardContent>
     </Card>
@@ -218,7 +229,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, productName, description,
 }
 
 const ProductsSection: React.FC = () => {
-  // const router = useRouter()
+  const router = useRouter()
+  const { isAuthenticated } = useAppStore()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<string>("")
@@ -268,10 +280,20 @@ const ProductsSection: React.FC = () => {
     },
   ]
 
-  const handleProductClick = (productId: string, productName: string) => {
-    // Navigate to product detail page with the product ID
-    setSelectedProduct(productName)
-    setIsQuoteModalOpen(true)
+  const handleCardClick = (productId: string) => {
+    // Always redirect to detail page when clicking on card
+    router.push(`/product/detail/${productId}`)
+  }
+
+  const handleButtonClick = (productId: string, productName: string) => {
+    if (isAuthenticated) {
+      // If authenticated, redirect to detail page
+      router.push(`/product/detail/${productId}`)
+    } else {
+      // If not authenticated, open quote form modal
+      setSelectedProduct(productName)
+      setIsQuoteModalOpen(true)
+    }
   }
 
   const handlePrevious = () => {
@@ -391,13 +413,18 @@ const ProductsSection: React.FC = () => {
               }}
             >
               {visibleProducts.map((product) => (
-                <ProductCard key={product.id} {...product} onClick={handleProductClick} />
+                <ProductCard
+                  key={product.id}
+                  {...product}
+                  onClick={handleCardClick}
+                  onButtonClick={handleButtonClick}
+                  isAuthenticated={isAuthenticated}
+                />
               ))}
             </Box>
           </Box>
         </Container>
       </Box>
-
       {/* Quote Form Modal */}
       <QuoteFormModal
         isOpen={isQuoteModalOpen}

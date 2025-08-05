@@ -1,6 +1,6 @@
 "use client"
-
 import type React from "react"
+import { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -12,27 +12,194 @@ import {
   Typography,
   IconButton,
   Box,
+  CircularProgress,
+  Alert,
 } from "@mui/material"
 import { Close } from "@mui/icons-material"
+import { useCreateRFQ } from "../api/handlers/rfqHandler"
+import type { CreateRFQRequest } from "../api/services/rfq"
 
 interface QuoteFormModalProps {
   isOpen: boolean
   onClose: () => void
   productName?: string
+  productId?: string
 }
 
-const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, productName }) => {
-  const handleSubmit = (e: React.FormEvent) => {
+interface FormData {
+  customerName: string
+  customerEmail: string
+  customerPhone: string
+  customerPhoneCountryCode: string
+  productName: string
+  quantity: number
+  companyWebsiteLink: string
+  department: string
+  companyType: string
+  monthlyVolume: string
+  timeline: string
+  availabilityDay: string
+  availabilityTime: string
+}
+
+interface FormErrors {
+  [key: string]: string
+}
+
+const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, productName = "", productId = "" }) => {
+  const createRFQMutation = useCreateRFQ()
+
+  const [formData, setFormData] = useState<FormData>({
+    customerName: "",
+    customerEmail: "",
+    customerPhone: "",
+    customerPhoneCountryCode: "+1",
+    productName: productName || "Organic Mucuna pruriens Powder",
+    quantity: 1,
+    companyWebsiteLink: "",
+    department: "",
+    companyType: "",
+    monthlyVolume: "",
+    timeline: "",
+    availabilityDay: "",
+    availabilityTime: "",
+  })
+
+  const [errors, setErrors] = useState<FormErrors>({})
+  const [showSuccess, setShowSuccess] = useState(false)
+
+  // Update product name when prop changes
+  useEffect(() => {
+    if (productName) {
+      setFormData((prev) => ({ ...prev, productName }))
+    }
+  }, [productName])
+
+  const handleInputChange = (field: keyof FormData, value: string | number) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors((prev) => ({
+        ...prev,
+        [field]: "",
+      }))
+    }
+  }
+
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {}
+
+    // Required field validation
+    if (!formData.customerName.trim()) newErrors.customerName = "Customer name is required"
+    if (!formData.customerEmail.trim()) newErrors.customerEmail = "Email is required"
+    if (!formData.customerPhone.trim()) newErrors.customerPhone = "Phone number is required"
+    if (!formData.productName.trim()) newErrors.productName = "Product name is required"
+    if (!formData.quantity || formData.quantity <= 0) newErrors.quantity = "Valid quantity is required"
+    if (!formData.department) newErrors.department = "Department is required"
+    if (!formData.monthlyVolume) newErrors.monthlyVolume = "Monthly volume is required"
+    if (!formData.timeline) newErrors.timeline = "Timeline is required"
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (formData.customerEmail && !emailRegex.test(formData.customerEmail)) {
+      newErrors.customerEmail = "Please enter a valid email address"
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const mapFormDataToRFQ = (data: FormData): CreateRFQRequest => {
+    // Map timeline to urgency
+    const getUrgency = (timeline: string): "low" | "medium" | "high" => {
+      switch (timeline) {
+        case "immediate":
+        case "1-week":
+          return "high"
+        case "1-month":
+          return "medium"
+        case "3-months":
+        default:
+          return "low"
+      }
+    }
+
+    // Create description from monthly volume and company type
+    const description = `Monthly Volume: ${data.monthlyVolume}${
+      data.companyType ? `, Company Type: ${data.companyType}` : ""
+    }`
+
+    return {
+      customerName: data.customerName,
+      customerEmail: data.customerEmail,
+      customerPhone: data.customerPhone,
+      customerPhoneCountryCode: data.customerPhoneCountryCode,
+      productId: productId || undefined,
+      productName: data.productName,
+      quantity: data.quantity,
+      description,
+      urgency: getUrgency(data.timeline),
+      status: "pending",
+      companyWebsiteLink: data.companyWebsiteLink || undefined,
+      department: data.department,
+      availabilityDay: data.availabilityDay || undefined,
+      availabilityTime: data.availabilityTime || undefined,
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle form submission here
-    console.log("Form submitted")
+
+    if (!validateForm()) {
+      return
+    }
+
+    try {
+      const rfqData = mapFormDataToRFQ(formData)
+      await createRFQMutation.mutateAsync(rfqData)
+
+      // Reset form and show success
+      setFormData({
+        customerName: "",
+        customerEmail: "",
+        customerPhone: "",
+        customerPhoneCountryCode: "+1",
+        productName: productName || "Organic Mucuna pruriens Powder",
+        quantity: 1,
+        companyWebsiteLink: "",
+        department: "",
+        companyType: "",
+        monthlyVolume: "",
+        timeline: "",
+        availabilityDay: "",
+        availabilityTime: "",
+      })
+      setShowSuccess(true)
+
+      // Auto-close after 3 seconds
+      setTimeout(() => {
+        setShowSuccess(false)
+        onClose()
+      }, 3000)
+    } catch (error) {
+      console.error("Failed to submit RFQ:", error)
+    }
+  }
+
+  const handleClose = () => {
+    setShowSuccess(false)
+    setErrors({})
     onClose()
   }
 
   return (
     <Dialog
       open={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       maxWidth={false}
       PaperProps={{
         sx: {
@@ -58,7 +225,7 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
             Tell Us Your Requirement
           </Typography>
           <IconButton
-            onClick={onClose}
+            onClick={handleClose}
             sx={{
               position: "absolute",
               right: 16,
@@ -73,8 +240,69 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
           </IconButton>
         </Box>
 
+        {/* Success Message */}
+        {showSuccess && (
+          <Box sx={{ px: 3, pb: 2 }}>
+            <Alert severity="success" sx={{ borderRadius: "6px" }}>
+              Your quote request has been submitted successfully! We will get back to you soon.
+            </Alert>
+          </Box>
+        )}
+
+        {/* Error Message */}
+        {createRFQMutation.isError && (
+          <Box sx={{ px: 3, pb: 2 }}>
+            <Alert severity="error" sx={{ borderRadius: "6px" }}>
+              {createRFQMutation.error?.message || "Failed to submit quote request. Please try again."}
+            </Alert>
+          </Box>
+        )}
+
         {/* Form */}
         <Box component="form" onSubmit={handleSubmit} sx={{ px: 3, pb: 3 }}>
+          {/* Customer Name - Full Width */}
+          <Box sx={{ mb: 2.5 }}>
+            <Typography
+              sx={{
+                fontSize: "14px",
+                color: "#333",
+                mb: 1,
+                fontWeight: 500,
+              }}
+            >
+              <span style={{ color: "#ff4444" }}>*</span> Customer Name
+            </Typography>
+            <TextField
+              fullWidth
+              required
+              value={formData.customerName}
+              onChange={(e) => handleInputChange("customerName", e.target.value)}
+              error={!!errors.customerName}
+              helperText={errors.customerName}
+              variant="outlined"
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  height: "45px",
+                  fontSize: "14px",
+                  borderRadius: "6px",
+                  "& fieldset": {
+                    borderColor: "#e0e0e0",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "#ccc",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#4CAF50",
+                    borderWidth: "1px",
+                  },
+                },
+                "& .MuiInputBase-input": {
+                  padding: "12px 14px",
+                },
+              }}
+            />
+          </Box>
+
           {/* Enter Product - Full Width */}
           <Box sx={{ mb: 2.5 }}>
             <Typography
@@ -90,7 +318,10 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
             <TextField
               fullWidth
               required
-              defaultValue={productName || "Organic Mucuna pruriens Powder"}
+              value={formData.productName}
+              onChange={(e) => handleInputChange("productName", e.target.value)}
+              error={!!errors.productName}
+              helperText={errors.productName}
               variant="outlined"
               sx={{
                 "& .MuiOutlinedInput-root": {
@@ -132,7 +363,10 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
                 fullWidth
                 required
                 type="number"
-                defaultValue="1"
+                value={formData.quantity}
+                onChange={(e) => handleInputChange("quantity", Number.parseInt(e.target.value) || 1)}
+                error={!!errors.quantity}
+                helperText={errors.quantity}
                 variant="outlined"
                 sx={{
                   "& .MuiOutlinedInput-root": {
@@ -170,6 +404,8 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
               <TextField
                 fullWidth
                 placeholder="Ex. www.example.com"
+                value={formData.companyWebsiteLink}
+                onChange={(e) => handleInputChange("companyWebsiteLink", e.target.value)}
                 variant="outlined"
                 sx={{
                   "& .MuiOutlinedInput-root": {
@@ -217,6 +453,10 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
                 required
                 type="email"
                 placeholder="Ex. user@example.com"
+                value={formData.customerEmail}
+                onChange={(e) => handleInputChange("customerEmail", e.target.value)}
+                error={!!errors.customerEmail}
+                helperText={errors.customerEmail}
                 variant="outlined"
                 sx={{
                   "& .MuiOutlinedInput-root": {
@@ -258,7 +498,8 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
               <Box sx={{ display: "flex", gap: 1 }}>
                 <FormControl sx={{ minWidth: "80px" }}>
                   <Select
-                    defaultValue="+1"
+                    value={formData.customerPhoneCountryCode}
+                    onChange={(e) => handleInputChange("customerPhoneCountryCode", e.target.value)}
                     variant="outlined"
                     sx={{
                       height: "45px",
@@ -290,6 +531,10 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
                   fullWidth
                   required
                   placeholder="345446645"
+                  value={formData.customerPhone}
+                  onChange={(e) => handleInputChange("customerPhone", e.target.value)}
+                  error={!!errors.customerPhone}
+                  helperText={errors.customerPhone}
                   variant="outlined"
                   sx={{
                     "& .MuiOutlinedInput-root": {
@@ -336,6 +581,9 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
               <FormControl fullWidth required>
                 <Select
                   displayEmpty
+                  value={formData.department}
+                  onChange={(e) => handleInputChange("department", e.target.value)}
+                  error={!!errors.department}
                   variant="outlined"
                   sx={{
                     height: "45px",
@@ -372,6 +620,9 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
                   <MenuItem value="operations">Operations</MenuItem>
                 </Select>
               </FormControl>
+              {errors.department && (
+                <Typography sx={{ color: "#d32f2f", fontSize: "12px", mt: 0.5 }}>{errors.department}</Typography>
+              )}
             </Box>
             <Box sx={{ flex: 1 }}>
               <Typography
@@ -387,6 +638,8 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
               <FormControl fullWidth>
                 <Select
                   displayEmpty
+                  value={formData.companyType}
+                  onChange={(e) => handleInputChange("companyType", e.target.value)}
                   variant="outlined"
                   sx={{
                     height: "45px",
@@ -442,6 +695,9 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
               <FormControl fullWidth required>
                 <Select
                   displayEmpty
+                  value={formData.monthlyVolume}
+                  onChange={(e) => handleInputChange("monthlyVolume", e.target.value)}
+                  error={!!errors.monthlyVolume}
                   variant="outlined"
                   sx={{
                     height: "45px",
@@ -478,6 +734,9 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
                   <MenuItem value="100+">100+ units</MenuItem>
                 </Select>
               </FormControl>
+              {errors.monthlyVolume && (
+                <Typography sx={{ color: "#d32f2f", fontSize: "12px", mt: 0.5 }}>{errors.monthlyVolume}</Typography>
+              )}
             </Box>
             <Box sx={{ flex: 1 }}>
               <Typography
@@ -493,6 +752,9 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
               <FormControl fullWidth required>
                 <Select
                   displayEmpty
+                  value={formData.timeline}
+                  onChange={(e) => handleInputChange("timeline", e.target.value)}
+                  error={!!errors.timeline}
                   variant="outlined"
                   sx={{
                     height: "45px",
@@ -529,6 +791,9 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
                   <MenuItem value="3-months">Within 3 months</MenuItem>
                 </Select>
               </FormControl>
+              {errors.timeline && (
+                <Typography sx={{ color: "#d32f2f", fontSize: "12px", mt: 0.5 }}>{errors.timeline}</Typography>
+              )}
             </Box>
           </Box>
 
@@ -559,6 +824,8 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
                 <FormControl fullWidth>
                   <Select
                     displayEmpty
+                    value={formData.availabilityDay}
+                    onChange={(e) => handleInputChange("availabilityDay", e.target.value)}
                     variant="outlined"
                     sx={{
                       height: "45px",
@@ -610,6 +877,8 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
                 <FormControl fullWidth>
                   <Select
                     displayEmpty
+                    value={formData.availabilityTime}
+                    onChange={(e) => handleInputChange("availabilityTime", e.target.value)}
                     variant="outlined"
                     sx={{
                       height: "45px",
@@ -656,6 +925,7 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
             type="submit"
             fullWidth
             variant="contained"
+            disabled={createRFQMutation.isPending}
             sx={{
               bgcolor: "#F05A25",
               color: "white",
@@ -672,9 +942,20 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
               "&:active": {
                 boxShadow: "none",
               },
+              "&:disabled": {
+                bgcolor: "#ccc",
+                color: "#666",
+              },
             }}
           >
-            Place an Enquiry
+            {createRFQMutation.isPending ? (
+              <>
+                <CircularProgress size={20} sx={{ mr: 1, color: "inherit" }} />
+                Submitting...
+              </>
+            ) : (
+              "Place an Enquiry"
+            )}
           </Button>
         </Box>
       </DialogContent>
