@@ -16,14 +16,14 @@ const HomePage: React.FC = () => {
       {/* Main Orange Section with Background Image */}
       <Box
         sx={{
-          backgroundImage: "url('/heroborder.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          position: "relative",
-          minHeight: "100vh",
+          // backgroundImage: "url('/heroborder.png')",
+          // backgroundSize: "cover",
+          // backgroundPosition: "center",
+          // backgroundRepeat: "no-repeat",
+          // position: "relative",
+          // minHeight: "80vh",
           // Fallback gradient in case image doesn't load
-          background: "linear-gradient(135deg, #ff7849 0%, #ff6b35 100%)",
+          // background: "linear-gradient(135deg, #ff7849 0%, #ff6b35 100%)",
         }}
       >
         <Hero />

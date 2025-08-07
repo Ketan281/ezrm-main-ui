@@ -2,10 +2,7 @@
   min-height: 100vh;
 }
 
-.orangeSection {
-  background: linear-gradient(135deg, #ff7849 0%, #ff6b35 100%);
-  position: relative;
-}
+
 
 .curvedBottom {
   position: absolute;
