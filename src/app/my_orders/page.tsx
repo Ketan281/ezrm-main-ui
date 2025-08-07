@@ -9,14 +9,14 @@ import ProtectedRoute from "@/components/ProtectedRoute"
 import { useAppStore } from "@/store/use-app-store"
 import { useCustomerOrders } from "@/api/handlers"
 import type { CustomerOrder } from "@/api/services"
-
+import { useRouter } from "next/navigation"
 interface OrderCardProps {
   order: CustomerOrder
   onViewDetails: () => void
   onBuyAgain?: () => void
 }
 
-const OrderCard: React.FC<OrderCardProps> = ({ order, onViewDetails, onBuyAgain }) => {
+const OrderCard: React.FC<OrderCardProps> = ({ order, onBuyAgain }) => {
   // Format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -89,7 +89,10 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onViewDetails, onBuyAgain 
 
   const statusBadges = getStatusBadges(order.orderStatus, order.paymentStatus)
   const canBuyAgain = order.orderStatus === "delivered"
-
+  const router = useRouter();
+    const handleDetailClick = () => {
+    router.push("/orderDetails")
+  }
   return (
     <Box
       sx={{
@@ -143,7 +146,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onViewDetails, onBuyAgain 
         {/* Right Section - View Order Details */}
         <Button
           endIcon={<ArrowForward sx={{ fontSize: 16 }} />}
-          onClick={onViewDetails}
+          onClick={handleDetailClick}
           sx={{
             color: "#333",
             fontSize: "14px",

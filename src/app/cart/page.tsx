@@ -16,8 +16,10 @@ import {
   Paper,
   Container,
 } from "@mui/material"
-import { Add, Remove } from "@mui/icons-material"
+import { Add, Remove, ShoppingCartOutlined, Login } from "@mui/icons-material"
 import { useRouter } from "next/navigation"
+import { useAppStore } from "@/store/use-app-store"
+
 interface CartItem {
   id: number
   name: string
@@ -29,6 +31,9 @@ interface CartItem {
 }
 
 const ShoppingCart: React.FC = () => {
+  const router = useRouter()
+  const { isAuthenticated, customer } = useAppStore()
+  
   const [cartItems, setCartItems] = useState<CartItem[]>([
     {
       id: 1,
@@ -49,9 +54,9 @@ const ShoppingCart: React.FC = () => {
       inStock: true,
     },
   ])
-
+  
   const [discount, setDiscount] = useState("")
-  const router = useRouter();
+
   const updateQuantity = (id: number, newQuantity: number) => {
     if (newQuantity < 1) return
     setCartItems((items) => items.map((item) => (item.id === id ? { ...item, quantity: newQuantity } : item)))
@@ -64,6 +69,169 @@ const ShoppingCart: React.FC = () => {
     router.push('/checkout')
   }
 
+  const handleLogin = () => {
+    router.push('/sign_in')
+  }
+
+  const handleSignUp = () => {
+    router.push('/sign_up')
+  }
+
+  // Authentication fallback UI
+  if (!isAuthenticated || !customer) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 3 }}>
+        <Paper
+          elevation={0}
+          sx={{
+            p: 3,
+            backgroundColor: "white",
+            borderRadius: 2,
+          }}
+        >
+          {/* Header */}
+
+          {/* Authentication Required Content */}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              py: 0,
+              textAlign: "center",
+            }}
+          >
+            {/* Cart Icon */}
+            <Box
+              sx={{
+                width: 120,
+                height: 120,
+                backgroundColor: "#fafafa",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                mb: 1,
+                border: "2px dashed #e0e0e0",
+              }}
+            >
+              <ShoppingCartOutlined
+                sx={{
+                  fontSize: 48,
+                  color: "#ff6b35",
+                }}
+              />
+            </Box>
+
+            {/* Main Message */}
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 600,
+                color: "#333",
+                fontSize: "1.1rem",
+                mb: 1,
+              }}
+            >
+              Please Login to View Your Cart
+            </Typography>
+
+            {/* Description */}
+            <Typography
+              variant="body1"
+              sx={{
+                color: "#666",
+                fontSize: "0.875rem",
+                mb: 4,
+                maxWidth: 400,
+                lineHeight: 1.6,
+              }}
+            >
+              You need to be signed in to view and manage your shopping cart items. 
+              Login to your account or create a new one to get started.
+            </Typography>
+
+            {/* Action Buttons */}
+            <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", justifyContent: "center" }}>
+              <Button
+                variant="contained"
+                onClick={handleLogin}
+                startIcon={<Login />}
+                sx={{
+                  backgroundColor: "#ff6b35",
+                  color: "white",
+                  px: 4,
+                  py: 0.5,
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  textTransform: "none",
+                  borderRadius: 1,
+                  minWidth: 140,
+                  "&:hover": {
+                    backgroundColor: "#e55a2b",
+                  },
+                }}
+              >
+                Login
+              </Button>
+              
+              <Button
+                variant="outlined"
+                onClick={handleSignUp}
+                sx={{
+                  borderColor: "#ff6b35",
+                  color: "#ff6b35",
+                  px: 4,
+                  py: 1,
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  textTransform: "none",
+                  borderRadius: 1,
+                  minWidth: 140,
+                  "&:hover": {
+                    borderColor: "#e55a2b",
+                    backgroundColor: "rgba(255, 107, 53, 0.04)",
+                  },
+                }}
+              >
+                Sign Up
+              </Button>
+            </Box>
+
+            {/* Additional Info */}
+            <Box
+              sx={{
+                mt: 1,
+                p: 3,
+                backgroundColor: "#fafafa",
+                borderRadius: 1,
+                maxWidth: 500,
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "#666",
+                  fontSize: "0.75rem",
+                  lineHeight: 1.45,
+                  textAlign: "center",
+                }}
+              >
+                <strong>Why sign in?</strong><br />
+                • Save items for later<br />
+                • Track your orders<br />
+                • Faster checkout process<br />
+                • Access exclusive deals
+              </Typography>
+            </Box>
+          </Box>
+        </Paper>
+      </Container>
+    )
+  }
+
+  // Authenticated user - show normal cart
   return (
     <Container maxWidth="lg" sx={{ py: 3 }}>
       <Paper
@@ -94,7 +262,6 @@ const ShoppingCart: React.FC = () => {
             Shopping Cart
           </Typography>
         </Box>
-
         <Box
           sx={{
             flexDirection: { xs: "column", lg: "row" },
@@ -108,7 +275,6 @@ const ShoppingCart: React.FC = () => {
                 backgroundColor: "white",
                 borderRadius: 1,
                 mb: 3,
-                // boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
               }}
             >
               <Table sx={{ borderCollapse: "separate", borderSpacing: "0 8px" }}>
@@ -169,9 +335,9 @@ const ShoppingCart: React.FC = () => {
                 </TableHead>
                 <TableBody>
                   {cartItems.map((item) => (
-                    <TableRow 
-                      key={item.id} 
-                      sx={{
+                    <TableRow
+                       key={item.id}
+                       sx={{
                         "& td": {
                           backgroundColor: "#fafafa",
                           border: "none",
@@ -312,7 +478,6 @@ const ShoppingCart: React.FC = () => {
               </Table>
             </TableContainer>
           </Box>
-
           {/* Bottom Section */}
           <Box sx={{ display: "flex", justifyContent: "space-between", backgroundColor: "#fafafa" }}>
             {/* Shipping Address */}
@@ -345,7 +510,6 @@ const ShoppingCart: React.FC = () => {
                 </Typography>
               </Box>
             </Box>
-
             {/* Order Summary */}
             <Box
               sx={{
@@ -382,7 +546,6 @@ const ShoppingCart: React.FC = () => {
                   ${subtotal.toFixed(2)}
                 </Typography>
               </Box>
-
               {/* Discount */}
               <Box sx={{ mb: 2 }}>
                 <TextField
@@ -409,9 +572,7 @@ const ShoppingCart: React.FC = () => {
                   }}
                 />
               </Box>
-
               <Divider sx={{ my: 2 }} />
-
               {/* Total */}
               <Box
                 sx={{
@@ -440,7 +601,6 @@ const ShoppingCart: React.FC = () => {
                   ${total.toFixed(2)}
                 </Typography>
               </Box>
-
               {/* Checkout Button */}
               <Button
                 fullWidth
@@ -469,4 +629,4 @@ const ShoppingCart: React.FC = () => {
   )
 }
 
-export default ShoppingCart;
+export default ShoppingCart
