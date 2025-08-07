@@ -91,6 +91,7 @@ const Navbar: React.FC = () => {
       elevation={0}
       sx={{
         py: 1,
+        background: 'linear-gradient(90deg, #F58A4E 0%, #F16A3C 100%)'
       }}
     >
       <Toolbar
