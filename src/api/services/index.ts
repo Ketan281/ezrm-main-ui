@@ -57,3 +57,4 @@ export type {
   CustomerOrdersParams,
 } from "./customerOrders"
 export type { RFQRequest, RFQResponse } from "./rfq"
+export * from "./wishlist"

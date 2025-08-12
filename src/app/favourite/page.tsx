@@ -1,89 +1,287 @@
 "use client"
-import React from "react"
-import { Box, Typography, Card, CardMedia, CardContent, Button, IconButton, Container } from "@mui/material"
+import type React from "react"
+import { useMemo } from "react"
+import {
+  Box,
+  Typography,
+  Card,
+  CardMedia,
+  CardContent,
+  Button,
+  IconButton,
+  Container,
+  CircularProgress,
+  Alert,
+} from "@mui/material"
 import { Favorite, FavoriteBorder } from "@mui/icons-material"
-
-// Mock data for products
-const products = [
-  {
-    id: 1,
-    title: "Loreal Ipsum",
-    subtitle: "Turmeric Powder",
-    productCode: "12345678",
-    image: "/product.png?height=278&width=421",
-    isFavorite: false,
-  },
-  {
-    id: 2,
-    title: "Loreal Ipsum",
-    subtitle: "Turmeric Powder",
-    productCode: "12345678",
-    image: "/product.png?height=278&width=421",
-    isFavorite: false,
-  },
-  {
-    id: 3,
-    title: "Loreal Ipsum",
-    subtitle: "Turmeric Powder",
-    productCode: "12345678",
-    image: "/product.png?height=278&width=421",
-    isFavorite: false,
-  },
-  {
-    id: 4,
-    title: "Loreal Ipsum",
-    subtitle: "Turmeric Powder",
-    productCode: "12345678",
-    image: "/product.png?height=278&width=421",
-    isFavorite: false,
-  },
-  {
-    id: 5,
-    title: "Loreal Ipsum",
-    subtitle: "Turmeric Powder",
-    productCode: "12345678",
-    image: "/product.png?height=278&width=421",
-    isFavorite: false,
-  },
-  {
-    id: 6,
-    title: "Loreal Ipsum",
-    subtitle: "Turmeric Powder",
-    productCode: "12345678",
-    image: "/product.png?height=278&width=421",
-    isFavorite: false,
-  },
-  {
-    id: 7,
-    title: "Loreal Ipsum",
-    subtitle: "Turmeric Powder",
-    productCode: "12345678",
-    image: "/product.png?height=278&width=421",
-    isFavorite: false,
-  },
-  {
-    id: 8,
-    title: "Loreal Ipsum",
-    subtitle: "Turmeric Powder",
-    productCode: "12345678",
-    image: "/product.png?height=278&width=421",
-    isFavorite: false,
-  },
-  {
-    id: 9,
-    title: "Loreal Ipsum",
-    subtitle: "Turmeric Powder",
-    productCode: "12345678",
-    image: "/product.png?height=278&width=421",
-    isFavorite: false,
-  },
-]
+import { useRouter } from "next/navigation"
+import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from "@/api/handlers/wishlistHandler"
+import { useAppStore } from "@/store/use-app-store"
+import type { WishlistProduct } from "@/api/services/wishlist"
 
 const FavouritesSection: React.FC = () => {
-  const [favorites, setFavorites] = React.useState<number[]>([])
+  const router = useRouter()
+  const { customer, isAuthenticated } = useAppStore()
+  console.log(customer,"#######");
+  // Fetch wishlist data
+  const {
+    data: wishlistData,
+    isLoading,
+    error,
+    isError,
+  } = useWishlist({
+    customerId: customer?.id || "",
+  })
 
-  const toggleFavorite = (productId: number) => {
-    setFavorites((prev) => (prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]))
+  // Mutations for add/remove wishlist
+  const addToWishlistMutation = useAddToWishlist()
+  const removeFromWishlistMutation = useRemoveFromWishlist()
+
+  // Transform wishlist products to display format
+  const products = useMemo(() => {
+    if (!wishlistData?.data?.products) return []
+
+    return wishlistData.data.products.map((product: WishlistProduct) => ({
+      id: product._id,
+      title: product.name,
+      subtitle: product.description || product.category,
+      productCode: product.uniqueId,
+      image: getProductImage(product),
+      price: product.price,
+      inStock: product.inStock,
+      isFavorite: true, // All products in wishlist are favorites
+    }))
+  }, [wishlistData])
+
+  // Get product image with fallback
+  const getProductImage = (product: WishlistProduct) => {
+    if (product.bannerImage) {
+      return product.bannerImage.startsWith("http")
+        ? product.bannerImage
+        : `${process.env.NEXT_PUBLIC_API_URL}/${product.bannerImage}`
+    }
+    if (product.images && product.images.length > 0) {
+      const firstImage = product.images[0]
+      return firstImage.startsWith("http") ? firstImage : `${process.env.NEXT_PUBLIC_API_URL}/${firstImage}`
+    }
+    return "/placeholder.svg?height=278&width=421"
+  }
+
+  // Handle favorite toggle
+  const toggleFavorite = async (productId: string, isFavorite: boolean) => {
+    if (!customer?.id) return
+
+    try {
+      if (isFavorite) {
+        await removeFromWishlistMutation.mutateAsync({
+          customerId: customer.id,
+          productId,
+        })
+      } else {
+        await addToWishlistMutation.mutateAsync({
+          customerId: customer.id,
+          productId,
+        })
+      }
+    } catch (error) {
+      console.error("Failed to toggle favorite:", error)
+    }
+  }
+
+  // Handle product card click
+  const handleProductClick = (productId: string) => {
+    router.push(`/product/detail/${productId}`)
+  }
+
+  // Handle buy button click
+  const handleBuyClick = (e: React.MouseEvent, productId: string) => {
+    e.stopPropagation()
+    router.push(`/product/detail/${productId}`)
+  }
+
+  // Show login message if not authenticated
+  if (!isAuthenticated || !customer) {
+    return (
+      <Container maxWidth="xl" sx={{ py: { xs: 2, md: 4 }, px: { xs: 1, md: 3 } }}>
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: 600,
+            color: "#333",
+            mb: { xs: 2, md: 3 },
+            fontSize: { xs: "1.5rem", md: "2rem" },
+            fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+          }}
+        >
+          Favourites
+        </Typography>
+
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            py: 8,
+            textAlign: "center",
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{
+              color: "#666",
+              mb: 2,
+              fontSize: { xs: "1rem", md: "1.25rem" },
+            }}
+          >
+            Please login to view your favourites
+          </Typography>
+          <Button
+            variant="contained"
+            onClick={() => router.push("/sign_in")}
+            sx={{
+              backgroundColor: "#ff6b35",
+              color: "white",
+              px: 4,
+              py: 1.5,
+              fontSize: "1rem",
+              fontWeight: 600,
+              textTransform: "none",
+              "&:hover": {
+                backgroundColor: "#e55a2b",
+              },
+            }}
+          >
+            Login
+          </Button>
+        </Box>
+      </Container>
+    )
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <Container maxWidth="xl" sx={{ py: { xs: 2, md: 4 }, px: { xs: 1, md: 3 } }}>
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: 600,
+            color: "#333",
+            mb: { xs: 2, md: 3 },
+            fontSize: { xs: "1.5rem", md: "2rem" },
+            fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+          }}
+        >
+          Favourites
+        </Typography>
+
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            py: 8,
+          }}
+        >
+          <CircularProgress sx={{ color: "#ff6b35" }} />
+        </Box>
+      </Container>
+    )
+  }
+
+  // Error state
+  if (isError) {
+    return (
+      <Container maxWidth="xl" sx={{ py: { xs: 2, md: 4 }, px: { xs: 1, md: 3 } }}>
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: 600,
+            color: "#333",
+            mb: { xs: 2, md: 3 },
+            fontSize: { xs: "1.5rem", md: "2rem" },
+            fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+          }}
+        >
+          Favourites
+        </Typography>
+
+        <Alert severity="error" sx={{ mt: 2 }}>
+          Error loading favourites: {error instanceof Error ? error.message : "Something went wrong"}
+        </Alert>
+      </Container>
+    )
+  }
+
+  // Empty state
+  if (products.length === 0) {
+    return (
+      <Container maxWidth="xl" sx={{ py: { xs: 2, md: 4 }, px: { xs: 1, md: 3 } }}>
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: 600,
+            color: "#333",
+            mb: { xs: 2, md: 3 },
+            fontSize: { xs: "1.5rem", md: "2rem" },
+            fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+          }}
+        >
+          Favourites
+        </Typography>
+
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            py: 8,
+            textAlign: "center",
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{
+              color: "#666",
+              mb: 2,
+              fontSize: { xs: "1rem", md: "1.25rem" },
+            }}
+          >
+            No favourites yet
+          </Typography>
+          <Typography
+            variant="body1"
+            sx={{
+              color: "#999",
+              mb: 3,
+              fontSize: { xs: "0.875rem", md: "1rem" },
+            }}
+          >
+            Start adding products to your favourites to see them here
+          </Typography>
+          <Button
+            variant="contained"
+            onClick={() => router.push("/product")}
+            sx={{
+              backgroundColor: "#ff6b35",
+              color: "white",
+              px: 4,
+              py: 1.5,
+              fontSize: "1rem",
+              fontWeight: 600,
+              textTransform: "none",
+              "&:hover": {
+                backgroundColor: "#e55a2b",
+              },
+            }}
+          >
+            Browse Products
+          </Button>
+        </Box>
+      </Container>
+    )
   }
 
   return (
@@ -99,7 +297,7 @@ const FavouritesSection: React.FC = () => {
           fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
         }}
       >
-        Favourites
+        Favourites ({products.length})
       </Typography>
 
       {/* Products Grid - Responsive Layout */}
@@ -124,6 +322,7 @@ const FavouritesSection: React.FC = () => {
             {products.slice(rowIndex * 3, rowIndex * 3 + 3).map((product) => (
               <Card
                 key={product.id}
+                onClick={() => handleProductClick(product.id)}
                 sx={{
                   // Responsive width calculation
                   width: {
@@ -146,6 +345,7 @@ const FavouritesSection: React.FC = () => {
                   borderRadius: { xs: "8px", md: "12px" },
                   boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                   transition: "all 0.3s ease",
+                  cursor: "pointer",
                   "&:hover": {
                     boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
                     transform: "translateY(-2px)",
@@ -198,6 +398,26 @@ const FavouritesSection: React.FC = () => {
                   >
                     Greenjeeva
                   </Box>
+
+                  {/* Stock Status Badge */}
+                  {!product.inStock && (
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: 8,
+                        right: 8,
+                        backgroundColor: "rgba(255, 0, 0, 0.8)",
+                        color: "white",
+                        px: 1,
+                        py: 0.5,
+                        borderRadius: "4px",
+                        fontSize: "0.7rem",
+                        fontWeight: 600,
+                      }}
+                    >
+                      Out of Stock
+                    </Box>
+                  )}
                 </Box>
 
                 {/* Product Content */}
@@ -234,9 +454,26 @@ const FavouritesSection: React.FC = () => {
                       fontSize: { xs: "0.8rem", md: "0.875rem" },
                       mb: 1,
                       fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
                     }}
                   >
                     {product.subtitle}
+                  </Typography>
+
+                  {/* Price */}
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      color: "#ff6b35",
+                      fontSize: { xs: "0.9rem", md: "1rem" },
+                      fontWeight: 600,
+                      mb: 0.5,
+                    }}
+                  >
+                    ₹{product.price.toLocaleString()}
                   </Typography>
 
                   {/* Product Code */}
@@ -263,16 +500,25 @@ const FavouritesSection: React.FC = () => {
                   >
                     {/* Favorite Button */}
                     <IconButton
-                      onClick={() => toggleFavorite(product.id)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        toggleFavorite(product.id, product.isFavorite)
+                      }}
+                      disabled={removeFromWishlistMutation.isPending}
                       sx={{
-                        color: favorites.includes(product.id) ? "#ff4444" : "#ccc",
+                        color: product.isFavorite ? "#ff4444" : "#ccc",
                         p: { xs: 0.25, md: 0.5 },
                         "&:hover": {
                           backgroundColor: "rgba(255, 68, 68, 0.1)",
                         },
+                        "&:disabled": {
+                          opacity: 0.6,
+                        },
                       }}
                     >
-                      {favorites.includes(product.id) ? (
+                      {removeFromWishlistMutation.isPending ? (
+                        <CircularProgress size={20} />
+                      ) : product.isFavorite ? (
                         <Favorite sx={{ fontSize: { xs: 18, md: 20 } }} />
                       ) : (
                         <FavoriteBorder sx={{ fontSize: { xs: 18, md: 20 } }} />
@@ -282,8 +528,10 @@ const FavouritesSection: React.FC = () => {
                     {/* Buy Button */}
                     <Button
                       variant="contained"
+                      disabled={!product.inStock}
+                      onClick={(e) => handleBuyClick(e, product.id)}
                       sx={{
-                        backgroundColor: "#ff6b35",
+                        backgroundColor: product.inStock ? "#ff6b35" : "#ccc",
                         color: "white",
                         fontSize: { xs: "0.7rem", md: "0.75rem" },
                         fontWeight: 600,
@@ -293,11 +541,11 @@ const FavouritesSection: React.FC = () => {
                         borderRadius: "6px",
                         minWidth: { xs: "50px", md: "60px" },
                         "&:hover": {
-                          backgroundColor: "#e55a2b",
+                          backgroundColor: product.inStock ? "#e55a2b" : "#ccc",
                         },
                       }}
                     >
-                      BUY
+                      {product.inStock ? "BUY" : "SOLD OUT"}
                     </Button>
                   </Box>
                 </CardContent>

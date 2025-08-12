@@ -22,3 +22,5 @@ export * from "./certificatesHandler"
 
 // RFQ handlers
 export * from "./rfqHandler"
+//wishlist handler
+export * from "./wishlistHandler"
