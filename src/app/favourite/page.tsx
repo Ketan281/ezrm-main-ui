@@ -54,18 +54,20 @@ const FavouritesSection: React.FC = () => {
   }, [wishlistData])
 
   // Get product image with fallback
-  const getProductImage = (product: WishlistProduct) => {
-    if (product.bannerImage) {
-      return product.bannerImage.startsWith("http")
-        ? product.bannerImage
-        : `${process.env.NEXT_PUBLIC_API_URL}/${product.bannerImage}`
-    }
-    if (product.images && product.images.length > 0) {
-      const firstImage = product.images[0]
-      return firstImage.startsWith("http") ? firstImage : `${process.env.NEXT_PUBLIC_API_URL}/${firstImage}`
-    }
-    return "/placeholder.svg?height=278&width=421"
+// Change from arrow function to function declaration
+function getProductImage(product: WishlistProduct) {
+  if (product.bannerImage) {
+    return product.bannerImage.startsWith("http")
+      ? product.bannerImage
+      : `${process.env.NEXT_PUBLIC_API_URL}/${product.bannerImage}`
   }
+  if (product.images && product.images.length > 0) {
+    const firstImage = product.images[0]
+    return firstImage.startsWith("http") ? firstImage : `${process.env.NEXT_PUBLIC_API_URL}/${firstImage}`
+  }
+  return "/placeholder.svg?height=278&width=421"
+}
+
 
   // Handle favorite toggle
   const toggleFavorite = async (productId: string, isFavorite: boolean) => {

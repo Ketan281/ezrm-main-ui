@@ -9,16 +9,15 @@ import {
   Container,
   Alert,
   CircularProgress,
-  Grid,
-  MenuItem,
-  Select,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
   FormControl,
-  InputLabel,
 } from "@mui/material"
 import { ThemeProvider, createTheme } from "@mui/material/styles"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { useInitiateSignup, useVerifyOtp, useCompleteSignup } from "@/api/handlers"
+import { useInitiateSignup, useCompleteSignup } from "@/api/handlers"
 
 const theme = createTheme({
   palette: {
@@ -31,47 +30,32 @@ const theme = createTheme({
   },
 })
 
-type SignupStep = "email" | "otp" | "details" | "success"
+type SignupStep = "email" | "details" | "success"
 
 export default function RegisterPage() {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState<SignupStep>("email")
   const [email, setEmail] = useState("")
-  const [otp, setOtp] = useState("")
+  const [phone, setPhone] = useState("")
+  const [name, setName] = useState("")
+  const [organizationName, setOrganizationName] = useState("")
+  const [address, setAddress] = useState("")
+  const [connectBy, setConnectBy] = useState("email") // Include in UI state but not in API
+  
   const [emailError, setEmailError] = useState("")
-  const [otpError, setOtpError] = useState("")
-
-  // Form data for complete signup
-  const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    companyName: "",
-    industry: "",
-    website: "",
-    employeeCount: 0,
-    annualRevenue: "",
-    businessType: "",
-    taxId: "",
-    registrationNumber: "",
-    contactPerson: "",
-    contactPersonPhone: "",
-    contactPersonEmail: "",
-    notes: "",
-  })
-
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
+  const [phoneError, setPhoneError] = useState("")
+  const [nameError, setNameError] = useState("")
+  const [organizationError, setOrganizationError] = useState("")
+  const [addressError, setAddressError] = useState("")
 
   // API hooks
   const initiateSignupMutation = useInitiateSignup()
-  const verifyOtpMutation = useVerifyOtp()
   const completeSignupMutation = useCompleteSignup()
 
   // Email validation function
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     const publicDomains = [
-      // "gmail.com",
-      // "yahoo.com",
       "hotmail.com",
       "outlook.com",
       "aol.com",
@@ -94,71 +78,73 @@ export default function RegisterPage() {
     return ""
   }
 
-  // Handle email submission
-  const handleEmailSubmit = async () => {
-    const error = validateEmail(email)
-    setEmailError(error)
+  const validatePhone = (phone: string) => {
+    if (!phone) {
+      return "Phone number is required"
+    }
+    if (phone.length < 10) {
+      return "Please enter a valid phone number"
+    }
+    return ""
+  }
 
-    if (!error) {
+  // Handle step 1 submission (email, phone, name) - connectBy NOT included in API
+  const handleStep1Submit = async () => {
+    const emailErr = validateEmail(email)
+    const phoneErr = validatePhone(phone)
+    const nameErr = !name ? "Name is required" : ""
+
+    setEmailError(emailErr)
+    setPhoneError(phoneErr)
+    setNameError(nameErr)
+
+    if (!emailErr && !phoneErr && !nameErr) {
       try {
-        await initiateSignupMutation.mutateAsync({ email })
-        setCurrentStep("otp")
+        await initiateSignupMutation.mutateAsync({ 
+          email,
+          phone,
+          name
+          // connectBy is NOT sent to API
+        })
+        setCurrentStep("details")
       } catch (error) {
-        console.error("Email submission failed:", error)
+        console.error("Step 1 submission failed:", error)
       }
     }
   }
 
-  // Handle OTP verification
-  const handleOtpSubmit = async () => {
-    if (!otp) {
-      setOtpError("OTP is required")
-      return
-    }
-    if (otp.length !== 6) {
-      setOtpError("OTP must be 6 digits")
-      return
-    }
+  // Handle step 2 submission (organization name, address) - connectBy NOT included in API
+  const handleStep2Submit = async () => {
+    const orgErr = !organizationName ? "Organization Name is required" : ""
+    const addressErr = !address ? "Address is required" : ""
 
-    try {
-      await verifyOtpMutation.mutateAsync({ email, otp })
-      setCurrentStep("details")
-      setOtpError("")
-    } catch (error) {
-      console.error("OTP verification failed:", error)
-    }
-  }
+    setOrganizationError(orgErr)
+    setAddressError(addressErr)
 
-  // Validate form data
-  const validateFormData = () => {
-    const errors: Record<string, string> = {}
-
-    if (!formData.name) errors.name = "Name is required"
-    if (!formData.phone) errors.phone = "Phone is required"
-    if (!formData.companyName) errors.companyName = "Company name is required"
-    if (!formData.industry) errors.industry = "Industry is required"
-    if (!formData.contactPerson) errors.contactPerson = "Contact person is required"
-    if (!formData.contactPersonPhone) errors.contactPersonPhone = "Contact person phone is required"
-    if (!formData.contactPersonEmail) errors.contactPersonEmail = "Contact person email is required"
-
-    setFormErrors(errors)
-    return Object.keys(errors).length === 0
-  }
-
-  // Handle complete signup
-  const handleCompleteSignup = async () => {
-    if (!validateFormData()) {
-      return
-    }
-
-    try {
-      await completeSignupMutation.mutateAsync({
-        email,
-        ...formData,
-      })
-      setCurrentStep("success")
-    } catch (error) {
-      console.error("Complete signup failed:", error)
+    if (!orgErr && !addressErr) {
+      try {
+        await completeSignupMutation.mutateAsync({
+          email,
+          phone,
+          name,
+          organizationName,
+          address,
+          industry: "",
+          website: "",
+          employeeCount: 0,
+          annualRevenue: "",
+          businessType: "",
+          taxId: "",
+          registrationNumber: "",
+          contactPerson: "",
+          contactPersonPhone: "",
+          contactPersonEmail: "",
+          notes: ""
+        })
+        setCurrentStep("success")
+      } catch (error) {
+        console.error("Step 2 submission failed:", error)
+      }
     }
   }
 
@@ -166,50 +152,93 @@ export default function RegisterPage() {
     router.push("/")
   }
 
-  const handleInputChange = (field: string, value: string | number) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-    // Clear error when user starts typing
-    if (formErrors[field]) {
-      setFormErrors((prev) => ({ ...prev, [field]: "" }))
-    }
-  }
-
-  const renderEmailStep = () => (
+  const renderStep1 = () => (
     <>
       <Typography
         sx={{
           fontWeight: 600,
           color: "#333",
-          mb: 1,
+          mb: 4,
           fontSize: "20px",
         }}
       >
         Buyer Registration
       </Typography>
-      <Box sx={{ width: "100%", maxWidth: "500px" }}>
+
+      <Box sx={{ width: "100%", maxWidth: "400px" }}>
         <Typography
           sx={{
-            color: "rgba(90, 96, 127, 1)",
-            mt: 4,
-            mb: 2,
-            fontSize: "15px",
-            fontWeight: 700,
+            color: "#5A607F",
+            mb: 3,
+            fontSize: "14px",
+            fontWeight: 600,
           }}
         >
-          Step 1 : Provide your Email ID
+          Step 1 : Provide your Details
         </Typography>
 
         {initiateSignupMutation.isError && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {initiateSignupMutation.error instanceof Error
               ? initiateSignupMutation.error.message
-              : "Failed to send verification email"}
+              : "Failed to proceed"}
           </Alert>
         )}
 
+        {/* Name Field */}
         <TextField
           fullWidth
-          placeholder="Email"
+          placeholder="Name"
+          variant="standard"
+          value={name}
+          onChange={(e) => {
+            setName(e.target.value)
+            if (nameError) {
+              setNameError("")
+            }
+          }}
+          error={!!nameError}
+          disabled={initiateSignupMutation.isPending}
+          sx={{
+            mb: nameError ? 1 : 4,
+            "& .MuiInput-underline:before": {
+              borderBottomColor: nameError ? "#f44336" : "#e0e0e0",
+            },
+            "& .MuiInput-underline:hover:not(.Mui-disabled):before": {
+              borderBottomColor: nameError ? "#f44336" : "#FF7A59",
+            },
+            "& .MuiInput-underline:after": {
+              borderBottomColor: nameError ? "#f44336" : "#FF7A59",
+            },
+            "& .MuiInputBase-input": {
+              padding: "12px 0",
+              fontSize: "1rem",
+              color: "#333",
+              "&::placeholder": {
+                color: "#999",
+                opacity: 1,
+              },
+            },
+          }}
+        />
+        {nameError && (
+          <Typography
+            sx={{
+              color: "#f44336",
+              fontSize: "12px",
+              mb: 3,
+              textAlign: "left",
+              width: "100%",
+            }}
+          >
+            {nameError}
+          </Typography>
+        )}
+
+        {/* Email Field */}
+        <TextField
+          fullWidth
+          placeholder="Email - ID"
           variant="standard"
           value={email}
           onChange={(e) => {
@@ -255,10 +284,129 @@ export default function RegisterPage() {
             {emailError}
           </Typography>
         )}
+
+        {/* Phone Number Field */}
+        <TextField
+          fullWidth
+          placeholder="Phone Number"
+          variant="standard"
+          value={phone}
+          onChange={(e) => {
+            const value = e.target.value.replace(/\D/g, "")
+            setPhone(value)
+            if (phoneError) {
+              setPhoneError("")
+            }
+          }}
+          error={!!phoneError}
+          disabled={initiateSignupMutation.isPending}
+          sx={{
+            mb: phoneError ? 1 : 4,
+            "& .MuiInput-underline:before": {
+              borderBottomColor: phoneError ? "#f44336" : "#e0e0e0",
+            },
+            "& .MuiInput-underline:hover:not(.Mui-disabled):before": {
+              borderBottomColor: phoneError ? "#f44336" : "#FF7A59",
+            },
+            "& .MuiInput-underline:after": {
+              borderBottomColor: phoneError ? "#f44336" : "#FF7A59",
+            },
+            "& .MuiInputBase-input": {
+              padding: "12px 0",
+              fontSize: "1rem",
+              color: "#333",
+              "&::placeholder": {
+                color: "#999",
+                opacity: 1,
+              },
+            },
+          }}
+        />
+        {phoneError && (
+          <Typography
+            sx={{
+              color: "#f44336",
+              fontSize: "12px",
+              mb: 3,
+              textAlign: "left",
+              width: "100%",
+            }}
+          >
+            {phoneError}
+          </Typography>
+        )}
+
+        {/* Connect By Options - UI ONLY, not sent to API */}
+        <Typography
+          sx={{
+            color: "#5A607F",
+            fontSize: "14px",
+            fontWeight: 600,
+            mb: 2,
+          }}
+        >
+          Connect By
+        </Typography>
+
+        <FormControl component="fieldset" sx={{ mb: 4 }}>
+          <RadioGroup
+            row
+            value={connectBy}
+            onChange={(e) => setConnectBy(e.target.value)} // UI state only
+            sx={{
+              gap: 3,
+            }}
+          >
+            <FormControlLabel
+              value="email"
+              control={
+                <Radio
+                  sx={{
+                    color: "#E5E7EB",
+                    "&.Mui-checked": {
+                      color: "#FF7A59",
+                    },
+                    "& .MuiSvgIcon-root": {
+                      fontSize: 20,
+                    },
+                  }}
+                />
+              }
+              label={
+                <Typography sx={{ fontSize: "14px", color: "#333", ml: 0.5 }}>
+                  Email
+                </Typography>
+              }
+            />
+            <FormControlLabel
+              value="whatsapp"
+              control={
+                <Radio
+                  sx={{
+                    color: "#E5E7EB",
+                    "&.Mui-checked": {
+                      color: "#FF7A59",
+                    },
+                    "& .MuiSvgIcon-root": {
+                      fontSize: 20,
+                    },
+                  }}
+                />
+              }
+              label={
+                <Typography sx={{ fontSize: "14px", color: "#333", ml: 0.5 }}>
+                  Whatsapp
+                </Typography>
+              }
+            />
+          </RadioGroup>
+        </FormControl>
+
+        {/* Submit Button */}
         <Button
           fullWidth
           variant="contained"
-          onClick={handleEmailSubmit}
+          onClick={handleStep1Submit}
           disabled={initiateSignupMutation.isPending}
           sx={{
             backgroundColor: "#FF7A59",
@@ -287,6 +435,7 @@ export default function RegisterPage() {
             "Submit"
           )}
         </Button>
+
         <Typography
           sx={{
             color: "#666",
@@ -302,91 +451,76 @@ export default function RegisterPage() {
     </>
   )
 
-  const renderOtpStep = () => (
+  const renderStep2 = () => (
     <>
       <Typography
         sx={{
           fontWeight: 600,
           color: "#333",
-          mb: 1,
+          mb: 4,
           fontSize: "20px",
         }}
       >
-        Verify Your Email
+        Buyer Registration
       </Typography>
-      <Box sx={{ width: "100%", maxWidth: "500px" }}>
-        <Typography
-          sx={{
-            color: "rgba(90, 96, 127, 1)",
-            mt: 4,
-            mb: 2,
-            fontSize: "15px",
-            fontWeight: 700,
-          }}
-        >
-          Step 2 : Enter the OTP sent to your email
-        </Typography>
 
+      <Box sx={{ width: "100%", maxWidth: "400px" }}>
         <Typography
           sx={{
-            color: "#666",
-            fontSize: "14px",
+            color: "#5A607F",
             mb: 3,
-            textAlign: "center",
+            fontSize: "14px",
+            fontWeight: 600,
           }}
         >
-          We sent a 6-digit verification code to{" "}
-          <Typography component="span" sx={{ fontWeight: 600, color: "#333" }}>
-            {email}
-          </Typography>
+          Step 2 : Provide your Details
         </Typography>
 
-        {verifyOtpMutation.isError && (
+        {completeSignupMutation.isError && (
           <Alert severity="error" sx={{ mb: 2 }}>
-            {verifyOtpMutation.error instanceof Error ? verifyOtpMutation.error.message : "Invalid OTP"}
+            {completeSignupMutation.error instanceof Error
+              ? completeSignupMutation.error.message
+              : "Failed to complete registration"}
           </Alert>
         )}
 
+        {/* Organization Name Field */}
         <TextField
           fullWidth
-          placeholder="Enter 6-digit OTP"
+          placeholder="Organization Name"
           variant="standard"
-          value={otp}
+          value={organizationName}
           onChange={(e) => {
-            const value = e.target.value.replace(/\D/g, "").slice(0, 6)
-            setOtp(value)
-            if (otpError) {
-              setOtpError("")
+            setOrganizationName(e.target.value)
+            if (organizationError) {
+              setOrganizationError("")
             }
           }}
-          error={!!otpError}
-          disabled={verifyOtpMutation.isPending}
+          error={!!organizationError}
+          disabled={completeSignupMutation.isPending}
           sx={{
-            mb: otpError ? 1 : 4,
+            mb: organizationError ? 1 : 4,
             "& .MuiInput-underline:before": {
-              borderBottomColor: otpError ? "#f44336" : "#e0e0e0",
+              borderBottomColor: organizationError ? "#f44336" : "#e0e0e0",
             },
             "& .MuiInput-underline:hover:not(.Mui-disabled):before": {
-              borderBottomColor: otpError ? "#f44336" : "#FF7A59",
+              borderBottomColor: organizationError ? "#f44336" : "#FF7A59",
             },
             "& .MuiInput-underline:after": {
-              borderBottomColor: otpError ? "#f44336" : "#FF7A59",
+              borderBottomColor: organizationError ? "#f44336" : "#FF7A59",
             },
             "& .MuiInputBase-input": {
               padding: "12px 0",
-              fontSize: "1.5rem",
-              textAlign: "center",
-              letterSpacing: "0.5rem",
+              fontSize: "1rem",
               color: "#333",
               "&::placeholder": {
                 color: "#999",
                 opacity: 1,
-                letterSpacing: "normal",
               },
             },
           }}
         />
-        {otpError && (
+        {organizationError && (
           <Typography
             sx={{
               color: "#f44336",
@@ -396,14 +530,68 @@ export default function RegisterPage() {
               width: "100%",
             }}
           >
-            {otpError}
+            {organizationError}
           </Typography>
         )}
+
+        {/* Address Field */}
+        <TextField
+          fullWidth
+          placeholder="Address"
+          variant="standard"
+          multiline
+          rows={4}
+          value={address}
+          onChange={(e) => {
+            setAddress(e.target.value)
+            if (addressError) {
+              setAddressError("")
+            }
+          }}
+          error={!!addressError}
+          disabled={completeSignupMutation.isPending}
+          sx={{
+            mb: addressError ? 1 : 4,
+            "& .MuiInput-underline:before": {
+              borderBottomColor: addressError ? "#f44336" : "#e0e0e0",
+            },
+            "& .MuiInput-underline:hover:not(.Mui-disabled):before": {
+              borderBottomColor: addressError ? "#f44336" : "#FF7A59",
+            },
+            "& .MuiInput-underline:after": {
+              borderBottomColor: addressError ? "#f44336" : "#FF7A59",
+            },
+            "& .MuiInputBase-input": {
+              padding: "12px 0",
+              fontSize: "1rem",
+              color: "#333",
+              "&::placeholder": {
+                color: "#999",
+                opacity: 1,
+              },
+            },
+          }}
+        />
+        {addressError && (
+          <Typography
+            sx={{
+              color: "#f44336",
+              fontSize: "12px",
+              mb: 3,
+              textAlign: "left",
+              width: "100%",
+            }}
+          >
+            {addressError}
+          </Typography>
+        )}
+
+        {/* Submit Button */}
         <Button
           fullWidth
           variant="contained"
-          onClick={handleOtpSubmit}
-          disabled={verifyOtpMutation.isPending}
+          onClick={handleStep2Submit}
+          disabled={completeSignupMutation.isPending}
           sx={{
             backgroundColor: "#FF7A59",
             color: "white",
@@ -422,304 +610,27 @@ export default function RegisterPage() {
             },
           }}
         >
-          {verifyOtpMutation.isPending ? (
+          {completeSignupMutation.isPending ? (
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <CircularProgress size={20} color="inherit" />
-              Verifying...
+              Completing...
             </Box>
           ) : (
-            "Verify OTP"
+            "Submit"
           )}
         </Button>
-        <Button
-          fullWidth
-          variant="text"
-          onClick={() => setCurrentStep("email")}
-          sx={{
-            color: "#FF7A59",
-            textTransform: "none",
-            "&:hover": {
-              backgroundColor: "rgba(255, 122, 89, 0.1)",
-            },
-          }}
-        >
-          Back to Email
-        </Button>
-      </Box>
-    </>
-  )
 
-  const renderDetailsStep = () => (
-    <>
-      <Typography
-        sx={{
-          fontWeight: 600,
-          color: "#333",
-          mb: 1,
-          fontSize: "20px",
-        }}
-      >
-        Complete Your Registration
-      </Typography>
-      <Box sx={{ width: "100%", maxWidth: "600px" }}>
         <Typography
           sx={{
-            color: "rgba(90, 96, 127, 1)",
-            mt: 4,
+            color: "#666",
+            fontSize: "12px",
             mb: 3,
-            fontSize: "15px",
-            fontWeight: 700,
+            textAlign: "left",
+            width: "100%",
           }}
         >
-          Step 3 : Provide your business details
+          Public email domains are not allowed. Please enter a valid company email address.
         </Typography>
-
-        {completeSignupMutation.isError && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {completeSignupMutation.error instanceof Error
-              ? completeSignupMutation.error.message
-              : "Failed to complete registration"}
-          </Alert>
-        )}
-
-        <Grid container spacing={3}>
-          {/* Row 1: Name and Phone */}
-          <Grid >
-            <TextField
-              fullWidth
-              label="Name *"
-              variant="outlined"
-              value={formData.name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
-              error={!!formErrors.name}
-              helperText={formErrors.name}
-              disabled={completeSignupMutation.isPending}
-            />
-          </Grid>
-          <Grid >
-            <TextField
-              fullWidth
-              label="Phone *"
-              variant="outlined"
-              value={formData.phone}
-              onChange={(e) => handleInputChange("phone", e.target.value)}
-              error={!!formErrors.phone}
-              helperText={formErrors.phone}
-              disabled={completeSignupMutation.isPending}
-            />
-          </Grid>
-
-          {/* Row 2: Company Name (Full Width) */}
-          <Grid >
-            <TextField
-              fullWidth
-              label="Company Name *"
-              variant="outlined"
-              value={formData.companyName}
-              onChange={(e) => handleInputChange("companyName", e.target.value)}
-              error={!!formErrors.companyName}
-              helperText={formErrors.companyName}
-              disabled={completeSignupMutation.isPending}
-            />
-          </Grid>
-
-          {/* Row 3: Industry and Website */}
-          <Grid >
-            <FormControl fullWidth error={!!formErrors.industry}>
-              <InputLabel>Industry *</InputLabel>
-              <Select
-                value={formData.industry}
-                label="Industry *"
-                onChange={(e) => handleInputChange("industry", e.target.value)}
-                disabled={completeSignupMutation.isPending}
-              >
-                <MenuItem value="Information Technology">Information Technology</MenuItem>
-                <MenuItem value="Manufacturing">Manufacturing</MenuItem>
-                <MenuItem value="Healthcare">Healthcare</MenuItem>
-                <MenuItem value="Finance">Finance</MenuItem>
-                <MenuItem value="Retail">Retail</MenuItem>
-                <MenuItem value="Education">Education</MenuItem>
-                <MenuItem value="Other">Other</MenuItem>
-              </Select>
-              {formErrors.industry && (
-                <Typography variant="caption" color="error" sx={{ ml: 2 }}>
-                  {formErrors.industry}
-                </Typography>
-              )}
-            </FormControl>
-          </Grid>
-          <Grid >
-            <TextField
-              fullWidth
-              label="Website"
-              variant="outlined"
-              value={formData.website}
-              onChange={(e) => handleInputChange("website", e.target.value)}
-              disabled={completeSignupMutation.isPending}
-            />
-          </Grid>
-
-          {/* Row 4: Employee Count and Annual Revenue */}
-          <Grid >
-            <TextField
-              fullWidth
-              label="Employee Count"
-              type="number"
-              variant="outlined"
-              value={formData.employeeCount}
-              onChange={(e) => handleInputChange("employeeCount", Number.parseInt(e.target.value) || 0)}
-              disabled={completeSignupMutation.isPending}
-            />
-          </Grid>
-          <Grid >
-            <TextField
-              fullWidth
-              label="Annual Revenue"
-              variant="outlined"
-              value={formData.annualRevenue}
-              onChange={(e) => handleInputChange("annualRevenue", e.target.value)}
-              disabled={completeSignupMutation.isPending}
-            />
-          </Grid>
-
-          {/* Row 5: Business Type and Tax ID */}
-          <Grid >
-            <FormControl fullWidth>
-              <InputLabel>Business Type</InputLabel>
-              <Select
-                value={formData.businessType}
-                label="Business Type"
-                onChange={(e) => handleInputChange("businessType", e.target.value)}
-                disabled={completeSignupMutation.isPending}
-              >
-                <MenuItem value="Private Limited">Private Limited</MenuItem>
-                <MenuItem value="Public Limited">Public Limited</MenuItem>
-                <MenuItem value="Partnership">Partnership</MenuItem>
-                <MenuItem value="Sole Proprietorship">Sole Proprietorship</MenuItem>
-                <MenuItem value="LLP">LLP</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid >
-            <TextField
-              fullWidth
-              label="Tax ID"
-              variant="outlined"
-              value={formData.taxId}
-              onChange={(e) => handleInputChange("taxId", e.target.value)}
-              disabled={completeSignupMutation.isPending}
-            />
-          </Grid>
-
-          {/* Row 6: Registration Number and Contact Person */}
-          <Grid >
-            <TextField
-              fullWidth
-              label="Registration Number"
-              variant="outlined"
-              value={formData.registrationNumber}
-              onChange={(e) => handleInputChange("registrationNumber", e.target.value)}
-              disabled={completeSignupMutation.isPending}
-            />
-          </Grid>
-          <Grid >
-            <TextField
-              fullWidth
-              label="Contact Person *"
-              variant="outlined"
-              value={formData.contactPerson}
-              onChange={(e) => handleInputChange("contactPerson", e.target.value)}
-              error={!!formErrors.contactPerson}
-              helperText={formErrors.contactPerson}
-              disabled={completeSignupMutation.isPending}
-            />
-          </Grid>
-
-          {/* Row 7: Contact Person Phone and Email */}
-          <Grid >
-            <TextField
-              fullWidth
-              label="Contact Person Phone *"
-              variant="outlined"
-              value={formData.contactPersonPhone}
-              onChange={(e) => handleInputChange("contactPersonPhone", e.target.value)}
-              error={!!formErrors.contactPersonPhone}
-              helperText={formErrors.contactPersonPhone}
-              disabled={completeSignupMutation.isPending}
-            />
-          </Grid>
-          <Grid >
-            <TextField
-              fullWidth
-              label="Contact Person Email *"
-              variant="outlined"
-              value={formData.contactPersonEmail}
-              onChange={(e) => handleInputChange("contactPersonEmail", e.target.value)}
-              error={!!formErrors.contactPersonEmail}
-              helperText={formErrors.contactPersonEmail}
-              disabled={completeSignupMutation.isPending}
-            />
-          </Grid>
-
-          {/* Row 8: Notes (Full Width) */}
-          <Grid>
-            <TextField
-              fullWidth
-              label="Notes"
-              variant="outlined"
-              multiline
-              rows={3}
-              value={formData.notes}
-              onChange={(e) => handleInputChange("notes", e.target.value)}
-              disabled={completeSignupMutation.isPending}
-            />
-          </Grid>
-        </Grid>
-
-        <Box sx={{ mt: 4, display: "flex", gap: 2 }}>
-          <Button
-            variant="outlined"
-            onClick={() => setCurrentStep("otp")}
-            sx={{
-              color: "#FF7A59",
-              borderColor: "#FF7A59",
-              flex: 1,
-              py: 1.8,
-              "&:hover": {
-                borderColor: "#FF5722",
-                backgroundColor: "rgba(255, 122, 89, 0.1)",
-              },
-            }}
-          >
-            Back
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleCompleteSignup}
-            disabled={completeSignupMutation.isPending}
-            sx={{
-              backgroundColor: "#FF7A59",
-              color: "white",
-              flex: 2,
-              py: 1.8,
-              "&:hover": {
-                backgroundColor: "#FF5722",
-              },
-              "&:disabled": {
-                backgroundColor: "#ccc",
-              },
-            }}
-          >
-            {completeSignupMutation.isPending ? (
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <CircularProgress size={20} color="inherit" />
-                Completing...
-              </Box>
-            ) : (
-              "Complete Registration"
-            )}
-          </Button>
-        </Box>
       </Box>
     </>
   )
@@ -732,56 +643,105 @@ export default function RegisterPage() {
         alignItems: "center",
         textAlign: "center",
         width: "100%",
-        maxWidth: "500px",
-        mt: 4,
+        maxWidth: "400px",
+        mt: 2,
       }}
     >
-      {/* Success Icon */}
-      <Box sx={{ mb: 3 }}>
-        <Image src="/success.png" alt="Success" width={50} height={50} style={{ objectFit: "contain" }} />
-      </Box>
-      {/* Success Heading */}
       <Typography
         sx={{
           fontWeight: 600,
           color: "#333",
-          mb: 3,
+          mb: 4,
           fontSize: "20px",
         }}
       >
-        Registration Successful!
+        Welcome Back
       </Typography>
-      {/* Success Message */}
+
       <Typography
         sx={{
-          color: "#666",
-          fontSize: "16px",
-          lineHeight: 1.5,
-          mb: 1,
+          color: "#5A607F",
+          fontSize: "14px",
+          mb: 4,
         }}
       >
-        Your registration has been completed successfully.
+        Sign In to your account
       </Typography>
-      <Typography
+
+      {/* Success Icon - Circular checkmark */}
+      <Box
         sx={{
-          color: "#666",
-          fontSize: "16px",
-          lineHeight: 1.5,
-          mb: 1,
+          width: 80,
+          height: 80,
+          borderRadius: "50%",
+          backgroundColor: "#FF7A59",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          mb: 3,
         }}
       >
-        Welcome to EZRM B2B Marketplace!
-      </Typography>
+        <Box
+          sx={{
+            width: 30,
+            height: 30,
+            borderRadius: "50%",
+            backgroundColor: "white",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Typography sx={{ color: "#FF7A59", fontSize: "16px", fontWeight: "bold" }}>
+            ✓
+          </Typography>
+        </Box>
+      </Box>
+
       <Typography
         sx={{
+          fontWeight: 600,
           color: "#333",
-          fontSize: "16px",
+          mb: 2,
+          fontSize: "18px",
+        }}
+      >
+        Almost Done
+      </Typography>
+
+      <Typography
+        sx={{
+          color: "#666",
+          fontSize: "14px",
+          lineHeight: 1.5,
+          mb: 1,
+        }}
+      >
+        Verify your email to start your EZRM registration.
+      </Typography>
+
+      <Typography
+        sx={{
+          color: "#666",
+          fontSize: "14px",
+          lineHeight: 1.5,
+          mb: 1,
+        }}
+      >
+        We sent a verification link to
+      </Typography>
+
+      <Typography
+        sx={{
+          color: "#FF7A59",
+          fontSize: "14px",
           fontWeight: 600,
           mb: 2,
         }}
       >
-        {email}
+        shruti@ezrm.in
       </Typography>
+
       <Typography
         sx={{
           color: "#666",
@@ -789,9 +749,9 @@ export default function RegisterPage() {
           mb: 4,
         }}
       >
-        You can now start exploring our platform and connect with suppliers.
+        Check your spam folder if you cant find it.
       </Typography>
-      {/* Back to Home Button */}
+
       <Button
         fullWidth
         variant="contained"
@@ -909,7 +869,7 @@ export default function RegisterPage() {
             overflow: "auto",
           }}
         >
-          <Container maxWidth="md">
+          <Container maxWidth="sm">
             <Box
               sx={{
                 display: "flex",
@@ -921,14 +881,19 @@ export default function RegisterPage() {
               }}
             >
               {/* Logo */}
-              <Box sx={{ mb: 1, mt: 4 }}>
-                <Image src="/ezrm-logo.png" alt="EZRM Logo" width={200} height={60} style={{ objectFit: "contain" }} />
+              <Box sx={{ mb: 2 }}>
+                <Image
+                  src="/ezrm-logo.png"
+                  alt="EZRM Logo"
+                  width={140}
+                  height={50}
+                  style={{ objectFit: "contain" }}
+                />
               </Box>
 
               {/* Conditional Rendering based on current step */}
-              {currentStep === "email" && renderEmailStep()}
-              {currentStep === "otp" && renderOtpStep()}
-              {currentStep === "details" && renderDetailsStep()}
+              {currentStep === "email" && renderStep1()}
+              {currentStep === "details" && renderStep2()}
               {currentStep === "success" && renderSuccessStep()}
             </Box>
           </Container>

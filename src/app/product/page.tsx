@@ -125,17 +125,20 @@ const ProductPage: React.FC = () => {
   ]
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", backgroundColor: "#f8f9fa" }}>
+    <Box sx={{ display: "flex", minHeight: "100vh", backgroundColor: "#f8f9fa", }}>
       {/* Left Sidebar - Filters */}
       <Box
         sx={{
           width: 280,
-          backgroundColor: "white",
-          borderRight: "1px solid #e0e0e0",
+          backgroundColor: "transparent",
+          // borderRight: "1px solid #e0e0e0",
           position: "sticky",
           top: 0,
           height: "100vh",
-          overflowY: "auto",
+          // overflowY: "auto",
+          overflow: "visible",
+          mt:2,
+          ml:3
         }}
       >
         {/* Filter Header */}
@@ -147,6 +150,7 @@ const ProductPage: React.FC = () => {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+             borderRadius:"20px 20px 0 0",
           }}
         >
           <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "16px" }}>
@@ -168,14 +172,20 @@ const ProductPage: React.FC = () => {
         </Box>
 
         {/* Filter Sections */}
-        <Box sx={{ p: 0 }}>
+        <Box sx={{ p:0 }}>
           {filterSections.map((section) => (
             <Accordion
               key={section}
               sx={{
-                boxShadow: "none",
-                "&:before": { display: "none" },
-                borderBottom: "1px solid #e0e0e0",
+               boxShadow: "none",
+               
+        "&:before": { display: "none" },
+        backgroundColor: "rgba(217, 217, 217, 0.21)",
+        marginBottom: "5px",
+        // borderRadius: index === 0 ? "20px 20px 0 0" : "0px", // Top rounded only on first
+        "&:last-of-type": {
+          borderRadius: 0, // Optional: No radius for last one unless you want bottom round
+        },
               }}
             >
               <AccordionSummary
