@@ -44,7 +44,8 @@ export const ENDPOINTS = {
   REVIEWS: {
     LISTING: "/public/customer-reviews/listing",
     DETAIL: (id: string) => `/public/customer-reviews/${id}`,
-    PRODUCT_REVIEWS: (productId: string) => `/public/products/${productId}/reviews`,
+    PRODUCT_REVIEWS: (productId: string) =>
+      `/public/products/${productId}/reviews`,
     CREATE: "/reviews",
     UPDATE: (id: string) => `/reviews/${id}`,
     DELETE: (id: string) => `/reviews/${id}`,
@@ -56,13 +57,48 @@ export const ENDPOINTS = {
     DETAIL: (id: string) => `/shipments/${id}`,
     TRACK: (trackingNumber: string) => `/shipments/track/${trackingNumber}`,
   },
-    CATEGORIES: {
+  CATEGORIES: {
     LISTING: "/public/categories/listing",
     DETAIL: (id: string) => `/public/categories/${id}`,
     FEATURED: "/public/categories/listing?tag=Featured",
   },
-    CERTIFICATES: {
+  CERTIFICATES: {
     LISTING: "/public/certificates/listing",
     DETAIL: (id: string) => `/api/public/certificates/${id}`,
   },
-} as const
+
+  // Cart endpoints
+  CART: {
+    GET: "/public/cart",
+    SUMMARY: "/public/cart/summary",
+    ADD: "/public/cart/add",
+    UPDATE: (productId: string) => `/public/cart/update/${productId}`,
+    REMOVE: (productId: string) => `/public/cart/remove/${productId}`,
+    CLEAR: "/public/cart/clear",
+    VALIDATE: "/public/cart/validate",
+  },
+
+  // Customer Address endpoints
+  CUSTOMER_ADDRESS: {
+    LIST: (customerId: string) => `/customer-address/${customerId}`,
+    DETAIL: (customerId: string, addressId: string) =>
+      `/customer-address/${customerId}/${addressId}`,
+    ADD: (customerId: string) => `/customer-address/${customerId}`,
+    UPDATE: (customerId: string, addressId: string) =>
+      `/customer-address/${customerId}/${addressId}`,
+    DELETE: (customerId: string, addressId: string) =>
+      `/customer-address/${customerId}/${addressId}`,
+    SET_DEFAULT: (customerId: string, addressId: string) =>
+      `/customer-address/${customerId}/${addressId}/default`,
+  },
+
+  // Password Change endpoints
+  PASSWORD_CHANGE: {
+    CHANGE: "/public/customer-auth/password",
+  },
+
+  // Search endpoints
+  SEARCH: {
+    QUERY: "/public/search",
+  },
+} as const;

@@ -1,26 +1,38 @@
 // Product handlers
-export * from "./productHandler"
-export * from "./productDetailsHandler"
+export * from "./productHandler";
+export * from "./productDetailsHandler";
 
 // Authentication handlers
-export * from "./authHandler"
-export * from "./customerAuthHandler"
-export * from "./customerSignupHandler"
+export * from "./authHandler";
+export * from "./customerAuthHandler";
+export * from "./customerSignupHandler";
 
 // Order handlers
-export * from "./ordersHandler"
-export * from "./customerOrdersHandler"
+export * from "./ordersHandler";
+export * from "./customerOrdersHandler";
 
 // Review handlers
-export * from "./reviewsHandler"
+export * from "./reviewsHandler";
 
 // Category handlers
-export * from "./categoriesHandler"
+export * from "./categoriesHandler";
 
 // Certificate handlers
-export * from "./certificatesHandler"
+export * from "./certificatesHandler";
 
 // RFQ handlers
-export * from "./rfqHandler"
+export * from "./rfqHandler";
 //wishlist handler
-export * from "./wishlistHandler"
+export * from "./wishlistHandler";
+
+// Cart handlers
+export * from "./cartHandler";
+
+// Customer Address handlers
+export * from "./customerAddressHandler";
+
+// Password Change handlers
+export * from "./passwordChangeHandler";
+
+// Search handlers
+export * from "./searchHandler";

@@ -1,6 +1,6 @@
-"use client"
-import type React from "react"
-import { useState } from "react"
+"use client";
+import type React from "react";
+import { useState } from "react";
 import {
   Box,
   Typography,
@@ -22,25 +22,41 @@ import {
   Select,
   MenuItem,
   FormControlLabel,
-} from "@mui/material"
-import { Add, Remove, ShoppingCartOutlined, Login, Settings, ArrowUpward, ArrowDownward, DeleteOutline } from "@mui/icons-material"
-import { useRouter } from "next/navigation"
-import { useAppStore } from "@/store/use-app-store"
+  CircularProgress,
+} from "@mui/material";
+import {
+  Add,
+  Remove,
+  ShoppingCartOutlined,
+  Login,
+  Settings,
+  ArrowUpward,
+  ArrowDownward,
+  DeleteOutline,
+} from "@mui/icons-material";
+import { useRouter } from "next/navigation";
+import { useAppStore } from "@/store/use-app-store";
+import {
+  useCart,
+  useUpdateCartItem,
+  useRemoveFromCart,
+} from "@/api/handlers/cartHandler";
+import type { CartItem as APICartItem } from "@/api/services/cart";
 
 interface CartItem {
-  id: number
-  name: string
-  description: string
-  price: number
-  quantity: number
-  image: string
-  inStock: boolean
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  quantity: number;
+  image: string;
+  inStock: boolean;
 }
 
 interface Truck {
-  id: number
-  name: string
-  image: string
+  id: number;
+  name: string;
+  image: string;
 }
 
 const trucks: Truck[] = [
@@ -50,99 +66,150 @@ const trucks: Truck[] = [
   { id: 4, name: "MEGA-TRAILER", image: "/truck4.png" },
   { id: 5, name: "JUMBO", image: "/truck5.png" },
   { id: 6, name: "CUSTOM TRUCK", image: "/truck6.png" },
-]
+];
 
 const ShoppingCart: React.FC = () => {
-  const router = useRouter()
-  const { isAuthenticated, customer } = useAppStore()
+  const router = useRouter();
+  const { isAuthenticated, customer } = useAppStore();
 
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: 1,
-      name: "Loreal Ipsum",
-      description: "Lorem ipsum dolor ipsum",
-      price: 1234.89,
-      quantity: 1,
-      image: "/product.png?height=60&width=60",
-      inStock: true,
-    },
-    {
-      id: 2,
-      name: "Loreal Ipsum",
-      description: "Lorem ipsum dolor ipsum",
-      price: 1234.89,
-      quantity: 1,
-      image: "/product.png?height=60&width=60",
-      inStock: true,
-    },
-  ])
+  // Fetch cart data from API
+  const {
+    data: cartResponse,
+    isLoading: cartLoading,
+    error: cartError,
+    isError: cartIsError,
+  } = useCart(customer?.id || "", { enabled: !!customer?.id });
 
-  const [discount, setDiscount] = useState("")
-  const [activeTab, setActiveTab] = useState(0)
-  
+  // Cart mutation hooks
+  const updateCartItemMutation = useUpdateCartItem();
+  const removeFromCartMutation = useRemoveFromCart();
+
+  const [discount, setDiscount] = useState("");
+  const [activeTab, setActiveTab] = useState(0);
+
   // Modal states
-  const [isTruckModalOpen, setIsTruckModalOpen] = useState(false)
-  const [isContainerModalOpen, setIsContainerModalOpen] = useState(false)
-  const [selectedTruck, setSelectedTruck] = useState<Truck | null>(null)
-  const [selectedTruckForDetail, setSelectedTruckForDetail] = useState<Truck | null>(null)
-  const [showTruckDetail, setShowTruckDetail] = useState(false)
-  
+  const [isTruckModalOpen, setIsTruckModalOpen] = useState(false);
+  const [isContainerModalOpen, setIsContainerModalOpen] = useState(false);
+  const [selectedTruck, setSelectedTruck] = useState<Truck | null>(null);
+  const [selectedTruckForDetail, setSelectedTruckForDetail] =
+    useState<Truck | null>(null);
+  const [showTruckDetail, setShowTruckDetail] = useState(false);
+
   // Container detail form states
-  const [containerCount, setContainerCount] = useState(1)
-  const [containerType, setContainerType] = useState("20' STANDARD")
-  const [loadingRules, setLoadingRules] = useState("Auto")
-  const [loadSpecificGroups, setLoadSpecificGroups] = useState(false)
+  const [containerCount, setContainerCount] = useState(1);
+  const [containerType, setContainerType] = useState("20' STANDARD");
+  const [loadingRules, setLoadingRules] = useState("Auto");
+  const [loadSpecificGroups, setLoadSpecificGroups] = useState(false);
 
-  const updateQuantity = (id: number, newQuantity: number) => {
-    if (newQuantity < 1) return
-    setCartItems((items) => items.map((item) => (item.id === id ? { ...item, quantity: newQuantity } : item)))
-  }
+  const updateQuantity = (productId: string, newQuantity: number) => {
+    if (newQuantity < 1 || !customer?.id) return;
 
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const total = subtotal
+    updateCartItemMutation.mutate({
+      productId,
+      data: {
+        customerId: customer.id,
+        quantity: newQuantity,
+      },
+    });
+  };
+
+  const removeFromCart = (productId: string) => {
+    if (!customer?.id) return;
+
+    removeFromCartMutation.mutate({
+      customerId: customer.id,
+      productId,
+    });
+  };
+  console.log(cartResponse, "cartResponse__cartResponse");
+
+  // Extract cart data
+  const cartData = cartResponse?.data?.cart;
+  const cartItems = cartData?.items || [];
+  const subtotal = cartData?.totalAmount || 0;
+  const total = subtotal;
 
   const handleCheckout = () => {
-    router.push("/checkout")
-  }
+    router.push("/checkout");
+  };
 
   const handleLogin = () => {
-    router.push("/sign_in")
-  }
+    router.push("/sign_in");
+  };
 
   const handleSignUp = () => {
-    router.push("/sign_up")
-  }
+    router.push("/sign_up");
+  };
 
   const handleOpenTruckModal = () => {
-    setSelectedTruck(null)
-    setShowTruckDetail(false)
-    setIsTruckModalOpen(true)
-  }
+    setSelectedTruck(null);
+    setShowTruckDetail(false);
+    setIsTruckModalOpen(true);
+  };
 
   const handleCloseTruckModal = () => {
-    setIsTruckModalOpen(false)
-    setSelectedTruck(null)
-    setShowTruckDetail(false)
-  }
+    setIsTruckModalOpen(false);
+    setSelectedTruck(null);
+    setShowTruckDetail(false);
+  };
 
   const handleSelectTruck = (truck: Truck) => {
-    setSelectedTruck(truck)
-  }
+    setSelectedTruck(truck);
+  };
 
   const handleTruckSelect = () => {
     if (selectedTruck) {
-      setSelectedTruckForDetail(selectedTruck)
-      setShowTruckDetail(true)
-      setIsTruckModalOpen(false)
+      setSelectedTruckForDetail(selectedTruck);
+      setShowTruckDetail(true);
+      setIsTruckModalOpen(false);
     }
-  }
+  };
 
   const handleOpenContainerModal = () => {
-    setIsContainerModalOpen(true)
-  }
+    setIsContainerModalOpen(true);
+  };
 
   const handleCloseContainerModal = () => {
-    setIsContainerModalOpen(false)
+    setIsContainerModalOpen(false);
+  };
+
+  // Loading state
+  if (cartLoading) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 3 }}>
+        <Paper
+          elevation={0}
+          sx={{ p: 3, backgroundColor: "white", borderRadius: 2 }}
+        >
+          <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+            <CircularProgress sx={{ color: "#ff6b35" }} />
+          </Box>
+        </Paper>
+      </Container>
+    );
+  }
+
+  // Error state
+  if (cartIsError) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 3 }}>
+        <Paper
+          elevation={0}
+          sx={{ p: 3, backgroundColor: "white", borderRadius: 2 }}
+        >
+          <Box sx={{ textAlign: "center", py: 8 }}>
+            <Typography variant="h6" sx={{ color: "#f44336", mb: 2 }}>
+              Error loading cart
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#666" }}>
+              {cartError instanceof Error
+                ? cartError.message
+                : "Something went wrong"}
+            </Typography>
+          </Box>
+        </Paper>
+      </Container>
+    );
   }
 
   // Authentication fallback UI
@@ -210,11 +277,18 @@ const ShoppingCart: React.FC = () => {
                 lineHeight: 1.6,
               }}
             >
-              You need to be signed in to view and manage your shopping cart items. Login to your account or create a
-              new one to get started.
+              You need to be signed in to view and manage your shopping cart
+              items. Login to your account or create a new one to get started.
             </Typography>
 
-            <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", justifyContent: "center" }}>
+            <Box
+              sx={{
+                display: "flex",
+                gap: 2,
+                flexWrap: "wrap",
+                justifyContent: "center",
+              }}
+            >
               <Button
                 variant="contained"
                 onClick={handleLogin}
@@ -288,7 +362,64 @@ const ShoppingCart: React.FC = () => {
           </Box>
         </Paper>
       </Container>
-    )
+    );
+  }
+
+  // Empty cart state
+  if (cartItems.length === 0) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 3 }}>
+        <Paper
+          elevation={0}
+          sx={{ p: 3, backgroundColor: "white", borderRadius: 2 }}
+        >
+          <Box sx={{ textAlign: "center", py: 8 }}>
+            <Box
+              sx={{
+                width: 120,
+                height: 120,
+                backgroundColor: "#fafafa",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                mb: 3,
+                margin: "0 auto",
+                border: "2px dashed #e0e0e0",
+              }}
+            >
+              <ShoppingCartOutlined sx={{ fontSize: 48, color: "#ff6b35" }} />
+            </Box>
+            <Typography
+              variant="h6"
+              sx={{ fontWeight: 600, color: "#333", mb: 2 }}
+            >
+              Your cart is empty
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#666", mb: 4 }}>
+              Add some products to your cart and they will appear here.
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={() => router.push("/product")}
+              sx={{
+                backgroundColor: "#ff6b35",
+                color: "white",
+                px: 4,
+                py: 1.5,
+                fontSize: "14px",
+                fontWeight: 600,
+                textTransform: "none",
+                borderRadius: 1,
+                "&:hover": { backgroundColor: "#e55a2b" },
+              }}
+            >
+              Continue Shopping
+            </Button>
+          </Box>
+        </Paper>
+      </Container>
+    );
   }
 
   // Authenticated user - show normal cart
@@ -337,7 +468,9 @@ const ShoppingCart: React.FC = () => {
                 mb: 3,
               }}
             >
-              <Table sx={{ borderCollapse: "separate", borderSpacing: "0 8px" }}>
+              <Table
+                sx={{ borderCollapse: "separate", borderSpacing: "0 8px" }}
+              >
                 <TableHead>
                   <TableRow>
                     <TableCell
@@ -391,12 +524,25 @@ const ShoppingCart: React.FC = () => {
                     >
                       Subtotal
                     </TableCell>
+                    <TableCell
+                      align="center"
+                      sx={{
+                        fontWeight: 600,
+                        color: "#333",
+                        fontSize: "0.875rem",
+                        py: 2,
+                        borderBottom: "1px solid rgba(234, 104, 36, 1)",
+                        backgroundColor: "transparent",
+                      }}
+                    >
+                      Action
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {cartItems.map((item) => (
                     <TableRow
-                      key={item.id}
+                      key={item.product._id}
                       sx={{
                         "& td": {
                           backgroundColor: "#fafafa",
@@ -413,7 +559,9 @@ const ShoppingCart: React.FC = () => {
                       }}
                     >
                       <TableCell sx={{ py: 2 }}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 2 }}
+                        >
                           <Box
                             sx={{
                               width: 60,
@@ -426,7 +574,15 @@ const ShoppingCart: React.FC = () => {
                               flexShrink: 0,
                             }}
                           >
-                            <Typography sx={{ fontSize: "24px", fontWeight: "bold", color: "white" }}>📦</Typography>
+                            <Typography
+                              sx={{
+                                fontSize: "24px",
+                                fontWeight: "bold",
+                                color: "white",
+                              }}
+                            >
+                              📦
+                            </Typography>
                           </Box>
                           <Box>
                             <Typography
@@ -438,7 +594,7 @@ const ShoppingCart: React.FC = () => {
                                 mb: 0.5,
                               }}
                             >
-                              {item.name}
+                              {item.productName}
                             </Typography>
                             <Typography
                               variant="body2"
@@ -447,7 +603,7 @@ const ShoppingCart: React.FC = () => {
                                 fontSize: "0.75rem",
                               }}
                             >
-                              {item.description}
+                              Product ID: {item.product._id}
                             </Typography>
                           </Box>
                         </Box>
@@ -460,14 +616,26 @@ const ShoppingCart: React.FC = () => {
                             fontSize: "0.875rem",
                           }}
                         >
-                          ${item.price.toFixed(2)}
+                          ${item.productPrice.toFixed(2)}
                         </Typography>
                       </TableCell>
                       <TableCell align="center" sx={{ py: 2 }}>
-                        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 1,
+                          }}
+                        >
                           <IconButton
                             size="small"
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            onClick={() =>
+                              updateQuantity(
+                                item.product._id,
+                                item.quantity - 1
+                              )
+                            }
                             sx={{
                               width: 24,
                               height: 24,
@@ -480,7 +648,9 @@ const ShoppingCart: React.FC = () => {
                           >
                             <Remove sx={{ fontSize: 14 }} />
                           </IconButton>
-                          <Box sx={{ mx: 1, textAlign: "center", minWidth: 40 }}>
+                          <Box
+                            sx={{ mx: 1, textAlign: "center", minWidth: 40 }}
+                          >
                             <Typography
                               sx={{
                                 fontWeight: 600,
@@ -504,7 +674,12 @@ const ShoppingCart: React.FC = () => {
                           </Box>
                           <IconButton
                             size="small"
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            onClick={() =>
+                              updateQuantity(
+                                item.product._id,
+                                item.quantity + 1
+                              )
+                            }
                             sx={{
                               width: 24,
                               height: 24,
@@ -527,8 +702,23 @@ const ShoppingCart: React.FC = () => {
                             fontSize: "0.875rem",
                           }}
                         >
-                          ${(item.price * item.quantity).toFixed(2)}
+                          ${(item.productPrice * item.quantity).toFixed(2)}
                         </Typography>
+                      </TableCell>
+                      <TableCell align="center" sx={{ py: 2 }}>
+                        <IconButton
+                          size="small"
+                          onClick={() => removeFromCart(item.product._id)}
+                          disabled={removeFromCartMutation.isPending}
+                          sx={{
+                            color: "#f44336",
+                            "&:hover": {
+                              backgroundColor: "rgba(244, 67, 54, 0.1)",
+                            },
+                          }}
+                        >
+                          <DeleteOutline fontSize="small" />
+                        </IconButton>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -538,7 +728,13 @@ const ShoppingCart: React.FC = () => {
           </Box>
 
           {/* Bottom Section */}
-          <Box sx={{ display: "flex", justifyContent: "space-between", backgroundColor: "#fafafa" }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              backgroundColor: "#fafafa",
+            }}
+          >
             {/* Shipping Address */}
             <Box sx={{ p: 5 }}>
               <Typography
@@ -551,12 +747,24 @@ const ShoppingCart: React.FC = () => {
               >
                 Shipping Address
               </Typography>
-              <Box sx={{ color: "#666", fontSize: "0.875rem", lineHeight: 1.6 }}>
-                <Typography sx={{ fontSize: "0.75rem", mb: 0.5 }}>Loreal Gummersbach Jaunstrasse</Typography>
-                <Typography sx={{ fontSize: "0.75rem", mb: 0.5 }}>Gummersbach Jaunstrasse</Typography>
-                <Typography sx={{ fontSize: "0.75rem", mb: 0.5 }}>Gummersbach Jaunstrasse Gummersbach</Typography>
-                <Typography sx={{ fontSize: "0.75rem", mb: 0.5 }}>Postcode: 234534-007</Typography>
-                <Typography sx={{ fontSize: "0.75rem" }}>Number: 234-234-2344</Typography>
+              <Box
+                sx={{ color: "#666", fontSize: "0.875rem", lineHeight: 1.6 }}
+              >
+                <Typography sx={{ fontSize: "0.75rem", mb: 0.5 }}>
+                  Loreal Gummersbach Jaunstrasse
+                </Typography>
+                <Typography sx={{ fontSize: "0.75rem", mb: 0.5 }}>
+                  Gummersbach Jaunstrasse
+                </Typography>
+                <Typography sx={{ fontSize: "0.75rem", mb: 0.5 }}>
+                  Gummersbach Jaunstrasse Gummersbach
+                </Typography>
+                <Typography sx={{ fontSize: "0.75rem", mb: 0.5 }}>
+                  Postcode: 234534-007
+                </Typography>
+                <Typography sx={{ fontSize: "0.75rem" }}>
+                  Number: 234-234-2344
+                </Typography>
               </Box>
             </Box>
 
@@ -710,44 +918,53 @@ const ShoppingCart: React.FC = () => {
                 }}
               >
                 {/* Tabs */}
-                {["PRODUCTS", "CONTAINER & TRUCKS", "STUFFING RESULT"].map((tab, index) => (
-                  <Box
-                    key={tab}
-                    onClick={() => setActiveTab(index)}
-                    sx={{
-                      flex: 1,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      height: 56,
-                      cursor: "pointer",
-                      fontSize: "13px",
-                      fontWeight: 600,
-                      color: activeTab === index ? "#ff6b35" : "rgba(90, 96, 127, 0.77)",
-                      borderRight: index < 2 ? "3px solid #f0f0f0" : "none",
-                      borderBottom: activeTab === index ? "2px solid #ff6b35" : "2px solid transparent",
-                      transition: "all 0.3s ease",
-                      position: "relative",
-                      "&:hover": {
-                        color: "#ff6b35",
-                      },
-                      "&::after": {
-                        content: '""',
-                        position: "absolute",
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: "2px",
-                        backgroundColor: "#ff6b35",
-                        transform: activeTab === index ? "scaleX(1)" : "scaleX(0)",
-                        transformOrigin: "center",
-                        transition: "transform 0.3s ease",
-                      },
-                    }}
-                  >
-                    {tab}
-                  </Box>
-                ))}
+                {["PRODUCTS", "CONTAINER & TRUCKS", "STUFFING RESULT"].map(
+                  (tab, index) => (
+                    <Box
+                      key={tab}
+                      onClick={() => setActiveTab(index)}
+                      sx={{
+                        flex: 1,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        height: 56,
+                        cursor: "pointer",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        color:
+                          activeTab === index
+                            ? "#ff6b35"
+                            : "rgba(90, 96, 127, 0.77)",
+                        borderRight: index < 2 ? "3px solid #f0f0f0" : "none",
+                        borderBottom:
+                          activeTab === index
+                            ? "2px solid #ff6b35"
+                            : "2px solid transparent",
+                        transition: "all 0.3s ease",
+                        position: "relative",
+                        "&:hover": {
+                          color: "#ff6b35",
+                        },
+                        "&::after": {
+                          content: '""',
+                          position: "absolute",
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          height: "2px",
+                          backgroundColor: "#ff6b35",
+                          transform:
+                            activeTab === index ? "scaleX(1)" : "scaleX(0)",
+                          transformOrigin: "center",
+                          transition: "transform 0.3s ease",
+                        },
+                      }}
+                    >
+                      {tab}
+                    </Box>
+                  )
+                )}
 
                 {/* Settings Icon */}
                 <IconButton
@@ -781,7 +998,7 @@ const ShoppingCart: React.FC = () => {
                       bgcolor: "rgba(251, 251, 251, 1)",
                       borderBottom: "1px solid #f0f0f0",
                       mt: 2,
-                      mb: 2
+                      mb: 2,
                     }}
                   >
                     <Box>
@@ -792,7 +1009,8 @@ const ShoppingCart: React.FC = () => {
                           fontWeight: 500,
                           textTransform: "none",
                           color: "#fff",
-                          background: 'linear-gradient(90deg, #F58A4E 0%, #F16A3C 100%)',
+                          background:
+                            "linear-gradient(90deg, #F58A4E 0%, #F16A3C 100%)",
                           minWidth: 135,
                           height: 38,
                           borderRadius: "5px",
@@ -858,7 +1076,8 @@ const ShoppingCart: React.FC = () => {
                           textTransform: "none",
                           borderColor: "#e0e0e0",
                           color: "#fff",
-                          background: 'linear-gradient(90deg, rgba(255, 199, 0, 1) 0%, rgba(255, 143, 107, 1) 100%)',
+                          background:
+                            "linear-gradient(90deg, rgba(255, 199, 0, 1) 0%, rgba(255, 143, 107, 1) 100%)",
                           minWidth: 135,
                           height: 38,
                           borderRadius: "5px",
@@ -903,10 +1122,13 @@ const ShoppingCart: React.FC = () => {
                       >
                         Group #1
                       </Typography>
-                      <IconButton size="small" sx={{ ml: "auto" }}>
-                      </IconButton>
+                      <IconButton size="small" sx={{ ml: "auto" }}></IconButton>
                       <IconButton size="small" sx={{ color: "#ff4d4f" }}>
-                        <img src="/bin.png" alt="Delete" style={{ width: 16, height: 16 }} />
+                        <img
+                          src="/bin.png"
+                          alt="Delete"
+                          style={{ width: 16, height: 16 }}
+                        />
                       </IconButton>
                       <IconButton size="small" sx={{ color: "#1890ff" }}>
                         <ArrowUpward sx={{ fontSize: 16 }} />
@@ -921,31 +1143,101 @@ const ShoppingCart: React.FC = () => {
                       <Table size="small">
                         <TableHead>
                           <TableRow>
-                            <TableCell sx={{ fontSize: "12px", fontWeight: 600, color: "#666", py: 1 }}>
+                            <TableCell
+                              sx={{
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                color: "#666",
+                                py: 1,
+                              }}
+                            >
                               Type
                             </TableCell>
-                            <TableCell sx={{ fontSize: "12px", fontWeight: 600, color: "#666", py: 1 }}>
+                            <TableCell
+                              sx={{
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                color: "#666",
+                                py: 1,
+                              }}
+                            >
                               Product Name
                             </TableCell>
-                            <TableCell sx={{ fontSize: "12px", fontWeight: 600, color: "#666", py: 1 }} align="center">
+                            <TableCell
+                              sx={{
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                color: "#666",
+                                py: 1,
+                              }}
+                              align="center"
+                            >
                               Length/Diameter
                             </TableCell>
-                            <TableCell sx={{ fontSize: "12px", fontWeight: 600, color: "#666", py: 1 }} align="center">
+                            <TableCell
+                              sx={{
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                color: "#666",
+                                py: 1,
+                              }}
+                              align="center"
+                            >
                               Width
                             </TableCell>
-                            <TableCell sx={{ fontSize: "12px", fontWeight: 600, color: "#666", py: 1 }} align="center">
+                            <TableCell
+                              sx={{
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                color: "#666",
+                                py: 1,
+                              }}
+                              align="center"
+                            >
                               Height
                             </TableCell>
-                            <TableCell sx={{ fontSize: "12px", fontWeight: 600, color: "#666", py: 1 }} align="center">
+                            <TableCell
+                              sx={{
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                color: "#666",
+                                py: 1,
+                              }}
+                              align="center"
+                            >
                               Weight
                             </TableCell>
-                            <TableCell sx={{ fontSize: "12px", fontWeight: 600, color: "#666", py: 1 }} align="center">
+                            <TableCell
+                              sx={{
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                color: "#666",
+                                py: 1,
+                              }}
+                              align="center"
+                            >
                               Quantity
                             </TableCell>
-                            <TableCell sx={{ fontSize: "12px", fontWeight: 600, color: "#666", py: 1 }} align="center">
+                            <TableCell
+                              sx={{
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                color: "#666",
+                                py: 1,
+                              }}
+                              align="center"
+                            >
                               Color
                             </TableCell>
-                            <TableCell sx={{ fontSize: "12px", fontWeight: 600, color: "#666", py: 1 }} align="center">
+                            <TableCell
+                              sx={{
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                color: "#666",
+                                py: 1,
+                              }}
+                              align="center"
+                            >
                               Stock
                             </TableCell>
                           </TableRow>
@@ -984,7 +1276,10 @@ const ShoppingCart: React.FC = () => {
                                 Boxes 1
                               </Box>
                             </TableCell>
-                            <TableCell sx={{ fontSize: "12px", py: 1.5 }} align="center">
+                            <TableCell
+                              sx={{ fontSize: "12px", py: 1.5 }}
+                              align="center"
+                            >
                               <Box
                                 component="span"
                                 sx={{
@@ -1000,7 +1295,10 @@ const ShoppingCart: React.FC = () => {
                                 500 <span style={{ color: "#999" }}>mm</span>
                               </Box>
                             </TableCell>
-                            <TableCell sx={{ fontSize: "12px", py: 1.5 }} align="center">
+                            <TableCell
+                              sx={{ fontSize: "12px", py: 1.5 }}
+                              align="center"
+                            >
                               <Box
                                 component="span"
                                 sx={{
@@ -1016,7 +1314,10 @@ const ShoppingCart: React.FC = () => {
                                 300 <span style={{ color: "#999" }}>mm</span>
                               </Box>
                             </TableCell>
-                            <TableCell sx={{ fontSize: "12px", py: 1.5 }} align="center">
+                            <TableCell
+                              sx={{ fontSize: "12px", py: 1.5 }}
+                              align="center"
+                            >
                               <Box
                                 component="span"
                                 sx={{
@@ -1032,7 +1333,10 @@ const ShoppingCart: React.FC = () => {
                                 300 <span style={{ color: "#999" }}>mm</span>
                               </Box>
                             </TableCell>
-                            <TableCell sx={{ fontSize: "12px", py: 1.5 }} align="center">
+                            <TableCell
+                              sx={{ fontSize: "12px", py: 1.5 }}
+                              align="center"
+                            >
                               <Box
                                 component="span"
                                 sx={{
@@ -1048,7 +1352,14 @@ const ShoppingCart: React.FC = () => {
                                 45 <span style={{ color: "#999" }}>kg</span>
                               </Box>
                             </TableCell>
-                            <TableCell sx={{ fontSize: "12px", py: 1.5, fontWeight: 600 }} align="center">
+                            <TableCell
+                              sx={{
+                                fontSize: "12px",
+                                py: 1.5,
+                                fontWeight: 600,
+                              }}
+                              align="center"
+                            >
                               <Box
                                 component="span"
                                 sx={{
@@ -1077,12 +1388,28 @@ const ShoppingCart: React.FC = () => {
                               />
                             </TableCell>
                             <TableCell sx={{ py: 1.5 }} align="center">
-                              <Box sx={{ display: "flex", gap: 0.5, justifyContent: "center" }}>
-                                <IconButton size="small" sx={{ color: "#1890ff" }}>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  gap: 0.5,
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <IconButton
+                                  size="small"
+                                  sx={{ color: "#1890ff" }}
+                                >
                                   <Settings sx={{ fontSize: 14 }} />
                                 </IconButton>
-                                <IconButton size="small" sx={{ color: "#ff4d4f" }}>
-                                  <img src="/bin.png" alt="Delete" style={{ width: 14, height: 14 }} />
+                                <IconButton
+                                  size="small"
+                                  sx={{ color: "#ff4d4f" }}
+                                >
+                                  <img
+                                    src="/bin.png"
+                                    alt="Delete"
+                                    style={{ width: 14, height: 14 }}
+                                  />
                                 </IconButton>
                               </Box>
                             </TableCell>
@@ -1121,7 +1448,10 @@ const ShoppingCart: React.FC = () => {
                                 Socks
                               </Box>
                             </TableCell>
-                            <TableCell sx={{ fontSize: "12px", py: 1.5 }} align="center">
+                            <TableCell
+                              sx={{ fontSize: "12px", py: 1.5 }}
+                              align="center"
+                            >
                               <Box
                                 component="span"
                                 sx={{
@@ -1137,7 +1467,10 @@ const ShoppingCart: React.FC = () => {
                                 1000 <span style={{ color: "#999" }}>mm</span>
                               </Box>
                             </TableCell>
-                            <TableCell sx={{ fontSize: "12px", py: 1.5 }} align="center">
+                            <TableCell
+                              sx={{ fontSize: "12px", py: 1.5 }}
+                              align="center"
+                            >
                               <Box
                                 component="span"
                                 sx={{
@@ -1153,7 +1486,10 @@ const ShoppingCart: React.FC = () => {
                                 300 <span style={{ color: "#999" }}>mm</span>
                               </Box>
                             </TableCell>
-                            <TableCell sx={{ fontSize: "12px", py: 1.5 }} align="center">
+                            <TableCell
+                              sx={{ fontSize: "12px", py: 1.5 }}
+                              align="center"
+                            >
                               <Box
                                 component="span"
                                 sx={{
@@ -1169,7 +1505,10 @@ const ShoppingCart: React.FC = () => {
                                 300 <span style={{ color: "#999" }}>mm</span>
                               </Box>
                             </TableCell>
-                            <TableCell sx={{ fontSize: "12px", py: 1.5 }} align="center">
+                            <TableCell
+                              sx={{ fontSize: "12px", py: 1.5 }}
+                              align="center"
+                            >
                               <Box
                                 component="span"
                                 sx={{
@@ -1185,7 +1524,14 @@ const ShoppingCart: React.FC = () => {
                                 45 <span style={{ color: "#999" }}>kg</span>
                               </Box>
                             </TableCell>
-                            <TableCell sx={{ fontSize: "12px", py: 1.5, fontWeight: 600 }} align="center">
+                            <TableCell
+                              sx={{
+                                fontSize: "12px",
+                                py: 1.5,
+                                fontWeight: 600,
+                              }}
+                              align="center"
+                            >
                               <Box
                                 component="span"
                                 sx={{
@@ -1214,12 +1560,28 @@ const ShoppingCart: React.FC = () => {
                               />
                             </TableCell>
                             <TableCell sx={{ py: 1.5 }} align="center">
-                              <Box sx={{ display: "flex", gap: 0.5, justifyContent: "center" }}>
-                                <IconButton size="small" sx={{ color: "#1890ff" }}>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  gap: 0.5,
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <IconButton
+                                  size="small"
+                                  sx={{ color: "#1890ff" }}
+                                >
                                   <Settings sx={{ fontSize: 14 }} />
                                 </IconButton>
-                                <IconButton size="small" sx={{ color: "#ff4d4f" }}>
-                                  <img src="/bin.png" alt="Delete" style={{ width: 14, height: 14 }} />
+                                <IconButton
+                                  size="small"
+                                  sx={{ color: "#ff4d4f" }}
+                                >
+                                  <img
+                                    src="/bin.png"
+                                    alt="Delete"
+                                    style={{ width: 14, height: 14 }}
+                                  />
                                 </IconButton>
                               </Box>
                             </TableCell>
@@ -1258,7 +1620,10 @@ const ShoppingCart: React.FC = () => {
                                 Big Bags
                               </Box>
                             </TableCell>
-                            <TableCell sx={{ fontSize: "12px", py: 1.5 }} align="center">
+                            <TableCell
+                              sx={{ fontSize: "12px", py: 1.5 }}
+                              align="center"
+                            >
                               <Box
                                 component="span"
                                 sx={{
@@ -1274,7 +1639,10 @@ const ShoppingCart: React.FC = () => {
                                 1000 <span style={{ color: "#999" }}>mm</span>
                               </Box>
                             </TableCell>
-                            <TableCell sx={{ fontSize: "12px", py: 1.5 }} align="center">
+                            <TableCell
+                              sx={{ fontSize: "12px", py: 1.5 }}
+                              align="center"
+                            >
                               <Box
                                 component="span"
                                 sx={{
@@ -1290,7 +1658,10 @@ const ShoppingCart: React.FC = () => {
                                 1000 <span style={{ color: "#999" }}>mm</span>
                               </Box>
                             </TableCell>
-                            <TableCell sx={{ fontSize: "12px", py: 1.5 }} align="center">
+                            <TableCell
+                              sx={{ fontSize: "12px", py: 1.5 }}
+                              align="center"
+                            >
                               <Box
                                 component="span"
                                 sx={{
@@ -1306,7 +1677,10 @@ const ShoppingCart: React.FC = () => {
                                 1000 <span style={{ color: "#999" }}>mm</span>
                               </Box>
                             </TableCell>
-                            <TableCell sx={{ fontSize: "12px", py: 1.5 }} align="center">
+                            <TableCell
+                              sx={{ fontSize: "12px", py: 1.5 }}
+                              align="center"
+                            >
                               <Box
                                 component="span"
                                 sx={{
@@ -1322,7 +1696,14 @@ const ShoppingCart: React.FC = () => {
                                 50 <span style={{ color: "#999" }}>kg</span>
                               </Box>
                             </TableCell>
-                            <TableCell sx={{ fontSize: "12px", py: 1.5, fontWeight: 600 }} align="center">
+                            <TableCell
+                              sx={{
+                                fontSize: "12px",
+                                py: 1.5,
+                                fontWeight: 600,
+                              }}
+                              align="center"
+                            >
                               <Box
                                 component="span"
                                 sx={{
@@ -1351,12 +1732,28 @@ const ShoppingCart: React.FC = () => {
                               />
                             </TableCell>
                             <TableCell sx={{ py: 1.5 }} align="center">
-                              <Box sx={{ display: "flex", gap: 0.5, justifyContent: "center" }}>
-                                <IconButton size="small" sx={{ color: "#1890ff" }}>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  gap: 0.5,
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <IconButton
+                                  size="small"
+                                  sx={{ color: "#1890ff" }}
+                                >
                                   <Settings sx={{ fontSize: 14 }} />
                                 </IconButton>
-                                <IconButton size="small" sx={{ color: "#ff4d4f" }}>
-                                  <img src="/bin.png" alt="Delete" style={{ width: 14, height: 14 }} />
+                                <IconButton
+                                  size="small"
+                                  sx={{ color: "#ff4d4f" }}
+                                >
+                                  <img
+                                    src="/bin.png"
+                                    alt="Delete"
+                                    style={{ width: 14, height: 14 }}
+                                  />
                                 </IconButton>
                               </Box>
                             </TableCell>
@@ -1366,7 +1763,13 @@ const ShoppingCart: React.FC = () => {
                     </TableContainer>
 
                     {/* Add Product Link */}
-                    <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-start" }}>
+                    <Box
+                      sx={{
+                        mt: 2,
+                        display: "flex",
+                        justifyContent: "flex-start",
+                      }}
+                    >
                       <Button
                         size="small"
                         sx={{
@@ -1396,7 +1799,13 @@ const ShoppingCart: React.FC = () => {
                     </Box>
 
                     {/* Product Count */}
-                    <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end" }}>
+                    <Box
+                      sx={{
+                        mt: 2,
+                        display: "flex",
+                        justifyContent: "flex-end",
+                      }}
+                    >
                       <Typography
                         sx={{
                           fontSize: "12px",
@@ -1451,7 +1860,8 @@ const ShoppingCart: React.FC = () => {
                 <Box
                   sx={{
                     bgcolor: "#fff",
-                    fontFamily: "'Inter', 'Roboto', 'Helvetica Neue', Arial, 'sans-serif'",
+                    fontFamily:
+                      "'Inter', 'Roboto', 'Helvetica Neue', Arial, 'sans-serif'",
                     px: { xs: 1, sm: 1, md: 2.5 },
                     pt: { xs: 2, sm: 3, md: 4 },
                   }}
@@ -1462,7 +1872,7 @@ const ShoppingCart: React.FC = () => {
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "flex-start",
-                      mb: { xs: 2, md: 3.5 }
+                      mb: { xs: 2, md: 3.5 },
                     }}
                   >
                     <Box sx={{ display: "flex", gap: 2 }}>
@@ -1529,23 +1939,24 @@ const ShoppingCart: React.FC = () => {
                         sx={{
                           p: 0,
                           color: "#FF8043",
-                          '&.Mui-checked': {
+                          "&.Mui-checked": {
                             color: "#FF8043",
                           },
                           mr: 1.2,
-                          '& .MuiSvgIcon-root': {
+                          "& .MuiSvgIcon-root": {
                             fontSize: "1.45rem",
-                          }
+                          },
                         }}
                       />
                       <Typography
                         sx={{
                           fontSize: "15px",
                           fontWeight: 500,
-                          fontFamily: "'Inter', 'Roboto', 'Helvetica Neue', Arial, 'sans-serif'",
+                          fontFamily:
+                            "'Inter', 'Roboto', 'Helvetica Neue', Arial, 'sans-serif'",
                           color: "#FF8043",
                           letterSpacing: 0,
-                          whiteSpace: "nowrap"
+                          whiteSpace: "nowrap",
                         }}
                       >
                         Automatic container selection
@@ -1556,9 +1967,24 @@ const ShoppingCart: React.FC = () => {
                   {/* Main Content Box */}
                   {selectedTruckForDetail && showTruckDetail ? (
                     // Show selected truck detail UI from second image
-                    <Box sx={{ py: 2, borderRadius: 2, bgcolor: '#fff', maxWidth: 900, mx: 'auto' }}>
+                    <Box
+                      sx={{
+                        py: 2,
+                        borderRadius: 2,
+                        bgcolor: "#fff",
+                        maxWidth: 900,
+                        mx: "auto",
+                      }}
+                    >
                       {/* Dropdown and action icons row */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          mb: 2,
+                        }}
+                      >
                         <Select
                           size="small"
                           value={containerType}
@@ -1566,39 +1992,77 @@ const ShoppingCart: React.FC = () => {
                           sx={{ width: 150, fontSize: 13 }}
                           variant="outlined"
                         >
-                          <MenuItem value="20' STANDARD">20&apos; STANDARD</MenuItem>
-                          <MenuItem value="40' STANDARD">40&apos; STANDARD</MenuItem>
-                          <MenuItem value="40' HIGH CUBE">40&apos; HIGH CUBE</MenuItem>
+                          <MenuItem value="20' STANDARD">
+                            20&apos; STANDARD
+                          </MenuItem>
+                          <MenuItem value="40' STANDARD">
+                            40&apos; STANDARD
+                          </MenuItem>
+                          <MenuItem value="40' HIGH CUBE">
+                            40&apos; HIGH CUBE
+                          </MenuItem>
                         </Select>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <IconButton size="small" sx={{ color: '#ff4d4f' }}>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <IconButton size="small" sx={{ color: "#ff4d4f" }}>
                             <DeleteOutline fontSize="small" />
                           </IconButton>
-                          <IconButton size="small" sx={{ color: '#1890ff' }}>
+                          <IconButton size="small" sx={{ color: "#1890ff" }}>
                             <ArrowUpward fontSize="small" />
                           </IconButton>
-                          <IconButton size="small" sx={{ color: '#52c41a' }}>
+                          <IconButton size="small" sx={{ color: "#52c41a" }}>
                             <ArrowDownward fontSize="small" />
                           </IconButton>
                         </Box>
                       </Box>
 
                       {/* Main row with image and inputs */}
-                      <Box sx={{ display: 'flex', gap: 4, alignItems: 'flex-start', mb: 2 }}>
-                        <Box sx={{ width: 200, height: 180, bgcolor: '#ebebe9', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          gap: 4,
+                          alignItems: "flex-start",
+                          mb: 2,
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: 200,
+                            height: 180,
+                            bgcolor: "#ebebe9",
+                            borderRadius: 2,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
+                          }}
+                        >
                           {/* Container image placeholder */}
-                          <Box sx={{ fontSize: 80, color: '#999' }}>📦</Box>
+                          <Box sx={{ fontSize: 80, color: "#999" }}>📦</Box>
                         </Box>
-                        
+
                         {/* Form inputs section */}
                         <Box sx={{ flex: 1 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 2,
+                              mb: 2,
+                              flexWrap: "wrap",
+                            }}
+                          >
                             <Typography sx={{ fontSize: 13 }}>Count</Typography>
-                            <Button 
-                              variant="outlined" 
-                              size="small" 
+                            <Button
+                              variant="outlined"
+                              size="small"
                               sx={{ minWidth: 32, p: 0, width: 32, height: 32 }}
-                              onClick={() => setContainerCount(Math.max(1, containerCount - 1))}
+                              onClick={() =>
+                                setContainerCount(
+                                  Math.max(1, containerCount - 1)
+                                )
+                              }
                             >
                               -
                             </Button>
@@ -1606,25 +2070,43 @@ const ShoppingCart: React.FC = () => {
                               size="small"
                               type="number"
                               value={containerCount}
-                              onChange={(e) => setContainerCount(Math.max(1, parseInt(e.target.value) || 1))}
-                              inputProps={{ min: 1, style: { textAlign: 'center', width: '50px', fontSize: 13 } }}
+                              onChange={(e) =>
+                                setContainerCount(
+                                  Math.max(1, parseInt(e.target.value) || 1)
+                                )
+                              }
+                              inputProps={{
+                                min: 1,
+                                style: {
+                                  textAlign: "center",
+                                  width: "50px",
+                                  fontSize: 13,
+                                },
+                              }}
                               sx={{ width: 70 }}
                             />
-                            <Button 
-                              variant="outlined" 
-                              size="small" 
+                            <Button
+                              variant="outlined"
+                              size="small"
                               sx={{ minWidth: 32, p: 0, width: 32, height: 32 }}
-                              onClick={() => setContainerCount(containerCount + 1)}
+                              onClick={() =>
+                                setContainerCount(containerCount + 1)
+                              }
                             >
                               +
                             </Button>
 
-                            <Typography sx={{ fontSize: 13 }}>Length</Typography>
+                            <Typography sx={{ fontSize: 13 }}>
+                              Length
+                            </Typography>
                             <TextField
                               size="small"
                               defaultValue="678"
                               sx={{ width: 70 }}
-                              inputProps={{ readOnly: true, style: { textAlign: 'center', fontSize: 13 } }}
+                              inputProps={{
+                                readOnly: true,
+                                style: { textAlign: "center", fontSize: 13 },
+                              }}
                             />
                             <Typography sx={{ fontSize: 13 }}>mm</Typography>
 
@@ -1633,36 +2115,58 @@ const ShoppingCart: React.FC = () => {
                               size="small"
                               defaultValue="678"
                               sx={{ width: 70 }}
-                              inputProps={{ readOnly: true, style: { textAlign: 'center', fontSize: 13 } }}
+                              inputProps={{
+                                readOnly: true,
+                                style: { textAlign: "center", fontSize: 13 },
+                              }}
                             />
                             <Typography sx={{ fontSize: 13 }}>mm</Typography>
 
-                            <Typography sx={{ fontSize: 13 }}>Height</Typography>
+                            <Typography sx={{ fontSize: 13 }}>
+                              Height
+                            </Typography>
                             <TextField
                               size="small"
                               defaultValue="678"
                               sx={{ width: 70 }}
-                              inputProps={{ readOnly: true, style: { textAlign: 'center', fontSize: 13 } }}
+                              inputProps={{
+                                readOnly: true,
+                                style: { textAlign: "center", fontSize: 13 },
+                              }}
                             />
                             <Typography sx={{ fontSize: 13 }}>mm</Typography>
 
-                            <Typography sx={{ fontSize: 13 }}>Max Weight</Typography>
+                            <Typography sx={{ fontSize: 13 }}>
+                              Max Weight
+                            </Typography>
                             <TextField
                               size="small"
                               defaultValue="678"
                               sx={{ width: 70 }}
-                              inputProps={{ readOnly: true, style: { textAlign: 'center', fontSize: 13 } }}
+                              inputProps={{
+                                readOnly: true,
+                                style: { textAlign: "center", fontSize: 13 },
+                              }}
                             />
                             <Typography sx={{ fontSize: 13 }}>Kg</Typography>
                           </Box>
 
                           {/* Loading rules and checkbox */}
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 2 }}>
-                            <Typography sx={{ fontSize: 13 }}>Loading rules</Typography>
-                            <Select 
-                              size="small" 
-                              value={loadingRules} 
-                              onChange={(e) => setLoadingRules(e.target.value)} 
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 2,
+                              mt: 2,
+                            }}
+                          >
+                            <Typography sx={{ fontSize: 13 }}>
+                              Loading rules
+                            </Typography>
+                            <Select
+                              size="small"
+                              value={loadingRules}
+                              onChange={(e) => setLoadingRules(e.target.value)}
                               sx={{ width: 120, fontSize: 13 }}
                             >
                               <MenuItem value="Auto">Auto</MenuItem>
@@ -1670,14 +2174,22 @@ const ShoppingCart: React.FC = () => {
                             </Select>
                             <FormControlLabel
                               control={
-                                <Checkbox 
-                                  size="small" 
+                                <Checkbox
+                                  size="small"
                                   checked={loadSpecificGroups}
-                                  onChange={(e) => setLoadSpecificGroups(e.target.checked)}
+                                  onChange={(e) =>
+                                    setLoadSpecificGroups(e.target.checked)
+                                  }
                                 />
                               }
                               label={
-                                <Typography sx={{ fontSize: 13, fontWeight: 400, color: '#000' }}>
+                                <Typography
+                                  sx={{
+                                    fontSize: 13,
+                                    fontWeight: 400,
+                                    color: "#000",
+                                  }}
+                                >
                                   Load only specific groups
                                 </Typography>
                               }
@@ -1687,21 +2199,28 @@ const ShoppingCart: React.FC = () => {
                       </Box>
 
                       {/* Buttons */}
-                      <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 4 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          gap: 2,
+                          justifyContent: "center",
+                          mt: 4,
+                        }}
+                      >
                         <Button
                           variant="outlined"
                           onClick={() => setActiveTab(0)}
                           sx={{
                             minWidth: 96,
                             borderRadius: 2,
-                            borderColor: '#f6e1da',
-                            color: '#ff8144',
+                            borderColor: "#f6e1da",
+                            color: "#ff8144",
                             fontWeight: 600,
                             fontSize: 14,
-                            textTransform: 'none',
-                            '&:hover': {
-                              borderColor: '#f6e1da',
-                              bgcolor: 'rgba(255, 129, 68, 0.04)'
+                            textTransform: "none",
+                            "&:hover": {
+                              borderColor: "#f6e1da",
+                              bgcolor: "rgba(255, 129, 68, 0.04)",
                             },
                           }}
                         >
@@ -1713,12 +2232,12 @@ const ShoppingCart: React.FC = () => {
                           sx={{
                             minWidth: 112,
                             borderRadius: 2,
-                            bgcolor: '#ff8144',
+                            bgcolor: "#ff8144",
                             fontWeight: 600,
                             fontSize: 14,
-                            textTransform: 'none',
-                            '&:hover': {
-                              bgcolor: '#e55a2b'
+                            textTransform: "none",
+                            "&:hover": {
+                              bgcolor: "#e55a2b",
                             },
                           }}
                         >
@@ -1763,11 +2282,12 @@ const ShoppingCart: React.FC = () => {
                             justifyContent: "center",
                           }}
                         >
-                          <Box sx={{ fontSize: 54, color: '#1890ff' }}>📦</Box>
+                          <Box sx={{ fontSize: 54, color: "#1890ff" }}>📦</Box>
                         </Box>
                         <Typography
                           sx={{
-                            fontFamily: "'Inter', 'Roboto', Arial, 'sans-serif'",
+                            fontFamily:
+                              "'Inter', 'Roboto', Arial, 'sans-serif'",
                             fontWeight: 600,
                             fontSize: "18px",
                             color: "#220c1b",
@@ -1789,7 +2309,7 @@ const ShoppingCart: React.FC = () => {
                         alignItems: "center",
                         gap: 3,
                         mb: 1.5,
-                        mt: { xs: 2, md: 0 }
+                        mt: { xs: 2, md: 0 },
                       }}
                     >
                       <Button
@@ -1846,15 +2366,17 @@ const ShoppingCart: React.FC = () => {
               {activeTab === 2 && (
                 <Box sx={{ p: 4, textAlign: "center" }}>
                   <Typography variant="h6">Stuffing Result Content</Typography>
-                  <Typography>This will show the stuffing calculation results.</Typography>
-                  
+                  <Typography>
+                    This will show the stuffing calculation results.
+                  </Typography>
+
                   <Box
                     sx={{
                       display: "flex",
                       justifyContent: "center",
                       alignItems: "center",
                       gap: 3,
-                      mt: 4
+                      mt: 4,
                     }}
                   >
                     <Button
@@ -1910,49 +2432,56 @@ const ShoppingCart: React.FC = () => {
           open={isTruckModalOpen}
           onClose={handleCloseTruckModal}
           sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
           <Box
             sx={{
-              width: { xs: '95%', sm: '85%', md: '75%', lg: 1000 },
-              maxHeight: '90vh',
-              bgcolor: 'background.paper',
+              width: { xs: "95%", sm: "85%", md: "75%", lg: 1000 },
+              maxHeight: "90vh",
+              bgcolor: "background.paper",
               borderRadius: 2,
               boxShadow: 24,
               p: 0,
-              overflow: 'hidden',
-              position: 'relative',
+              overflow: "hidden",
+              position: "relative",
             }}
           >
             {/* Modal Header with Tabs */}
-            <Box sx={{ bgcolor: '#fafafa', px: 3, py: 2, borderBottom: '1px solid #e5e5e5' }}>
-              <Box sx={{ display: 'flex', gap: 4 }}>
+            <Box
+              sx={{
+                bgcolor: "#fafafa",
+                px: 3,
+                py: 2,
+                borderBottom: "1px solid #e5e5e5",
+              }}
+            >
+              <Box sx={{ display: "flex", gap: 4 }}>
                 <Typography
                   sx={{
-                    display: 'flex',
-                    alignItems: 'center',
+                    display: "flex",
+                    alignItems: "center",
                     gap: 1,
-                    color: '#667080',
+                    color: "#667080",
                     fontSize: 16,
                     fontWeight: 500,
-                    cursor: 'pointer',
+                    cursor: "pointer",
                   }}
                 >
                   🏛️ Container
                 </Typography>
                 <Typography
                   sx={{
-                    display: 'flex',
-                    alignItems: 'center',
+                    display: "flex",
+                    alignItems: "center",
                     gap: 1,
-                    color: '#1890ff',
+                    color: "#1890ff",
                     fontSize: 16,
                     fontWeight: 600,
-                    cursor: 'pointer',
-                    borderBottom: '3px solid #1890ff',
+                    cursor: "pointer",
+                    borderBottom: "3px solid #1890ff",
                     pb: 1,
                   }}
                 >
@@ -1962,70 +2491,84 @@ const ShoppingCart: React.FC = () => {
             </Box>
 
             {/* Modal Content */}
-            <Box sx={{ p: 3, maxHeight: '70vh', overflowY: 'auto' }}>
+            <Box sx={{ p: 3, maxHeight: "70vh", overflowY: "auto" }}>
               <Grid container spacing={2}>
-                {trucks.map((truck,) => (
+                {trucks.map((truck) => (
                   <Grid key={truck.id}>
                     <Box
                       onClick={() => handleSelectTruck(truck)}
                       sx={{
-                        cursor: 'pointer',
+                        cursor: "pointer",
                         borderRadius: 2,
-                        border: selectedTruck?.id === truck.id ? '3px solid #1890ff' : '1px solid #e1e6ed',
+                        border:
+                          selectedTruck?.id === truck.id
+                            ? "3px solid #1890ff"
+                            : "1px solid #e1e6ed",
                         p: 2,
-                        textAlign: 'center',
-                        height: '100%',
+                        textAlign: "center",
+                        height: "100%",
                         minHeight: 200,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
                         gap: 1.5,
-                        backgroundColor: '#fff',
-                        transition: 'border-color 0.3s, transform 0.2s',
-                        '&:hover': { 
-                          borderColor: '#1890ff',
-                          transform: 'translateY(-2px)',
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                        backgroundColor: "#fff",
+                        transition: "border-color 0.3s, transform 0.2s",
+                        "&:hover": {
+                          borderColor: "#1890ff",
+                          transform: "translateY(-2px)",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                         },
                       }}
                     >
-                      <Typography sx={{ 
-                        fontSize: 14, 
-                        fontWeight: 600, 
-                        color: '#18202c', 
-                        whiteSpace: 'pre-line', 
-                        lineHeight: 1.3,
-                        minHeight: 40,
-                        display: 'flex',
-                        alignItems: 'center',
-                      }}>
+                      <Typography
+                        sx={{
+                          fontSize: 14,
+                          fontWeight: 600,
+                          color: "#18202c",
+                          whiteSpace: "pre-line",
+                          lineHeight: 1.3,
+                          minHeight: 40,
+                          display: "flex",
+                          alignItems: "center",
+                        }}
+                      >
                         {truck.name}
                       </Typography>
-                      
-                      <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+
+                      <Box
+                        sx={{
+                          flex: 1,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
                         <Box
                           sx={{
                             width: 120,
                             height: 80,
-                            bgcolor: '#f8f9fa',
+                            bgcolor: "#f8f9fa",
                             borderRadius: 1,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                             fontSize: 40,
                           }}
                         >
                           🚛
                         </Box>
                       </Box>
-                      
-                      <Typography sx={{ 
-                        fontSize: 12, 
-                        fontWeight: 600, 
-                        color: '#9aa5b1',
-                        textTransform: 'uppercase',
-                        letterSpacing: 0.5,
-                      }}>
+
+                      <Typography
+                        sx={{
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: "#9aa5b1",
+                          textTransform: "uppercase",
+                          letterSpacing: 0.5,
+                        }}
+                      >
                         LEARN MORE
                       </Typography>
                     </Box>
@@ -2035,31 +2578,33 @@ const ShoppingCart: React.FC = () => {
             </Box>
 
             {/* Modal Footer */}
-            <Box sx={{ 
-              px: 3, 
-              py: 2.5, 
-              bgcolor: '#fafafa', 
-              borderTop: '1px solid #e5e5e5',
-              display: 'flex', 
-              justifyContent: 'flex-end', 
-              gap: 2 
-            }}>
+            <Box
+              sx={{
+                px: 3,
+                py: 2.5,
+                bgcolor: "#fafafa",
+                borderTop: "1px solid #e5e5e5",
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 2,
+              }}
+            >
               <Button
                 variant="outlined"
                 onClick={handleCloseTruckModal}
-                sx={{ 
-                  fontWeight: 600, 
-                  textTransform: 'none', 
-                  fontSize: 14, 
-                  px: 4, 
+                sx={{
+                  fontWeight: 600,
+                  textTransform: "none",
+                  fontSize: 14,
+                  px: 4,
                   py: 1,
-                  borderRadius: 2, 
-                  color: '#5992ff', 
-                  borderColor: '#e1e6ed',
-                  '&:hover': { 
-                    borderColor: '#5992ff',
-                    bgcolor: 'rgba(89, 146, 255, 0.04)'
-                  } 
+                  borderRadius: 2,
+                  color: "#5992ff",
+                  borderColor: "#e1e6ed",
+                  "&:hover": {
+                    borderColor: "#5992ff",
+                    bgcolor: "rgba(89, 146, 255, 0.04)",
+                  },
                 }}
               >
                 Cancel
@@ -2068,16 +2613,16 @@ const ShoppingCart: React.FC = () => {
                 variant="contained"
                 disabled={!selectedTruck}
                 onClick={handleTruckSelect}
-                sx={{ 
-                  fontWeight: 600, 
-                  textTransform: 'none', 
-                  fontSize: 14, 
-                  px: 4, 
+                sx={{
+                  fontWeight: 600,
+                  textTransform: "none",
+                  fontSize: 14,
+                  px: 4,
                   py: 1,
-                  borderRadius: 2, 
-                  bgcolor: '#1890ff',
-                  '&:hover': { bgcolor: '#0c7cd5' },
-                  '&:disabled': { bgcolor: '#d1d5db', color: '#9ca3af' }
+                  borderRadius: 2,
+                  bgcolor: "#1890ff",
+                  "&:hover": { bgcolor: "#0c7cd5" },
+                  "&:disabled": { bgcolor: "#d1d5db", color: "#9ca3af" },
                 }}
               >
                 Select
@@ -2091,34 +2636,34 @@ const ShoppingCart: React.FC = () => {
           open={isContainerModalOpen}
           onClose={handleCloseContainerModal}
           sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
           <Box
             sx={{
-              bgcolor: 'background.paper',
+              bgcolor: "background.paper",
               borderRadius: 2,
               boxShadow: 24,
               p: 4,
               minWidth: 300,
-              textAlign: 'center',
+              textAlign: "center",
             }}
           >
             <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
               Coming Soon
             </Typography>
-            <Typography sx={{ mb: 3, color: '#666' }}>
+            <Typography sx={{ mb: 3, color: "#666" }}>
               Container functionality will be available soon!
             </Typography>
             <Button
               variant="contained"
               onClick={handleCloseContainerModal}
               sx={{
-                bgcolor: '#ff8144',
+                bgcolor: "#ff8144",
                 px: 4,
-                '&:hover': { bgcolor: '#e55a2b' },
+                "&:hover": { bgcolor: "#e55a2b" },
               }}
             >
               Close
@@ -2127,7 +2672,7 @@ const ShoppingCart: React.FC = () => {
         </Modal>
       </Paper>
     </Container>
-  )
-}
+  );
+};
 
-export default ShoppingCart
+export default ShoppingCart;

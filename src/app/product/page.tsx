@@ -1,5 +1,5 @@
-"use client"
-import React from "react"
+"use client";
+import React from "react";
 import {
   Box,
   Typography,
@@ -12,27 +12,36 @@ import {
   AccordionSummary,
   AccordionDetails,
   Chip,
-} from "@mui/material"
-import { ExpandMore, Favorite, FavoriteBorder } from "@mui/icons-material"
-import { useProductListing } from "@/api/handlers"
-import { useAppStore } from "@/store/use-app-store"
-import { useRouter } from "next/navigation"
-import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from "@/api/handlers/wishlistHandler"
-import type { Product } from "@/api/services"
-import Image from "next/image"
+  Snackbar,
+} from "@mui/material";
+import { ExpandMore, Favorite, FavoriteBorder } from "@mui/icons-material";
+import { useProductListing } from "@/api/handlers";
+import { useAppStore } from "@/store/use-app-store";
+import { useRouter } from "next/navigation";
+import {
+  useWishlist,
+  useAddToWishlist,
+  useRemoveFromWishlist,
+} from "@/api/handlers/wishlistHandler";
+import type { Product } from "@/api/services";
+import Image from "next/image";
 
 const ProductPage: React.FC = () => {
-  const [page, setPage] = React.useState(1)
-  const router = useRouter()
-  const { customer, isAuthenticated } = useAppStore()
+  const [page, setPage] = React.useState(1);
+  const router = useRouter();
+  const { customer, isAuthenticated } = useAppStore();
+
+  // Snackbar state for feedback
+  const [snackbarOpen, setSnackbarOpen] = React.useState(false);
+  const [snackbarMessage, setSnackbarMessage] = React.useState("");
 
   // Wishlist hooks
   const { data: wishlistData } = useWishlist(
     { customerId: customer?.id || "" },
-    { enabled: isAuthenticated && !!customer?.id },
-  )
-  const addToWishlistMutation = useAddToWishlist()
-  const removeFromWishlistMutation = useRemoveFromWishlist()
+    { enabled: isAuthenticated && !!customer?.id }
+  );
+  const addToWishlistMutation = useAddToWishlist();
+  const removeFromWishlistMutation = useRemoveFromWishlist();
 
   const {
     data: response,
@@ -44,74 +53,100 @@ const ProductPage: React.FC = () => {
     limit: 9,
     sortBy: "createdAt",
     sortOrder: "desc",
-  })
+  });
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    setPage(value)
-  }
+  const handlePageChange = (
+    event: React.ChangeEvent<unknown>,
+    value: number
+  ) => {
+    setPage(value);
+  };
 
   const getProductImage = (product: Product) => {
     if (product.bannerImage) {
       return product.bannerImage.startsWith("http")
         ? product.bannerImage
-        : `${process.env.NEXT_PUBLIC_API_URL}/${product.bannerImage}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/${product.bannerImage}`;
     }
     if (product.images && product.images.length > 0) {
-      const firstImage = product.images[0]
-      return firstImage.startsWith("http") ? firstImage : `${process.env.NEXT_PUBLIC_API_URL}/${firstImage}`
+      const firstImage = product.images[0];
+      return firstImage.startsWith("http")
+        ? firstImage
+        : `${process.env.NEXT_PUBLIC_API_URL}/${firstImage}`;
     }
-    return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-74QCQcvTRt24IoUWE9VvnZptqiMfUS.png"
-  }
+    return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-74QCQcvTRt24IoUWE9VvnZptqiMfUS.png";
+  };
 
   // Check if product is in wishlist
   const isInWishlist = (productId: string): boolean => {
-    if (!wishlistData?.data?.products) return false
-    return wishlistData.data.products.some((product) => product._id === productId)
-  }
+    if (!wishlistData?.data?.products) return false;
+    return wishlistData.data.products.some(
+      (product) => product._id === productId
+    );
+  };
 
   // Handle wishlist toggle
-  const handleWishlistToggle = async (productId: string, event: React.MouseEvent) => {
-    event.stopPropagation()
-    if (!isAuthenticated || !customer?.id) return
+  const handleWishlistToggle = async (
+    productId: string,
+    event: React.MouseEvent
+  ) => {
+    event.stopPropagation();
 
-    const isCurrentlyInWishlist = isInWishlist(productId)
+    // Check if user is authenticated
+    if (!isAuthenticated || !customer?.id) {
+      // Redirect to login page
+      router.push("/sign_in");
+      return;
+    }
+
+    const isCurrentlyInWishlist = isInWishlist(productId);
     try {
       if (isCurrentlyInWishlist) {
         await removeFromWishlistMutation.mutateAsync({
           customerId: customer.id,
           productId,
-        })
+        });
+        setSnackbarMessage("Product removed from wishlist successfully!");
+        setSnackbarOpen(true);
       } else {
         await addToWishlistMutation.mutateAsync({
           customerId: customer.id,
           productId,
-        })
+        });
+        setSnackbarMessage("Product added to wishlist successfully!");
+        setSnackbarOpen(true);
       }
     } catch (error) {
-      console.error("Wishlist operation failed:", error)
+      console.error("Wishlist operation failed:", error);
+      setSnackbarMessage("Failed to update wishlist. Please try again.");
+      setSnackbarOpen(true);
     }
-  }
+  };
 
   if (isLoading) {
     return (
-      <Container maxWidth="xl" sx={{ py: 4, display: "flex", justifyContent: "center" }}>
+      <Container
+        maxWidth="xl"
+        sx={{ py: 4, display: "flex", justifyContent: "center" }}
+      >
         <CircularProgress />
       </Container>
-    )
+    );
   }
 
   if (isError) {
     return (
       <Container maxWidth="xl" sx={{ py: 4 }}>
         <Alert severity="error">
-          Error loading products: {error instanceof Error ? error.message : "Something went wrong"}
+          Error loading products:{" "}
+          {error instanceof Error ? error.message : "Something went wrong"}
         </Alert>
       </Container>
-    )
+    );
   }
 
-  const products = response?.products || []
-  const pagination = response?.pagination
+  const products = response?.products || [];
+  const pagination = response?.pagination;
 
   const filterSections = [
     "Application",
@@ -122,10 +157,12 @@ const ProductPage: React.FC = () => {
     "Country of origin",
     "Product Type",
     "Certificate",
-  ]
+  ];
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", backgroundColor: "#f8f9fa", }}>
+    <Box
+      sx={{ display: "flex", minHeight: "100vh", backgroundColor: "#f8f9fa" }}
+    >
       {/* Left Sidebar - Filters */}
       <Box
         sx={{
@@ -137,8 +174,8 @@ const ProductPage: React.FC = () => {
           height: "100vh",
           // overflowY: "auto",
           overflow: "visible",
-          mt:2,
-          ml:3
+          mt: 2,
+          ml: 3,
         }}
       >
         {/* Filter Header */}
@@ -150,7 +187,7 @@ const ProductPage: React.FC = () => {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-             borderRadius:"20px 20px 0 0",
+            borderRadius: "20px 20px 0 0",
           }}
         >
           <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "16px" }}>
@@ -167,25 +204,27 @@ const ProductPage: React.FC = () => {
               justifyContent: "center",
             }}
           >
-            <Typography sx={{ fontSize: "12px", fontWeight: 600 }}>×</Typography>
+            <Typography sx={{ fontSize: "12px", fontWeight: 600 }}>
+              ×
+            </Typography>
           </Box>
         </Box>
 
         {/* Filter Sections */}
-        <Box sx={{ p:0 }}>
+        <Box sx={{ p: 0 }}>
           {filterSections.map((section) => (
             <Accordion
               key={section}
               sx={{
-               boxShadow: "none",
-               
-        "&:before": { display: "none" },
-        backgroundColor: "rgba(217, 217, 217, 0.21)",
-        marginBottom: "5px",
-        // borderRadius: index === 0 ? "20px 20px 0 0" : "0px", // Top rounded only on first
-        "&:last-of-type": {
-          borderRadius: 0, // Optional: No radius for last one unless you want bottom round
-        },
+                boxShadow: "none",
+
+                "&:before": { display: "none" },
+                backgroundColor: "rgba(217, 217, 217, 0.21)",
+                marginBottom: "5px",
+                // borderRadius: index === 0 ? "20px 20px 0 0" : "0px", // Top rounded only on first
+                "&:last-of-type": {
+                  borderRadius: 0, // Optional: No radius for last one unless you want bottom round
+                },
               }}
             >
               <AccordionSummary
@@ -216,7 +255,9 @@ const ProductPage: React.FC = () => {
                 </Typography>
               </AccordionSummary>
               <AccordionDetails sx={{ px: 2, py: 1 }}>
-                <Typography sx={{ fontSize: "12px", color: "#666" }}>Filter options will be displayed here</Typography>
+                <Typography sx={{ fontSize: "12px", color: "#666" }}>
+                  Filter options will be displayed here
+                </Typography>
               </AccordionDetails>
             </Accordion>
           ))}
@@ -265,7 +306,7 @@ const ProductPage: React.FC = () => {
           }}
         >
           {products.map((product) => {
-            const productInWishlist = isInWishlist(product._id)
+            const productInWishlist = isInWishlist(product._id);
             // const isWishlistLoading = addToWishlistMutation.isPending || removeFromWishlistMutation.isPending
 
             return (
@@ -376,7 +417,8 @@ const ProductPage: React.FC = () => {
                       overflow: "hidden",
                     }}
                   >
-                    Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum
+                    Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum
+                    Lorem Ipsum
                   </Typography>
 
                   {/* Product Code */}
@@ -396,7 +438,7 @@ const ProductPage: React.FC = () => {
                     fullWidth
                     disabled={!product.inStock}
                     onClick={(e) => {
-                      e.stopPropagation()
+                      e.stopPropagation();
                       // Handle quote logic here
                     }}
                     sx={{
@@ -416,7 +458,7 @@ const ProductPage: React.FC = () => {
                   </Button>
                 </Box>
               </Box>
-            )
+            );
           })}
         </Box>
 
@@ -442,9 +484,18 @@ const ProductPage: React.FC = () => {
             />
           </Box>
         )}
+
+        {/* Snackbar for feedback */}
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={4000}
+          onClose={() => setSnackbarOpen(false)}
+          message={snackbarMessage}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        />
       </Box>
     </Box>
-  )
-}
+  );
+};
 
-export default ProductPage
+export default ProductPage;

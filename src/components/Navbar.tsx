@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
+import type React from "react";
+import { useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -14,7 +14,8 @@ import {
   MenuItem,
   Avatar,
   Divider,
-} from "@mui/material"
+  Badge,
+} from "@mui/material";
 import {
   Search as SearchIcon,
   FavoriteBorder as HeartIcon,
@@ -23,58 +24,73 @@ import {
   // ShoppingBag as OrdersIcon,
   ExitToApp as LogoutIcon,
   KeyboardArrowDown as ArrowDownIcon,
-} from "@mui/icons-material"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useAppStore } from "@/store/use-app-store"
-import { useCustomerLogout } from "@/api/handlers"
+} from "@mui/icons-material";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAppStore } from "@/store/use-app-store";
+import { useCustomerLogout } from "@/api/handlers";
+import { useCartSummary } from "@/api/handlers/cartHandler";
+import { useWishlist } from "@/api/handlers/wishlistHandler";
 
 const Navbar: React.FC = () => {
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"))
-  const router = useRouter()
-  const { customer, isAuthenticated } = useAppStore()
-  const logoutMutation = useCustomerLogout()
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const router = useRouter();
+  const { customer, isAuthenticated } = useAppStore();
+  const logoutMutation = useCustomerLogout();
 
-  const [profileMenuAnchor, setProfileMenuAnchor] = useState<null | HTMLElement>(null)
-  const isProfileMenuOpen = Boolean(profileMenuAnchor)
+  // Fetch cart and wishlist counts when authenticated
+  const { data: cartSummary } = useCartSummary(customer?.id || "", {
+    enabled: isAuthenticated && !!customer?.id,
+  });
+
+  const { data: wishlistData } = useWishlist(
+    { customerId: customer?.id || "" },
+    { enabled: isAuthenticated && !!customer?.id }
+  );
+
+  // Extract counts
+  const cartCount = cartSummary?.data?.totalItems || 0;
+  const wishlistCount = wishlistData?.data?.products?.length || 0;
+
+  const [profileMenuAnchor, setProfileMenuAnchor] =
+    useState<null | HTMLElement>(null);
+  const isProfileMenuOpen = Boolean(profileMenuAnchor);
 
   const handleSignInClick = () => {
-    router.push("/sign_in")
-  }
+    router.push("/sign_in");
+  };
 
   const handleFavouriteClick = () => {
-    router.push("/favourite")
-  }
+    router.push("/favourite");
+  };
 
   const handleCartClick = () => {
-    router.push("/cart")
-  }
+    router.push("/cart");
+  };
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setProfileMenuAnchor(event.currentTarget)
-  }
+    setProfileMenuAnchor(event.currentTarget);
+  };
 
   const handleProfileMenuClose = () => {
-    setProfileMenuAnchor(null)
-  }
+    setProfileMenuAnchor(null);
+  };
 
   const handleProfileClick = () => {
-    handleProfileMenuClose()
-    router.push("/profile")
-  }
-
-
+    handleProfileMenuClose();
+    router.push("/profile");
+  };
 
   const handleLogout = async () => {
-    handleProfileMenuClose()
+    handleProfileMenuClose();
     try {
-      await logoutMutation.mutateAsync()
-      router.push("/")
+      await logoutMutation.mutateAsync();
+      router.push("/");
     } catch (error) {
-      console.error("Logout failed:", error)
+      console.error("Logout failed:", error);
     }
-  }
+  };
 
   const getInitials = (name: string) => {
     return name
@@ -82,8 +98,8 @@ const Navbar: React.FC = () => {
       .map((n) => n[0])
       .join("")
       .toUpperCase()
-      .slice(0, 2)
-  }
+      .slice(0, 2);
+  };
 
   return (
     <AppBar
@@ -91,7 +107,7 @@ const Navbar: React.FC = () => {
       elevation={0}
       sx={{
         py: 1,
-        background: 'linear-gradient(90deg, #F58A4E 0%, #F16A3C 100%)'
+        background: "linear-gradient(90deg, #F58A4E 0%, #F16A3C 100%)",
       }}
     >
       <Toolbar
@@ -165,7 +181,25 @@ const Navbar: React.FC = () => {
                 },
               }}
             >
-              <HeartIcon sx={{ color: "#666", fontSize: 20 }} />
+              <Badge
+                badgeContent={
+                  isAuthenticated && wishlistCount > 0 ? wishlistCount : 0
+                }
+                color="error"
+                sx={{
+                  "& .MuiBadge-badge": {
+                    backgroundColor: "#ff6b35",
+                    color: "white",
+                    fontSize: "10px",
+                    fontWeight: 600,
+                    minWidth: "16px",
+                    height: "16px",
+                    borderRadius: "8px",
+                  },
+                }}
+              >
+                <HeartIcon sx={{ color: "#666", fontSize: 20 }} />
+              </Badge>
             </IconButton>
 
             <IconButton
@@ -179,7 +213,23 @@ const Navbar: React.FC = () => {
                 },
               }}
             >
-              <CartIcon sx={{ color: "#666", fontSize: 20 }} />
+              <Badge
+                badgeContent={isAuthenticated && cartCount > 0 ? cartCount : 0}
+                color="error"
+                sx={{
+                  "& .MuiBadge-badge": {
+                    backgroundColor: "#ff6b35",
+                    color: "white",
+                    fontSize: "10px",
+                    fontWeight: 600,
+                    minWidth: "16px",
+                    height: "16px",
+                    borderRadius: "8px",
+                  },
+                }}
+              >
+                <CartIcon sx={{ color: "#666", fontSize: 20 }} />
+              </Badge>
             </IconButton>
 
             {/* Conditional Rendering: Profile Dropdown or Sign In Button */}
@@ -241,7 +291,9 @@ const Navbar: React.FC = () => {
                     sx={{
                       fontSize: 16,
                       color: "#ff7849",
-                      transform: isProfileMenuOpen ? "rotate(180deg)" : "rotate(0deg)",
+                      transform: isProfileMenuOpen
+                        ? "rotate(180deg)"
+                        : "rotate(0deg)",
                       transition: "transform 0.3s ease",
                     }}
                   />
@@ -298,10 +350,10 @@ const Navbar: React.FC = () => {
                     }}
                   >
                     <PersonIcon sx={{ fontSize: 18, color: "#666", mr: 2 }} />
-                    <Typography sx={{ fontSize: "14px", color: "#333" }}>My Profile</Typography>
+                    <Typography sx={{ fontSize: "14px", color: "#333" }}>
+                      My Profile
+                    </Typography>
                   </MenuItem>
-
-
 
                   <Divider sx={{ my: 1 }} />
 
@@ -316,7 +368,9 @@ const Navbar: React.FC = () => {
                       },
                     }}
                   >
-                    <LogoutIcon sx={{ fontSize: 18, color: "#d32f2f", mr: 2 }} />
+                    <LogoutIcon
+                      sx={{ fontSize: 18, color: "#d32f2f", mr: 2 }}
+                    />
                     <Typography sx={{ fontSize: "14px", color: "#d32f2f" }}>
                       {logoutMutation.isPending ? "Signing out..." : "Sign Out"}
                     </Typography>
@@ -337,7 +391,8 @@ const Navbar: React.FC = () => {
                   py: 1.2,
                   ml: 1,
                   cursor: "pointer",
-                  clipPath: "polygon(0% 0%, calc(100% - 15px) 0%, 100% 50%, calc(100% - 15px) 100%, 0% 100%, 15px 50%)",
+                  clipPath:
+                    "polygon(0% 0%, calc(100% - 15px) 0%, 100% 50%, calc(100% - 15px) 100%, 0% 100%, 15px 50%)",
                   minWidth: "90px",
                   textAlign: "center",
                   transition: "all 0.3s ease",
@@ -357,7 +412,7 @@ const Navbar: React.FC = () => {
         </Box>
       </Toolbar>
     </AppBar>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;
