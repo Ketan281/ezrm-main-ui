@@ -36,6 +36,7 @@ import {
   MoreVert,
   LocationOn,
   Delete,
+  Star,
 } from "@mui/icons-material";
 import Image from "next/image";
 import OrdersPage from "../my_orders/page";
@@ -43,9 +44,11 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import AddressModal from "@/components/AddressModal";
 import SettingsPage from "@/components/SettingsPage";
 import ChangePasswordPage from "@/components/ChangePasswordPage";
+import ProfileUpdateForm from "@/components/ProfileUpdateForm";
 import { useAppStore } from "@/store/use-app-store";
 import { customerAddressHandler } from "@/api/handlers/customerAddressHandler";
 import { passwordChangeHandler } from "@/api/handlers/passwordChangeHandler";
+import { customerProfileHandler } from "@/api/handlers/customerProfileHandler";
 import type {
   CustomerAddress,
   AddAddressRequest,
@@ -54,7 +57,12 @@ import type {
 
 const PixelPerfectClone: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<
-    "profile" | "orders" | "addresses" | "settings" | "change-password"
+    | "profile"
+    | "orders"
+    | "addresses"
+    | "settings"
+    | "change-password"
+    | "edit-profile"
   >("profile");
   const { customer } = useAppStore();
 
@@ -84,6 +92,10 @@ const PixelPerfectClone: React.FC = () => {
 
   const handleChangePasswordClick = () => {
     setCurrentPage("change-password");
+  };
+
+  const handleEditProfileClick = () => {
+    setCurrentPage("edit-profile");
   };
 
   const handleBackToProfile = () => {
@@ -716,6 +728,250 @@ const PixelPerfectClone: React.FC = () => {
     );
   }
 
+  if (currentPage === "edit-profile") {
+    return (
+      <ProtectedRoute>
+        <Box
+          sx={{
+            display: "flex",
+            minHeight: "100vh",
+            backgroundColor: "#f8f9fa",
+          }}
+        >
+          {/* Left Sidebar */}
+          <Box
+            sx={{
+              width: { xs: "100%", md: "280px" },
+              backgroundColor: "white",
+              borderRight: "1px solid #e0e0e0",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {/* Profile Header */}
+            <Box
+              sx={{
+                p: 3,
+                borderBottom: "1px solid #f0f0f0",
+              }}
+            >
+              <Typography
+                variant="h6"
+                sx={{
+                  fontSize: "16px",
+                  fontWeight: 600,
+                  color: "#333",
+                  mb: 0.5,
+                }}
+              >
+                Profile
+              </Typography>
+            </Box>
+
+            {/* User Info */}
+            <Box
+              sx={{
+                p: 3,
+                borderBottom: "1px solid #f0f0f0",
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+              }}
+            >
+              <Avatar
+                sx={{
+                  width: 48,
+                  height: 48,
+                  backgroundColor: "#d0d0d0",
+                }}
+              />
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: "14px",
+                    color: "#666",
+                    mb: 0.5,
+                  }}
+                >
+                  Hello
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: "16px",
+                    fontWeight: 600,
+                    color: "#333",
+                    mb: 0.5,
+                  }}
+                >
+                  {customer?.name}
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: "14px",
+                    color: "#666",
+                  }}
+                >
+                  Personal Information
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Navigation Menu */}
+            <Box sx={{ flex: 1 }}>
+              {/* My Accounts */}
+              <Box
+                onClick={() => setCurrentPage("profile")}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 2,
+                  px: 3,
+                  py: 2.5,
+                  cursor: "pointer",
+                  "&:hover": {
+                    backgroundColor: "#f8f9fa",
+                  },
+                }}
+              >
+                <Person sx={{ fontSize: 20, color: "#666" }} />
+                <Typography
+                  sx={{
+                    fontSize: "15px",
+                    fontWeight: 400,
+                    color: "#666",
+                  }}
+                >
+                  My Accounts
+                </Typography>
+              </Box>
+
+              {/* Address Management */}
+              <Box
+                onClick={handleAddressManagementClick}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 2,
+                  px: 3,
+                  py: 2.5,
+                  cursor: "pointer",
+                  "&:hover": {
+                    backgroundColor: "#f8f9fa",
+                  },
+                }}
+              >
+                <LocationOn sx={{ fontSize: 20, color: "#666" }} />
+                <Typography
+                  sx={{
+                    fontSize: "15px",
+                    fontWeight: 400,
+                    color: "#666",
+                  }}
+                >
+                  Address Management
+                </Typography>
+              </Box>
+
+              {/* My Orders */}
+              <Box
+                onClick={handleMyOrdersClick}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 2,
+                  px: 3,
+                  py: 2.5,
+                  cursor: "pointer",
+                  "&:hover": {
+                    backgroundColor: "#f8f9fa",
+                  },
+                }}
+              >
+                <ShoppingBag sx={{ fontSize: 20, color: "#666" }} />
+                <Typography
+                  sx={{
+                    fontSize: "15px",
+                    fontWeight: 400,
+                    color: "#666",
+                  }}
+                >
+                  My Orders
+                </Typography>
+              </Box>
+
+              {/* Change Password */}
+              <Box
+                onClick={handleChangePasswordClick}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 2,
+                  px: 3,
+                  py: 2.5,
+                  cursor: "pointer",
+                  "&:hover": {
+                    backgroundColor: "#f8f9fa",
+                  },
+                }}
+              >
+                <Lock sx={{ fontSize: 20, color: "#666" }} />
+                <Typography
+                  sx={{
+                    fontSize: "15px",
+                    fontWeight: 400,
+                    color: "#666",
+                  }}
+                >
+                  Change Password
+                </Typography>
+              </Box>
+
+              {/* Settings */}
+              <Box
+                onClick={handleSettingsClick}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 2,
+                  px: 3,
+                  py: 2.5,
+                  cursor: "pointer",
+                  "&:hover": {
+                    backgroundColor: "#f8f9fa",
+                  },
+                }}
+              >
+                <Settings sx={{ fontSize: 20, color: "#666" }} />
+                <Typography
+                  sx={{
+                    fontSize: "15px",
+                    fontWeight: 400,
+                    color: "#666",
+                  }}
+                >
+                  Settings
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+
+          {/* Main Content Area - Edit Profile */}
+          <Box
+            sx={{ flex: 1, backgroundColor: "#f8f9fa", overflow: "auto", p: 4 }}
+          >
+            <ProfileUpdateForm
+              customerId={customer?.id || ""}
+              onSuccess={(updatedProfile) => {
+                console.log("Profile updated:", updatedProfile);
+                // You can update the store here if needed
+              }}
+            />
+          </Box>
+        </Box>
+      </ProtectedRoute>
+    );
+  }
+
   if (currentPage === "addresses") {
     return (
       <ProtectedRoute>
@@ -1015,27 +1271,70 @@ const PixelPerfectClone: React.FC = () => {
                 }}
               >
                 <Box sx={{ textAlign: "center" }}>
-                  <LocationOn sx={{ fontSize: 64, color: "#c0c0c0", mb: 3 }} />
-                  <Typography variant="h6" sx={{ color: "#666", mb: 2 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: 80,
+                      height: 80,
+                      borderRadius: "50%",
+                      backgroundColor: "rgba(255, 107, 53, 0.1)",
+                      border: "2px dashed #ff6b35",
+                      mx: "auto",
+                      mb: 3,
+                    }}
+                  >
+                    <LocationOn
+                      sx={{
+                        fontSize: 40,
+                        color: "#ff6b35",
+                      }}
+                    />
+                  </Box>
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      color: "#333",
+                      mb: 2,
+                      fontWeight: 600,
+                    }}
+                  >
                     No addresses added yet
                   </Typography>
-                  <Typography sx={{ color: "#999", mb: 3, maxWidth: 300 }}>
+                  <Typography
+                    sx={{
+                      color: "#666",
+                      mb: 4,
+                      maxWidth: 400,
+                      mx: "auto",
+                      lineHeight: 1.6,
+                    }}
+                  >
                     Add your first delivery address to get started with fast and
-                    easy checkout
+                    easy checkout. Your addresses will be securely saved for
+                    future orders.
                   </Typography>
                   <Button
                     variant="contained"
                     startIcon={<Add />}
                     onClick={handleAddAddress}
                     sx={{
-                      backgroundColor: "#ff6b35",
+                      background:
+                        "linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%)",
                       "&:hover": {
-                        backgroundColor: "#e55a2b",
+                        background:
+                          "linear-gradient(135deg, #e55a2b 0%, #ff6b35 100%)",
+                        transform: "translateY(-2px)",
+                        boxShadow: "0 8px 24px rgba(255, 107, 53, 0.3)",
                       },
                       textTransform: "none",
-                      borderRadius: 2,
-                      px: 4,
-                      py: 1.5,
+                      borderRadius: 3,
+                      px: 5,
+                      py: 2,
+                      fontWeight: 600,
+                      fontSize: "1rem",
+                      transition: "all 0.3s ease",
                     }}
                   >
                     Add Your First Address
@@ -1052,12 +1351,40 @@ const PixelPerfectClone: React.FC = () => {
                         ? "2px solid #ff6b35"
                         : "1px solid #e0e0e0",
                       borderRadius: 3,
+                      position: "relative",
+                      overflow: "hidden",
                       "&:hover": {
-                        boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                        boxShadow: "0 12px 32px rgba(0,0,0,0.15)",
+                        transform: "translateY(-4px)",
                       },
-                      transition: "all 0.2s ease-in-out",
+                      transition: "all 0.3s ease-in-out",
+                      background: address.isDefault
+                        ? "linear-gradient(135deg, #fff 0%, #fff8f5 100%)"
+                        : "white",
                     }}
                   >
+                    {/* Premium Badge for Default Address */}
+                    {address.isDefault && (
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          top: 0,
+                          right: 0,
+                          background:
+                            "linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%)",
+                          color: "white",
+                          px: 2,
+                          py: 0.5,
+                          borderRadius: "0 12px 0 12px",
+                          fontSize: "0.7rem",
+                          fontWeight: 600,
+                          zIndex: 1,
+                        }}
+                      >
+                        DEFAULT
+                      </Box>
+                    )}
+
                     <CardContent sx={{ p: 4 }}>
                       <Box
                         sx={{
@@ -1068,64 +1395,139 @@ const PixelPerfectClone: React.FC = () => {
                         }}
                       >
                         <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 2 }}
+                          sx={{ display: "flex", alignItems: "center", gap: 3 }}
                         >
-                          {getAddressIcon(address.type)}
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              width: 56,
+                              height: 56,
+                              borderRadius: "50%",
+                              backgroundColor: address.isDefault
+                                ? "rgba(255, 107, 53, 0.1)"
+                                : "#f8f9fa",
+                              border: address.isDefault
+                                ? "2px solid #ff6b35"
+                                : "2px solid #e0e0e0",
+                            }}
+                          >
+                            {getAddressIcon(address.type)}
+                          </Box>
                           <Box>
                             <Typography
                               sx={{
-                                fontSize: "18px",
-                                fontWeight: 600,
+                                fontSize: "20px",
+                                fontWeight: 700,
                                 color: "#333",
                                 textTransform: "capitalize",
-                                mb: 0.5,
+                                mb: 1,
                               }}
                             >
                               {address.type} Address
                             </Typography>
                             {address.isDefault && (
                               <Chip
-                                label="Default"
+                                icon={<Star sx={{ fontSize: 16 }} />}
+                                label="Primary Address"
                                 size="small"
                                 sx={{
                                   backgroundColor: "#ff6b35",
                                   color: "white",
                                   fontSize: "0.75rem",
-                                  height: 22,
-                                  fontWeight: 500,
+                                  height: 24,
+                                  fontWeight: 600,
+                                  "& .MuiChip-icon": {
+                                    color: "white",
+                                  },
                                 }}
                               />
                             )}
                           </Box>
                         </Box>
                         <IconButton
-                          size="small"
+                          size="medium"
                           onClick={(e) => handleAddressMenuOpen(e, address._id)}
                           sx={{
                             color: "#666",
+                            backgroundColor: "#f8f9fa",
+                            border: "1px solid #e0e0e0",
                             "&:hover": {
-                              backgroundColor: "rgba(0,0,0,0.04)",
+                              backgroundColor: "#ff6b35",
+                              color: "white",
+                              borderColor: "#ff6b35",
                             },
+                            transition: "all 0.2s ease",
                           }}
                         >
                           <MoreVert />
                         </IconButton>
                       </Box>
 
-                      <Typography
+                      <Box
                         sx={{
-                          fontSize: "16px",
-                          color: "#555",
-                          lineHeight: 1.6,
-                          pl: 5,
+                          pl: 7,
+                          position: "relative",
                         }}
                       >
-                        {address.street}
-                        <br />
-                        {address.city}, {address.state} {address.zipCode}
-                        <br />
-                        {address.country}
-                      </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: "16px",
+                            color: "#333",
+                            lineHeight: 1.8,
+                            fontWeight: 500,
+                            mb: 2,
+                          }}
+                        >
+                          {address.street}
+                        </Typography>
+
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 0.5,
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              fontSize: "15px",
+                              color: "#666",
+                              fontWeight: 500,
+                            }}
+                          >
+                            {address.city}, {address.state} {address.zipCode}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontSize: "15px",
+                              color: "#666",
+                              fontWeight: 500,
+                            }}
+                          >
+                            {address.country}
+                          </Typography>
+                        </Box>
+
+                        {/* Address Type Badge */}
+                        <Box sx={{ mt: 2 }}>
+                          <Chip
+                            label={address.type.toUpperCase()}
+                            size="small"
+                            variant="outlined"
+                            sx={{
+                              borderColor: address.isDefault
+                                ? "#ff6b35"
+                                : "#e0e0e0",
+                              color: address.isDefault ? "#ff6b35" : "#666",
+                              fontSize: "0.7rem",
+                              fontWeight: 600,
+                              height: 22,
+                            }}
+                          />
+                        </Box>
+                      </Box>
                     </CardContent>
                   </Card>
                 ))}
@@ -1515,8 +1917,8 @@ const PixelPerfectClone: React.FC = () => {
               </IconButton>
             </Box>
 
-            <Link
-              href="#"
+            <Button
+              onClick={handleEditProfileClick}
               sx={{
                 color: "#1976d2",
                 textDecoration: "none",
@@ -1525,14 +1927,18 @@ const PixelPerfectClone: React.FC = () => {
                 display: "flex",
                 alignItems: "center",
                 gap: 1,
+                textTransform: "none",
+                p: 0,
+                minWidth: "auto",
                 "&:hover": {
                   textDecoration: "underline",
+                  backgroundColor: "transparent",
                 },
               }}
             >
               <Edit sx={{ fontSize: 16 }} />
               Change profile information
-            </Link>
+            </Button>
           </Box>
 
           {/* Form Fields */}

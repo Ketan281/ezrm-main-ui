@@ -80,16 +80,16 @@ export const ENDPOINTS = {
 
   // Customer Address endpoints
   CUSTOMER_ADDRESS: {
-    LIST: (customerId: string) => `/customer-address/${customerId}`,
+    LIST: (customerId: string) => `/public/customer-address/${customerId}`,
     DETAIL: (customerId: string, addressId: string) =>
-      `/customer-address/${customerId}/${addressId}`,
-    ADD: (customerId: string) => `/customer-address/${customerId}`,
+      `/public/customer-address/${customerId}/${addressId}`,
+    ADD: (customerId: string) => `/public/customer-address/${customerId}`,
     UPDATE: (customerId: string, addressId: string) =>
-      `/customer-address/${customerId}/${addressId}`,
+      `/public/customer-address/${customerId}/${addressId}`,
     DELETE: (customerId: string, addressId: string) =>
-      `/customer-address/${customerId}/${addressId}`,
+      `/public/customer-address/${customerId}/${addressId}`,
     SET_DEFAULT: (customerId: string, addressId: string) =>
-      `/customer-address/${customerId}/${addressId}/default`,
+      `/public/customer-address/${customerId}/${addressId}/default`,
   },
 
   // Password Change endpoints
@@ -100,5 +100,21 @@ export const ENDPOINTS = {
   // Search endpoints
   SEARCH: {
     QUERY: "/public/search",
+  },
+
+  // Countries endpoints
+  COUNTRIES: {
+    LIST: "/public/constants/countries",
+  },
+
+  // Customer Profile endpoints
+  CUSTOMER_PROFILE: {
+    GET: (customerId: string) => `/public/customer-profile/${customerId}`,
+    UPDATE: (customerId: string) => `/public/customer-profile/${customerId}`,
+  },
+
+  // Stripe endpoints
+  STRIPE: {
+    CREATE_PAYMENT_INTENT: "/public/stripe/payment-intents",
   },
 } as const;

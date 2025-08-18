@@ -12,6 +12,9 @@ export { cartService } from "./cart";
 export { customerAddressService } from "./customerAddress";
 export { passwordChangeService } from "./passwordChange";
 export { searchService } from "./search";
+export { countriesService } from "./countries";
+export { customerProfileService } from "./customerProfile";
+export { stripeService } from "./stripe";
 
 // Product services
 export * from "./products";
@@ -100,3 +103,12 @@ export * from "./passwordChange";
 
 // Search services
 export * from "./search";
+
+// Countries services
+export * from "./countries";
+
+// Customer Profile services
+export * from "./customerProfile";
+
+// Stripe services
+export * from "./stripe";

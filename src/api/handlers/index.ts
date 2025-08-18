@@ -36,3 +36,12 @@ export * from "./passwordChangeHandler";
 
 // Search handlers
 export * from "./searchHandler";
+
+// Countries handlers
+export * from "./countriesHandler";
+
+// Customer Profile handlers
+export * from "./customerProfileHandler";
+
+// Stripe handlers
+export * from "./stripeHandler";
