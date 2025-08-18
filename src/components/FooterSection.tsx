@@ -1,12 +1,29 @@
-import type React from "react"
-import { Box, Typography, Container, Grid, TextField, Button, IconButton } from "@mui/material"
-import { Email, Phone, LocationOn, LinkedIn, Facebook, Instagram, YouTube } from "@mui/icons-material"
+import type React from "react";
+import {
+  Box,
+  Typography,
+  Container,
+  Grid,
+  TextField,
+  Button,
+  IconButton,
+} from "@mui/material";
+import {
+  Email,
+  Phone,
+  LocationOn,
+  LinkedIn,
+  Facebook,
+  Instagram,
+  YouTube,
+} from "@mui/icons-material";
 
 const FooterSection: React.FC = () => {
   return (
     <Box
       sx={{
-        background: "linear-gradient(135deg, rgba(240, 90, 37, 1) 0%, rgba(84, 29, 9, 1) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(240, 90, 37, 1) 0%, rgba(84, 29, 9, 1) 100%)",
         borderRadius: "0 0 20px 20px",
         py: { xs: 4, md: 6 },
         px: { xs: 2, md: 4 },
@@ -56,25 +73,32 @@ const FooterSection: React.FC = () => {
                   maxWidth: "400px",
                 }}
               >
-                Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem lorem lorem lorem lorem lorem lorem lorem lorem
-                lorem lorem lorem lorem lorem
+                We supply certified, traceable ingredients for nutrition,
+                wellness, cosmetics, and pharma. Talk to our team for quotes,
+                documentation, or custom sourcing.
               </Typography>
               {/* Contact Details */}
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 {/* Email */}
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   <Email sx={{ color: "white", fontSize: 20 }} />
-                  <Typography sx={{ color: "white", fontSize: "0.95rem" }}>Email@gmail.com</Typography>
+                  <Typography sx={{ color: "white", fontSize: "0.95rem" }}>
+                    Email@gmail.com
+                  </Typography>
                 </Box>
                 {/* Phone */}
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   <Phone sx={{ color: "white", fontSize: 20 }} />
-                  <Typography sx={{ color: "white", fontSize: "0.95rem" }}>1 124 152 424</Typography>
+                  <Typography sx={{ color: "white", fontSize: "0.95rem" }}>
+                    1 124 152 424
+                  </Typography>
                 </Box>
                 {/* Address */}
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   <LocationOn sx={{ color: "white", fontSize: 20 }} />
-                  <Typography sx={{ color: "white", fontSize: "0.95rem" }}>J4, Main street, Bristol</Typography>
+                  <Typography sx={{ color: "white", fontSize: "0.95rem" }}>
+                    J4, Main street, Bristol
+                  </Typography>
                 </Box>
               </Box>
             </Box>
@@ -295,7 +319,7 @@ const FooterSection: React.FC = () => {
         </Box>
       </Container>
     </Box>
-  )
-}
+  );
+};
 
-export default FooterSection
+export default FooterSection;

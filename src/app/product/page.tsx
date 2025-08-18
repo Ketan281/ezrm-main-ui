@@ -17,7 +17,7 @@ import {
 import { ExpandMore, Favorite, FavoriteBorder } from "@mui/icons-material";
 import { useProductListing } from "@/api/handlers";
 import { useAppStore } from "@/store/use-app-store";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   useWishlist,
   useAddToWishlist,
@@ -29,7 +29,11 @@ import Image from "next/image";
 const ProductPage: React.FC = () => {
   const [page, setPage] = React.useState(1);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { customer, isAuthenticated } = useAppStore();
+
+  // Get category filter from URL
+  const categoryFilter = searchParams.get("category");
 
   // Snackbar state for feedback
   const [snackbarOpen, setSnackbarOpen] = React.useState(false);
@@ -53,6 +57,7 @@ const ProductPage: React.FC = () => {
     limit: 9,
     sortBy: "createdAt",
     sortOrder: "desc",
+    category: categoryFilter || undefined, // Apply category filter if present
   });
 
   const handlePageChange = (
@@ -275,16 +280,38 @@ const ProductPage: React.FC = () => {
             mb: 3,
           }}
         >
-          <Typography
-            variant="h5"
-            sx={{
-              fontWeight: 600,
-              color: "#333",
-              fontSize: "24px",
-            }}
-          >
-            Product
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 600,
+                color: "#333",
+                fontSize: "24px",
+              }}
+            >
+              Product
+            </Typography>
+
+            {/* Category Filter Indicator */}
+            {categoryFilter && (
+              <Chip
+                label={`Filtered by Category`}
+                onDelete={() => router.push("/product")}
+                sx={{
+                  backgroundColor: "#ff7849",
+                  color: "white",
+                  fontWeight: 500,
+                  "& .MuiChip-deleteIcon": {
+                    color: "white",
+                    "&:hover": {
+                      color: "#f5f5f5",
+                    },
+                  },
+                }}
+              />
+            )}
+          </Box>
+
           <Typography
             sx={{
               fontSize: "16px",
@@ -292,7 +319,7 @@ const ProductPage: React.FC = () => {
               fontWeight: 500,
             }}
           >
-            Total: 0
+            Total: {response?.pagination?.total || 0}
           </Typography>
         </Box>
 
@@ -404,7 +431,7 @@ const ProductPage: React.FC = () => {
                     {product.name}
                   </Typography>
 
-                  {/* Lorem Ipsum Text */}
+                  {/* Short description */}
                   <Typography
                     sx={{
                       fontSize: "12px",
@@ -417,8 +444,8 @@ const ProductPage: React.FC = () => {
                       overflow: "hidden",
                     }}
                   >
-                    Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum
-                    Lorem Ipsum
+                    {product.description ||
+                      "Premium, lab-tested raw material trusted by manufacturers."}
                   </Typography>
 
                   {/* Product Code */}

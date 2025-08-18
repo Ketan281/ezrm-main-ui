@@ -1,8 +1,8 @@
-"use client"
-import type React from "react"
-import { Box, Typography, Button, Container } from "@mui/material"
-import { ArrowForward } from "@mui/icons-material"
-import Image from "next/image"
+"use client";
+import type React from "react";
+import { Box, Typography, Button, Container } from "@mui/material";
+import { ArrowForward } from "@mui/icons-material";
+import Image from "next/image";
 
 const PixelPerfectClone: React.FC = () => {
   return (
@@ -68,7 +68,8 @@ const PixelPerfectClone: React.FC = () => {
             <Typography
               variant="h1"
               sx={{
-                fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                fontFamily:
+                  '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                 fontWeight: 600,
                 fontSize: {
                   xs: "2.5rem",
@@ -92,7 +93,8 @@ const PixelPerfectClone: React.FC = () => {
             {/* Description Text */}
             <Typography
               sx={{
-                fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                fontFamily:
+                  '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                 fontWeight: 400,
                 fontSize: {
                   xs: "1rem",
@@ -108,8 +110,9 @@ const PixelPerfectClone: React.FC = () => {
                 px: { xs: 1, md: 0 },
               }}
             >
-              EZRM.ai is an AI-driven B2B platform for sourcing and customizing ingredients and finished formulations
-              across nutraceuticals, food, personal care, and wellness — all in one place.
+              EZRM.ai is an AI-driven B2B platform for sourcing and customizing
+              ingredients and finished formulations across nutraceuticals, food,
+              personal care, and wellness — all in one place.
             </Typography>
 
             {/* Book a Call Button */}
@@ -118,7 +121,8 @@ const PixelPerfectClone: React.FC = () => {
               sx={{
                 backgroundColor: "#ff6b35",
                 color: "white",
-                fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                fontFamily:
+                  '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                 fontWeight: 600,
                 fontSize: {
                   xs: "1rem",
@@ -190,7 +194,8 @@ const PixelPerfectClone: React.FC = () => {
               <Typography
                 variant="h2"
                 sx={{
-                  fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                  fontFamily:
+                    '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                   fontWeight: 600,
                   fontSize: { xs: "2rem", md: "2.5rem", lg: "3rem" },
                   lineHeight: 1.2,
@@ -238,7 +243,8 @@ const PixelPerfectClone: React.FC = () => {
                   />
                   <Typography
                     sx={{
-                      fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                      fontFamily:
+                        '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                       fontWeight: 500,
                       fontSize: { xs: "1.1rem", md: "1.25rem" },
                       color: "#333",
@@ -273,7 +279,8 @@ const PixelPerfectClone: React.FC = () => {
                   />
                   <Typography
                     sx={{
-                      fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                      fontFamily:
+                        '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                       fontWeight: 500,
                       fontSize: { xs: "1.1rem", md: "1.25rem" },
                       color: "#999",
@@ -308,10 +315,11 @@ const PixelPerfectClone: React.FC = () => {
                 width: "100%",
               }}
             >
-              {/* Lorem Ipsum Text */}
+              {/* Intro Text */}
               <Typography
                 sx={{
-                  fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                  fontFamily:
+                    '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                   fontWeight: 400,
                   fontSize: { xs: "0.9rem", md: "1rem" },
                   lineHeight: 1.6,
@@ -320,14 +328,17 @@ const PixelPerfectClone: React.FC = () => {
                   letterSpacing: "0.01em",
                 }}
               >
-                Loreal ipsum loreal ipsum vyn Loreal ipsum loreal ipsum vloreal ipsum loreal psuvat ipsum vloreal ipsum
-                vloreal loreal ipsum vloreal ipsum vt ipsum loreal vloreal ipsum vloreal loreal ipsum v
+                We connect brands with audited manufacturers and
+                quality-verified ingredients. From product ideation to
+                documentation, our platform streamlines sourcing with
+                reliability you can trust.
               </Typography>
 
               {/* Main Description */}
               <Typography
                 sx={{
-                  fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                  fontFamily:
+                    '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                   fontWeight: 500,
                   fontSize: { xs: "1rem", md: "1.1rem" },
                   lineHeight: 1.6,
@@ -336,8 +347,9 @@ const PixelPerfectClone: React.FC = () => {
                   letterSpacing: "-0.01em",
                 }}
               >
-                We offer a global portfolio of pharma-grade, food-grade, and cosmetic-grade ingredients across 40+
-                categories. Each ingredient comes with:
+                We offer a global portfolio of pharma-grade, food-grade, and
+                cosmetic-grade ingredients across 40+ categories. Each
+                ingredient comes with:
               </Typography>
 
               {/* Features List */}
@@ -375,7 +387,8 @@ const PixelPerfectClone: React.FC = () => {
                     />
                     <Typography
                       sx={{
-                        fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                        fontFamily:
+                          '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                         fontWeight: 400,
                         fontSize: { xs: "0.9rem", md: "1rem" },
                         lineHeight: 1.6,
@@ -454,7 +467,8 @@ const PixelPerfectClone: React.FC = () => {
             <Typography
               variant="h2"
               sx={{
-                fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                fontFamily:
+                  '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                 fontWeight: 600,
                 fontSize: {
                   xs: "2rem",
@@ -483,7 +497,8 @@ const PixelPerfectClone: React.FC = () => {
             {/* Mission Description */}
             <Typography
               sx={{
-                fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                fontFamily:
+                  '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                 fontWeight: 400,
                 fontSize: {
                   xs: "1rem",
@@ -499,15 +514,22 @@ const PixelPerfectClone: React.FC = () => {
                 letterSpacing: "0.01em",
               }}
             >
-              To empower formulators, manufacturers, and brand owners with instant access to high-quality ingredients
-              and cutting-edge finished formulations, backed by technology, transparency, and trust.
+              To empower formulators, manufacturers, and brand owners with
+              instant access to high-quality ingredients and cutting-edge
+              finished formulations, backed by technology, transparency, and
+              trust.
             </Typography>
           </Box>
         </Container>
       </Box>
 
       {/* What Makes Effective Different Section */}
-      <Box display={"flex"} justifyContent={"center"} alignItems={"center"} sx={{ background: "#fafafa" }}>
+      <Box
+        display={"flex"}
+        justifyContent={"center"}
+        alignItems={"center"}
+        sx={{ background: "#fafafa" }}
+      >
         <Box
           sx={{
             width: "95%",
@@ -525,11 +547,17 @@ const PixelPerfectClone: React.FC = () => {
             }}
           >
             {/* Section Header */}
-            <Box sx={{ mb: { xs: 6, md: 8 } }} display={"flex"} gap={25} alignItems={"center"}>
+            <Box
+              sx={{ mb: { xs: 6, md: 8 } }}
+              display={"flex"}
+              gap={25}
+              alignItems={"center"}
+            >
               <Typography
                 variant="h2"
                 sx={{
-                  fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                  fontFamily:
+                    '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                   fontWeight: 600,
                   fontSize: {
                     xs: "1.8rem",
@@ -558,7 +586,8 @@ const PixelPerfectClone: React.FC = () => {
               {/* Description Text */}
               <Typography
                 sx={{
-                  fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                  fontFamily:
+                    '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                   fontWeight: 400,
                   fontSize: { xs: "0.9rem", md: "1rem" },
                   lineHeight: 1.6,
@@ -568,8 +597,10 @@ const PixelPerfectClone: React.FC = () => {
                   letterSpacing: "0.01em",
                 }}
               >
-                Loreal ipsum loreal ipsum vyn Loreal ipsum loreal ipsum vloreal ipsum loreal psuvat ipsum vloreal ipsum
-                vloreal loreal ipsum vloreal ipsum vt ipsum loreal vloreal ipsum vloreal loreal ipsum v
+                Loreal ipsum loreal ipsum vyn Loreal ipsum loreal ipsum vloreal
+                ipsum loreal psuvat ipsum vloreal ipsum vloreal loreal ipsum
+                vloreal ipsum vt ipsum loreal vloreal ipsum vloreal loreal ipsum
+                v
               </Typography>
             </Box>
 
@@ -648,7 +679,8 @@ const PixelPerfectClone: React.FC = () => {
                 <Typography
                   variant="h6"
                   sx={{
-                    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                    fontFamily:
+                      '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                     fontWeight: 600,
                     fontSize: { xs: "1.1rem", md: "1.25rem" },
                     color: "#333",
@@ -661,7 +693,8 @@ const PixelPerfectClone: React.FC = () => {
 
                 <Typography
                   sx={{
-                    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                    fontFamily:
+                      '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                     fontWeight: 400,
                     fontSize: { xs: "0.875rem", md: "0.9rem" },
                     lineHeight: 1.5,
@@ -732,7 +765,8 @@ const PixelPerfectClone: React.FC = () => {
                 <Typography
                   variant="h6"
                   sx={{
-                    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                    fontFamily:
+                      '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                     fontWeight: 600,
                     fontSize: { xs: "1.1rem", md: "1.25rem" },
                     color: "#333",
@@ -745,7 +779,8 @@ const PixelPerfectClone: React.FC = () => {
 
                 <Typography
                   sx={{
-                    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                    fontFamily:
+                      '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                     fontWeight: 400,
                     fontSize: { xs: "0.875rem", md: "0.9rem" },
                     lineHeight: 1.5,
@@ -818,7 +853,8 @@ const PixelPerfectClone: React.FC = () => {
                 <Typography
                   variant="h6"
                   sx={{
-                    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                    fontFamily:
+                      '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                     fontWeight: 600,
                     fontSize: { xs: "1.1rem", md: "1.25rem" },
                     color: "#333",
@@ -831,7 +867,8 @@ const PixelPerfectClone: React.FC = () => {
 
                 <Typography
                   sx={{
-                    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                    fontFamily:
+                      '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                     fontWeight: 400,
                     fontSize: { xs: "0.875rem", md: "0.9rem" },
                     lineHeight: 1.5,
@@ -925,7 +962,8 @@ const PixelPerfectClone: React.FC = () => {
                 <Typography
                   variant="h6"
                   sx={{
-                    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                    fontFamily:
+                      '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                     fontWeight: 600,
                     fontSize: { xs: "1.1rem", md: "1.25rem" },
                     color: "#333",
@@ -938,7 +976,8 @@ const PixelPerfectClone: React.FC = () => {
 
                 <Typography
                   sx={{
-                    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                    fontFamily:
+                      '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                     fontWeight: 400,
                     fontSize: { xs: "0.875rem", md: "0.9rem" },
                     lineHeight: 1.5,
@@ -1021,7 +1060,8 @@ const PixelPerfectClone: React.FC = () => {
                 <Typography
                   variant="h6"
                   sx={{
-                    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                    fontFamily:
+                      '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                     fontWeight: 600,
                     fontSize: { xs: "1.1rem", md: "1.25rem" },
                     color: "#333",
@@ -1034,7 +1074,8 @@ const PixelPerfectClone: React.FC = () => {
 
                 <Typography
                   sx={{
-                    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                    fontFamily:
+                      '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                     fontWeight: 400,
                     fontSize: { xs: "0.875rem", md: "0.9rem" },
                     lineHeight: 1.5,
@@ -1115,7 +1156,8 @@ const PixelPerfectClone: React.FC = () => {
               <Typography
                 variant="h3"
                 sx={{
-                  fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                  fontFamily:
+                    '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                   fontWeight: 600,
                   fontSize: { xs: "1.75rem", md: "2.25rem", lg: "2.5rem" },
                   lineHeight: 1.2,
@@ -1138,7 +1180,8 @@ const PixelPerfectClone: React.FC = () => {
 
               <Typography
                 sx={{
-                  fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                  fontFamily:
+                    '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                   fontWeight: 400,
                   fontSize: { xs: "0.9rem", md: "1rem" },
                   lineHeight: 1.6,
@@ -1146,9 +1189,11 @@ const PixelPerfectClone: React.FC = () => {
                   letterSpacing: "0.01em",
                 }}
               >
-                EZRM.ai is a part of a diversified manufacturing and distribution group with roots in chemical,
-                nutraceutical, and technology sectors. Headquartered in India with a global footprint, our platform is
-                powered by deep industry experience and a bold vision for the future of intelligent B2B commerce.
+                EZRM.ai is a part of a diversified manufacturing and
+                distribution group with roots in chemical, nutraceutical, and
+                technology sectors. Headquartered in India with a global
+                footprint, our platform is powered by deep industry experience
+                and a bold vision for the future of intelligent B2B commerce.
               </Typography>
             </Box>
 
@@ -1167,7 +1212,8 @@ const PixelPerfectClone: React.FC = () => {
               <Typography
                 variant="h3"
                 sx={{
-                  fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                  fontFamily:
+                    '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                   fontWeight: 600,
                   fontSize: { xs: "1.75rem", md: "2.25rem", lg: "2.5rem" },
                   lineHeight: 1.2,
@@ -1181,7 +1227,8 @@ const PixelPerfectClone: React.FC = () => {
 
               <Typography
                 sx={{
-                  fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                  fontFamily:
+                    '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                   fontWeight: 400,
                   fontSize: { xs: "0.9rem", md: "1rem" },
                   lineHeight: 1.6,
@@ -1190,13 +1237,15 @@ const PixelPerfectClone: React.FC = () => {
                   mb: 2,
                 }}
               >
-                Whether youre scaling a wellness brand or developing clinical-grade formulations, EZRM.ai gives you the
-                tools, transparency, and trust to grow globally with confidence.
+                Whether youre scaling a wellness brand or developing
+                clinical-grade formulations, EZRM.ai gives you the tools,
+                transparency, and trust to grow globally with confidence.
               </Typography>
 
               <Typography
                 sx={{
-                  fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                  fontFamily:
+                    '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
                   fontWeight: 500,
                   fontSize: { xs: "0.9rem", md: "1rem" },
                   lineHeight: 1.6,
@@ -1212,7 +1261,7 @@ const PixelPerfectClone: React.FC = () => {
         </Container>
       </Box>
     </Box>
-  )
-}
+  );
+};
 
-export default PixelPerfectClone
+export default PixelPerfectClone;

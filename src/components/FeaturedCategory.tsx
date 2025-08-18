@@ -1,31 +1,52 @@
-"use client"
+"use client";
 
-import React from "react"
+import React from "react";
 
-import { Box, Typography, Container, Grid, Card, CardContent, Alert, Skeleton } from "@mui/material"
-import { useFeaturedCategories } from "@/api/handlers"
-import type { Category } from "@/api/services"
+import {
+  Box,
+  Typography,
+  Container,
+  Grid,
+  Card,
+  CardContent,
+  Alert,
+  Skeleton,
+} from "@mui/material";
+import { useFeaturedCategories } from "@/api/handlers";
+import { useRouter } from "next/navigation";
+import type { Category } from "@/api/services";
 
 interface CategoryCardProps {
-  category: Category
-  isHighlighted?: boolean
+  category: Category;
+  isHighlighted?: boolean;
 }
 
-const CategoryCard: React.FC<CategoryCardProps> = ({ category, isHighlighted = false }) => {
+const CategoryCard: React.FC<CategoryCardProps> = ({
+  category,
+  isHighlighted = false,
+}) => {
+  const router = useRouter();
+
   const getImageUrl = (imageUrl: string | undefined | null) => {
     // Check if imageUrl exists and is a string
     if (!imageUrl || typeof imageUrl !== "string") {
-      return "./vitIcon.png" // Return default icon if no image URL
+      return "./vitIcon.png"; // Return default icon if no image URL
     }
 
     if (imageUrl.startsWith("http")) {
-      return imageUrl
+      return imageUrl;
     }
-    return `${process.env.NEXT_PUBLIC_API_URL}/${imageUrl}`
-  }
+    return `${process.env.NEXT_PUBLIC_API_URL}/${imageUrl}`;
+  };
+
+  const handleCategoryClick = () => {
+    // Navigate to product page with category filter
+    router.push(`/product?category=${category._id}`);
+  };
 
   return (
     <Card
+      onClick={handleCategoryClick}
       sx={{
         borderRadius: "12px",
         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
@@ -59,8 +80,8 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, isHighlighted = f
           alt={`${category.name} Icon`}
           onError={(e) => {
             // Fallback to default icon if image fails to load
-            const target = e.target as HTMLImageElement
-            target.src = "./vitIcon.png"
+            const target = e.target as HTMLImageElement;
+            target.src = "./vitIcon.png";
           }}
           sx={{
             width: 28,
@@ -81,8 +102,8 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, isHighlighted = f
         </Typography>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
 const CategoryCardSkeleton: React.FC = () => (
   <Card
@@ -109,60 +130,71 @@ const CategoryCardSkeleton: React.FC = () => (
       <Skeleton variant="text" width={100} height={20} />
     </CardContent>
   </Card>
-)
+);
 
 const FeaturedCategory: React.FC = () => {
-  const { data: response, isLoading, error, isError } = useFeaturedCategories()
+  const { data: response, isLoading, error, isError } = useFeaturedCategories();
 
   // Debug logging
   React.useEffect(() => {
-    console.log("Featured Categories Loading:", isLoading)
-    console.log("Featured Categories Error:", error)
-    console.log("Featured Categories Response:", response)
-  }, [isLoading, error, response])
+    console.log("Featured Categories Loading:", isLoading);
+    console.log("Featured Categories Error:", error);
+    console.log("Featured Categories Response:", response);
+  }, [isLoading, error, response]);
 
   // Function to organize categories into rows for better visual layout
   const organizeIntoRows = (categories: Category[]) => {
-    const rows: Category[][] = []
-    const totalCategories = categories.length
+    const rows: Category[][] = [];
+    const totalCategories = categories.length;
 
-    if (totalCategories === 0) return rows
+    if (totalCategories === 0) return rows;
 
     // For small number of categories, put them in a single row
     if (totalCategories <= 4) {
-      rows.push(categories)
-      return rows
+      rows.push(categories);
+      return rows;
     }
 
     // For larger numbers, distribute across multiple rows
-    const itemsPerRow = Math.ceil(totalCategories / 3) // Aim for 3 rows max
+    const itemsPerRow = Math.ceil(totalCategories / 3); // Aim for 3 rows max
     for (let i = 0; i < totalCategories; i += itemsPerRow) {
-      rows.push(categories.slice(i, i + itemsPerRow))
+      rows.push(categories.slice(i, i + itemsPerRow));
     }
 
-    return rows
-  }
+    return rows;
+  };
 
   const renderLoadingState = () => (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 3, alignItems: "center" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 3,
+        alignItems: "center",
+      }}
+    >
       {[1, 2, 3].map((rowIndex) => (
         <Grid container spacing={2} key={rowIndex} justifyContent="center">
-          {Array.from({ length: rowIndex === 2 ? 3 : 4 }).map((_, cardIndex) => (
-            <Grid key={cardIndex}>
-              <CategoryCardSkeleton />
-            </Grid>
-          ))}
+          {Array.from({ length: rowIndex === 2 ? 3 : 4 }).map(
+            (_, cardIndex) => (
+              <Grid key={cardIndex}>
+                <CategoryCardSkeleton />
+              </Grid>
+            )
+          )}
         </Grid>
       ))}
     </Box>
-  )
+  );
 
   const renderErrorState = () => (
     <Alert severity="error" sx={{ mb: 2 }}>
       <Typography variant="h6">Error loading categories</Typography>
-      <Typography variant="body2">{error instanceof Error ? error.message : "Something went wrong"}</Typography>
+      <Typography variant="body2">
+        {error instanceof Error ? error.message : "Something went wrong"}
+      </Typography>
     </Alert>
-  )
+  );
 
   const renderEmptyState = () => (
     <Box sx={{ textAlign: "center", py: 4 }}>
@@ -173,10 +205,10 @@ const FeaturedCategory: React.FC = () => {
         Featured categories will appear here once they are available.
       </Typography>
     </Box>
-  )
+  );
 
-  const categories = response?.categories || []
-  const categoryRows = organizeIntoRows(categories)
+  const categories = response?.categories || [];
+  const categoryRows = organizeIntoRows(categories);
 
   return (
     <Box
@@ -229,11 +261,26 @@ const FeaturedCategory: React.FC = () => {
         {/* Category Grid */}
         {isLoading && renderLoadingState()}
         {isError && renderErrorState()}
-        {!isLoading && !isError && categories.length === 0 && renderEmptyState()}
+        {!isLoading &&
+          !isError &&
+          categories.length === 0 &&
+          renderEmptyState()}
         {!isLoading && !isError && categories.length > 0 && (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 3, alignItems: "center" }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 3,
+              alignItems: "center",
+            }}
+          >
             {categoryRows.map((row, rowIndex) => (
-              <Grid container spacing={2} key={rowIndex} justifyContent="center">
+              <Grid
+                container
+                spacing={2}
+                key={rowIndex}
+                justifyContent="center"
+              >
                 {row.map((category, cardIndex) => (
                   <Grid key={category._id}>
                     <CategoryCard
@@ -246,11 +293,9 @@ const FeaturedCategory: React.FC = () => {
             ))}
           </Box>
         )}
-
-
       </Container>
     </Box>
-  )
-}
+  );
+};
 
-export default FeaturedCategory
+export default FeaturedCategory;

@@ -1,18 +1,23 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { Box, Typography, Container, LinearProgress } from "@mui/material"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { Box, Typography, Container, LinearProgress } from "@mui/material";
 
 interface FlashSaleProductProps {
-  productName: string
-  price: string
-  stockLeft: number
-  totalStock: number
+  productName: string;
+  price: string;
+  stockLeft: number;
+  totalStock: number;
 }
 
-const FlashSaleProduct: React.FC<FlashSaleProductProps> = ({ productName, price, stockLeft, totalStock }) => {
-  const progressValue = ((totalStock - stockLeft) / totalStock) * 100
+const FlashSaleProduct: React.FC<FlashSaleProductProps> = ({
+  productName,
+  price,
+  stockLeft,
+  totalStock,
+}) => {
+  const progressValue = ((totalStock - stockLeft) / totalStock) * 100;
 
   return (
     <Box
@@ -156,40 +161,40 @@ const FlashSaleProduct: React.FC<FlashSaleProductProps> = ({ productName, price,
         {stockLeft} left
       </Typography>
     </Box>
-  )
-}
+  );
+};
 
 const FlashSaleSection: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState({
     hours: 54,
     minutes: 33,
     seconds: 20,
-  })
+  });
 
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
-        let { hours, minutes, seconds } = prev
+        let { hours, minutes, seconds } = prev;
 
         if (seconds > 0) {
-          seconds--
+          seconds--;
         } else if (minutes > 0) {
-          minutes--
-          seconds = 59
+          minutes--;
+          seconds = 59;
         } else if (hours > 0) {
-          hours--
-          minutes = 59
-          seconds = 59
+          hours--;
+          minutes = 59;
+          seconds = 59;
         }
 
-        return { hours, minutes, seconds }
-      })
-    }, 1000)
+        return { hours, minutes, seconds };
+      });
+    }, 1000);
 
-    return () => clearInterval(timer)
-  }, [])
+    return () => clearInterval(timer);
+  }, []);
 
-  const formatTime = (time: number) => time.toString().padStart(2, "0")
+  const formatTime = (time: number) => time.toString().padStart(2, "0");
 
   return (
     <Box
@@ -264,7 +269,8 @@ const FlashSaleSection: React.FC = () => {
                 maxWidth: "300px",
               }}
             >
-              Lorem ipsum lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem.
+              Limited-time discounts on fast-moving ingredients. Grab exclusive
+              prices before the timer runs out.
             </Typography>
 
             {/* Countdown Timer */}
@@ -275,7 +281,8 @@ const FlashSaleSection: React.FC = () => {
                 fontFamily: "monospace",
               }}
             >
-              {formatTime(timeLeft.hours)}:{formatTime(timeLeft.minutes)}:{formatTime(timeLeft.seconds)}
+              {formatTime(timeLeft.hours)}:{formatTime(timeLeft.minutes)}:
+              {formatTime(timeLeft.seconds)}
             </Typography>
           </Box>
 
@@ -287,13 +294,23 @@ const FlashSaleSection: React.FC = () => {
               flexDirection: { xs: "column", sm: "row" },
             }}
           >
-            <FlashSaleProduct productName="Product Name" price="$123" stockLeft={30} totalStock={100} />
-            <FlashSaleProduct productName="Product Name" price="$123" stockLeft={30} totalStock={100} />
+            <FlashSaleProduct
+              productName="Product Name"
+              price="$123"
+              stockLeft={30}
+              totalStock={100}
+            />
+            <FlashSaleProduct
+              productName="Product Name"
+              price="$123"
+              stockLeft={30}
+              totalStock={100}
+            />
           </Box>
         </Box>
       </Container>
     </Box>
-  )
-}
+  );
+};
 
-export default FlashSaleSection
+export default FlashSaleSection;
