@@ -1,46 +1,50 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
-import { Box, Typography, Container, Card, CardContent, Button, IconButton } from "@mui/material"
+import { useState, useEffect } from "react"
+import { Box, Typography, Container, Card, CardContent, Button, IconButton, Skeleton, Alert } from "@mui/material"
 import { ChevronLeft, ChevronRight } from "@mui/icons-material"
 import { useRouter } from "next/navigation"
 import { useAppStore } from "@/store/use-app-store"
 import QuoteFormModal from "./quote-form-modal"
+import type { Product } from "@/api/services"
+import Image from "next/image"
 
-interface Product {
-  id: string
-  productName: string
-  productDescription: string
-  price: string
-  priceDescription: string
-  image?: string
-}
-
-interface ProductGridCardProps extends Product {
+interface ProductGridCardProps {
+  product: Product
   onClick: (productId: string, productName: string) => void
   onButtonClick: (productId: string, productName: string) => void
   isAuthenticated: boolean
 }
 
 const ProductGridCard: React.FC<ProductGridCardProps> = ({
-  id,
-  productName,
-  productDescription,
-  price,
-  priceDescription,
-  image,
+  product,
   onClick,
   onButtonClick,
   isAuthenticated,
 }) => {
   const handleCardClick = () => {
-    onClick(id, productName)
+    onClick(product._id, product.name)
   }
 
   const handleButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent card click when clicking the button
-    onButtonClick(id, productName)
+    onButtonClick(product._id, product.name)
+  }
+
+  const getProductImage = (product: Product) => {
+    if (product.bannerImage) {
+      return product.bannerImage.startsWith("http")
+        ? product.bannerImage
+        : `${process.env.NEXT_PUBLIC_API_URL}/${product.bannerImage}`
+    }
+    if (product.images && product.images.length > 0) {
+      const firstImage = product.images[0]
+      return firstImage.startsWith("http")
+        ? firstImage
+        : `${process.env.NEXT_PUBLIC_API_URL}/${firstImage}`
+    }
+    return "/productGrid.png" // Default fallback image
   }
 
   return (
@@ -50,8 +54,8 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
         borderRadius: "18px",
         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
         bgcolor: "white",
-        width: "280px",
-        height: "320px",
+        width: "280px", // Exact same width
+        height: "320px", // Exact same height
         transition: "all 0.3s ease",
         overflow: "hidden",
         cursor: "pointer",
@@ -66,22 +70,20 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
         <Box
           sx={{
             bgcolor: "#f8f8f8",
-            height: "200px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            height: "200px", // Exact same height
             position: "relative",
+            overflow: "hidden",
           }}
         >
-          {/* Product Image */}
-          <Box
-            component="img"
-            src={image || "/productGrid.png"}
-            alt={productName}
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "contain",
+          <Image
+            src={getProductImage(product)}
+            alt={product.name}
+            fill
+            style={{ objectFit: "cover" }} // Changed from "contain" to "cover" to fill entire container
+            onError={(e) => {
+              // Fallback to default image
+              const target = e.target as HTMLImageElement
+              target.src = "/productGrid.png"
             }}
           />
         </Box>
@@ -107,42 +109,37 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
         </Button>
         {/* Content Section */}
         <Box sx={{ p: 2.5, flex: 1, display: "flex", flexDirection: "column" }}>
-          {/* Product Name and Price Row */}
+          {/* Product Name Row - PRICE HIDDEN */}
           <Box
             sx={{
               display: "flex",
-              justifyContent: "space-between",
+              justifyContent: "flex-start",
               alignItems: "flex-start",
               mb: 1,
             }}
           >
             <Typography
+              title={product.name} // Tooltip for long names
               sx={{
                 fontWeight: 600,
                 color: "#2c3e50",
                 fontSize: "0.8rem",
                 lineHeight: 1.2,
+                overflow: "hidden",
+                display: "-webkit-box",
+                WebkitLineClamp: 1,
+                WebkitBoxOrient: "vertical",
+                flex: 1,
               }}
             >
-              {productName}
-            </Typography>
-            <Typography
-              sx={{
-                color: "#3498db",
-                fontSize: "0.8rem",
-                fontWeight: 600,
-                whiteSpace: "nowrap",
-                ml: 1,
-              }}
-            >
-              {price}
+              {product.name}
             </Typography>
           </Box>
-          {/* Description and Price Description Row */}
+          {/* Description Row - PRICE DESCRIPTION HIDDEN */}
           <Box
             sx={{
               display: "flex",
-              justifyContent: "space-between",
+              justifyContent: "flex-start",
               alignItems: "flex-start",
             }}
           >
@@ -152,19 +149,13 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
                 fontSize: "0.65rem",
                 lineHeight: 1.3,
                 flex: 1,
+                display: "-webkit-box",
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
               }}
             >
-              {productDescription}
-            </Typography>
-            <Typography
-              sx={{
-                color: "#3498db",
-                fontSize: "0.65rem",
-                whiteSpace: "nowrap",
-                ml: 1,
-              }}
-            >
-              {priceDescription}
+              {product.description}
             </Typography>
           </Box>
         </Box>
@@ -173,47 +164,73 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
   )
 }
 
+
+const ProductGridCardSkeleton: React.FC = () => (
+  <Card
+    sx={{
+      borderRadius: "18px",
+      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
+      bgcolor: "white",
+      width: "280px", // Exact same width
+      height: "320px", // Exact same height
+    }}
+  >
+    <CardContent sx={{ p: 0, height: "100%", display: "flex", flexDirection: "column" }}>
+      <Skeleton variant="rectangular" height={200} />
+      <Skeleton variant="rectangular" height={40} />
+      <Box sx={{ p: 2.5, flex: 1 }}>
+        <Skeleton variant="text" height={20} sx={{ mb: 1 }} />
+        <Skeleton variant="text" height={16} sx={{ mb: 1 }} />
+        <Skeleton variant="text" height={16} />
+      </Box>
+    </CardContent>
+  </Card>
+)
+
 const ProductsGridSection: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState(1)
+  const [currentIndex, setCurrentIndex] = useState(0)
   const router = useRouter()
   const { isAuthenticated } = useAppStore()
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<string>("")
 
-  const products: Product[] = [
-    {
-      id: "prod-001",
-      productName: "Premium Protein Powder",
-      productDescription: "High-quality whey protein supplement",
-      price: "$123.78 /Bottle",
-      priceDescription: "Per 2kg bottle",
-      image: "/productGrid.png",
-    },
-    {
-      id: "prod-002",
-      productName: "Organic Vitamin Complex",
-      productDescription: "Natural vitamin and mineral blend",
-      price: "$89.99 /Bottle",
-      priceDescription: "Per 120 capsules",
-      image: "/productGrid.png",
-    },
-    {
-      id: "prod-003",
-      productName: "Energy Boost Formula",
-      productDescription: "Natural energy enhancement supplement",
-      price: "$156.50 /Bottle",
-      priceDescription: "Per 90 tablets",
-      image: "/productGrid.png",
-    },
-    {
-      id: "prod-004",
-      productName: "Immunity Support",
-      productDescription: "Immune system strengthening formula",
-      price: "$67.25 /Bottle",
-      priceDescription: "Per 60 capsules",
-      image: "/productGrid.png",
-    },
-  ]
+  // API integration state
+  const [allProducts, setAllProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/public/products/listing?page=1&limit=20&sortBy=createdAt&sortOrder=desc`
+        )
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch products")
+        }
+
+        const data = await response.json()
+        if (data.success && data.products) {
+          setAllProducts(data.products)
+          setError(null)
+        } else {
+          setAllProducts([])
+          setError("No products found")
+        }
+      } catch (err) {
+        console.error("Error fetching products:", err)
+        setError(err instanceof Error ? err.message : "Failed to load products")
+        setAllProducts([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProducts()
+  }, [])
 
   const handleCardClick = (productId: string) => {
     // Always redirect to detail page when clicking on card
@@ -232,11 +249,115 @@ const ProductsGridSection: React.FC = () => {
   }
 
   const handlePrevious = () => {
-    setCurrentPage((prev) => Math.max(1, prev - 1))
+    setCurrentIndex((prev) => Math.max(0, prev - 1))
   }
 
   const handleNext = () => {
-    setCurrentPage((prev) => prev + 1)
+    const maxIndex = Math.max(0, allProducts.length - 4)
+    setCurrentIndex((prev) => Math.min(maxIndex, prev + 1))
+  }
+
+  // Get exactly 4 products to display
+  const visibleProducts = allProducts.slice(currentIndex, currentIndex + 4)
+
+  // Loading state
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          bgcolor: "#f1f5f9",
+          py: { xs: 4, md: 6 },
+        }}
+      >
+        <Container maxWidth="lg">
+          {/* Section Header */}
+          <Box sx={{ mb: 4 }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                mb: 2,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 4,
+                  height: 32,
+                  bgcolor: "#ff7849",
+                  mr: 2,
+                }}
+              />
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 600,
+                  color: "#333",
+                  fontSize: { xs: "1.8rem", md: "2.2rem" },
+                }}
+              >
+                Products
+              </Typography>
+            </Box>
+          </Box>
+          {/* Loading Skeletons - Exactly 4, No Overflow */}
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: 3,
+              width: "100%",
+              maxWidth: "100%",
+            }}
+          >
+            {Array.from({ length: 4 }).map((_, index) => (
+              <ProductGridCardSkeleton key={index} />
+            ))}
+          </Box>
+        </Container>
+      </Box>
+    )
+  }
+
+  // Error state
+  if (error && !loading) {
+    return (
+      <Box
+        sx={{
+          bgcolor: "#f1f5f9",
+          py: { xs: 4, md: 6 },
+        }}
+      >
+        <Container maxWidth="lg">
+          <Alert severity="warning" sx={{ borderRadius: 2 }}>
+            <Typography variant="h6">Unable to load products</Typography>
+            <Typography variant="body2">{error}</Typography>
+          </Alert>
+        </Container>
+      </Box>
+    )
+  }
+
+  // Empty state
+  if (allProducts.length === 0 && !loading) {
+    return (
+      <Box
+        sx={{
+          bgcolor: "#f1f5f9",
+          py: { xs: 4, md: 6 },
+        }}
+      >
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: "center", py: 4 }}>
+            <Typography variant="h6" sx={{ color: "#666", mb: 1 }}>
+              No products available
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#999" }}>
+              Check back later for our latest products.
+            </Typography>
+          </Box>
+        </Container>
+      </Box>
+    )
   }
 
   return (
@@ -281,7 +402,7 @@ const ProductsGridSection: React.FC = () => {
             <Box sx={{ display: "flex", gap: 1, ml: 6 }}>
               <IconButton
                 onClick={handlePrevious}
-                disabled={currentPage === 1}
+                disabled={currentIndex === 0}
                 sx={{
                   width: 24,
                   height: 24,
@@ -300,6 +421,7 @@ const ProductsGridSection: React.FC = () => {
               </IconButton>
               <IconButton
                 onClick={handleNext}
+                disabled={currentIndex >= Math.max(0, allProducts.length - 4)}
                 sx={{
                   width: 24,
                   height: 24,
@@ -308,6 +430,9 @@ const ProductsGridSection: React.FC = () => {
                   "&:hover": {
                     bgcolor: "#f5f5f5",
                   },
+                  "&:disabled": {
+                    opacity: 0.5,
+                  },
                 }}
               >
                 <ChevronRight sx={{ fontSize: 16, color: "#666", mr: -0.5 }} />
@@ -315,24 +440,33 @@ const ProductsGridSection: React.FC = () => {
               </IconButton>
             </Box>
           </Box>
-          {/* Products Grid */}
+          {/* Products Grid - Exactly 4 Products, No Horizontal Scroll */}
           <Box
             sx={{
-              display: "flex",
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
               gap: 3,
-              justifyContent: "flex-start",
-              overflowX: "auto",
-              pb: 2,
+              width: "100%",
+              maxWidth: "100%",
+              overflow: "hidden", // Prevent any overflow
             }}
           >
-            {products.map((product) => (
-              <ProductGridCard
-                key={product.id}
-                {...product}
-                onClick={handleCardClick}
-                onButtonClick={handleButtonClick}
-                isAuthenticated={isAuthenticated}
-              />
+            {visibleProducts.map((product) => (
+              <Box
+                key={product._id}
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  minWidth: 0, // Allow shrinking if needed
+                }}
+              >
+                <ProductGridCard
+                  product={product}
+                  onClick={handleCardClick}
+                  onButtonClick={handleButtonClick}
+                  isAuthenticated={isAuthenticated}
+                />
+              </Box>
             ))}
           </Box>
         </Container>

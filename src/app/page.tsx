@@ -46,7 +46,7 @@ const HomePage: React.FC = () => {
       <ProductsGridSection />
 
       {/* Products You May Like Section */}
-      <ProductsYouMayLike />
+      {/* <ProductsYouMayLike /> */}
 
       <ReviewsSection />
 

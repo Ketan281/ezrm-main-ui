@@ -16,7 +16,7 @@ export const queryClient = new QueryClient({
 
 // API base configuration
 export const API_CONFIG = {
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5007/api/v1",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://api.testserverdoma.shop/api/v1",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",

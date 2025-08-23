@@ -1,44 +1,50 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
-import { Box, Typography, Container, Card, CardContent, Button, IconButton } from "@mui/material"
+import { useState, useEffect } from "react"
+import { Box, Typography, Container, Card, CardContent, Button, IconButton, Skeleton, Alert } from "@mui/material"
 import { ChevronLeft, ChevronRight } from "@mui/icons-material"
 import { useRouter } from "next/navigation"
 import { useAppStore } from "@/store/use-app-store"
 import QuoteFormModal from "./quote-form-modal"
+import type { Product } from "@/api/services"
+import Image from "next/image"
 
-interface Product {
-  id: string
-  productName: string
-  description: string
-  priceLabel: string
-  price: string
-}
-
-interface ProductCardProps extends Product {
+interface ProductCardProps {
+  product: Product
   onClick: (productId: string, productName: string) => void
   onButtonClick: (productId: string, productName: string) => void
   isAuthenticated: boolean
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
-  id,
-  productName,
-  description,
-  priceLabel,
-  price,
+  product,
   onClick,
   onButtonClick,
   isAuthenticated,
 }) => {
   const handleCardClick = () => {
-    onClick(id, productName)
+    onClick(product._id, product.name)
   }
 
   const handleButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent card click when clicking the button
-    onButtonClick(id, productName)
+    onButtonClick(product._id, product.name)
+  }
+
+  const getProductImage = (product: Product) => {
+    if (product.bannerImage) {
+      return product.bannerImage.startsWith("http")
+        ? product.bannerImage
+        : `${process.env.NEXT_PUBLIC_API_URL}/${product.bannerImage}`
+    }
+    if (product.images && product.images.length > 0) {
+      const firstImage = product.images[0]
+      return firstImage.startsWith("http")
+        ? firstImage
+        : `${process.env.NEXT_PUBLIC_API_URL}/${firstImage}`
+    }
+    return "/product.png" // Default fallback image
   }
 
   return (
@@ -61,19 +67,31 @@ const ProductCard: React.FC<ProductCardProps> = ({
       }}
     >
       <CardContent sx={{ p: 0, height: "100%" }}>
-        {/* Product Image/Icon Container - Flush with top */}
+        {/* Product Image Container - Flush with top */}
         <Box
           sx={{
             bgcolor: "#e9ecef",
             borderRadius: "12px 12px 0 0",
-            height: "120px",
+            height: "150px",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             position: "relative",
+            overflow: "hidden",
           }}
         >
-          {/* Vitamin Bottle Icon */}
+          <Image
+            src={getProductImage(product)}
+            alt={product.name}
+            fill
+            style={{ objectFit: "cover" }}
+            onError={(e) => {
+              // Fallback to default vitamin bottle icon
+              const target = e.target as HTMLImageElement
+              target.style.display = "none"
+            }}
+          />
+          {/* Fallback Vitamin Bottle Icon */}
           <Box
             sx={{
               position: "relative",
@@ -83,45 +101,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
             }}
           >
             {/* Bottle */}
-            <Box
-              sx={{
-                width: "45px",
-                height: "60px",
-                bgcolor: "#ff7849",
-                borderRadius: "6px 6px 3px 3px",
-                position: "relative",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexDirection: "column",
-              }}
-            >
-              {/* Bottle Cap */}
-              <Box
-                sx={{
-                  width: "30px",
-                  height: "8px",
-                  bgcolor: "#ff7849",
-                  borderRadius: "3px",
-                  position: "absolute",
-                  top: "-4px",
-                }}
-              />
-              {/* VIT Text */}
-              <Typography
-                sx={{
-                  color: "white",
-                  fontSize: "10px",
-                  fontWeight: "bold",
-                  lineHeight: 1,
-                  mb: 0.3,
-                }}
-              >
-                VIT
-              </Typography>
-            </Box>
+          
             {/* C Badge */}
-            <Box
+            {/* <Box
               sx={{
                 position: "absolute",
                 right: "-6px",
@@ -145,7 +127,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
               >
                 C
               </Typography>
-            </Box>
+            </Box> */}
           </Box>
         </Box>
         {/* Content Section with padding */}
@@ -153,14 +135,18 @@ const ProductCard: React.FC<ProductCardProps> = ({
           {/* Product Name */}
           <Typography
             variant="h6"
+            title={product.name} // Tooltip for long names
             sx={{
               fontWeight: 600,
               color: "#333",
               mb: 1,
               fontSize: "0.95rem",
+              overflow: "hidden",
+              whiteSpace: "nowrap",
+              textOverflow: "ellipsis",
             }}
           >
-            {productName}
+            {product.name}
           </Typography>
           {/* Description */}
           <Typography
@@ -171,11 +157,16 @@ const ProductCard: React.FC<ProductCardProps> = ({
               fontSize: "0.75rem",
               lineHeight: 1.3,
               flex: 1,
+              display: "-webkit-box",
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
             }}
           >
-            {description}
+            {product.description}
           </Typography>
-          {/* Price Section */}
+          {/* Price Section - HIDDEN as per requirement */}
+          {/* 
           <Box
             sx={{
               display: "flex",
@@ -190,7 +181,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 fontSize: "0.65rem",
               }}
             >
-              {priceLabel}
+              Starting from
             </Typography>
             <Typography
               sx={{
@@ -199,9 +190,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 fontSize: "0.75rem",
               }}
             >
-              {price}
+              ₹{product.price}
             </Typography>
           </Box>
+          */}
         </Box>
         {/* Button - Flush with bottom */}
         <Button
@@ -228,6 +220,29 @@ const ProductCard: React.FC<ProductCardProps> = ({
   )
 }
 
+const ProductCardSkeleton: React.FC = () => (
+  <Card
+    sx={{
+      borderRadius: "12px",
+      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+      bgcolor: "white",
+      width: "200px",
+      height: "300px",
+      flexShrink: 0,
+    }}
+  >
+    <CardContent sx={{ p: 0, height: "100%" }}>
+      <Skeleton variant="rectangular" height={120} sx={{ borderRadius: "12px 12px 0 0" }} />
+      <Box sx={{ p: 2 }}>
+        <Skeleton variant="text" height={24} sx={{ mb: 1 }} />
+        <Skeleton variant="text" height={20} sx={{ mb: 1 }} />
+        <Skeleton variant="text" height={20} sx={{ mb: 1.5 }} />
+      </Box>
+      <Skeleton variant="rectangular" height={40} sx={{ borderRadius: "0 0 12px 12px" }} />
+    </CardContent>
+  </Card>
+)
+
 const ProductsSection: React.FC = () => {
   const router = useRouter()
   const { isAuthenticated } = useAppStore()
@@ -235,50 +250,43 @@ const ProductsSection: React.FC = () => {
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<string>("")
 
-  const products: Product[] = [
-    {
-      id: "vitamin-001",
-      productName: "Vitamin C Complex",
-      description: "High potency vitamin C supplement",
-      priceLabel: "Starting from",
-      price: "$29.99 /Bottle",
-    },
-    {
-      id: "vitamin-002",
-      productName: "Multivitamin Plus",
-      description: "Complete daily multivitamin",
-      priceLabel: "Starting from",
-      price: "$45.78 /Bottle",
-    },
-    {
-      id: "vitamin-003",
-      productName: "Vitamin D3 5000IU",
-      description: "High strength vitamin D3 for bone health",
-      priceLabel: "Starting from",
-      price: "$22.50 /Bottle",
-    },
-    {
-      id: "vitamin-004",
-      productName: "B-Complex Energy",
-      description: "B-vitamin complex for energy and metabolism",
-      priceLabel: "Starting from",
-      price: "$35.99 /Bottle",
-    },
-    {
-      id: "vitamin-005",
-      productName: "Omega-3 Fish Oil",
-      description: "Premium omega-3 fatty acids for heart health",
-      priceLabel: "Starting from",
-      price: "$42.25 /Bottle",
-    },
-    {
-      id: "vitamin-006",
-      productName: "Calcium Magnesium",
-      description: "Essential minerals for bone and muscle health",
-      priceLabel: "Starting from",
-      price: "$28.75 /Bottle",
-    },
-  ]
+  // API integration state
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/public/products/listing?page=1&limit=8&sortBy=createdAt&sortOrder=desc`
+        )
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch products")
+        }
+
+        const data = await response.json()
+        if (data.success && data.products) {
+          setProducts(data.products)
+          setError(null)
+        } else {
+          setProducts([])
+          setError("No products found")
+        }
+      } catch (err) {
+        console.error("Error fetching products:", err)
+        setError(err instanceof Error ? err.message : "Failed to load products")
+        setProducts([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProducts()
+  }, [])
 
   const handleCardClick = (productId: string) => {
     // Always redirect to detail page when clicking on card
@@ -306,6 +314,121 @@ const ProductsSection: React.FC = () => {
   }
 
   const visibleProducts = products.slice(currentIndex, currentIndex + 4)
+
+  // Loading state
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          bgcolor: "white",
+          py: { xs: 4, md: 6 },
+        }}
+      >
+        <Container maxWidth="lg">
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+            }}
+          >
+            {/* Left Side - Title */}
+            <Box
+              sx={{
+                minWidth: "200px",
+                flexShrink: 0,
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  mb: 2,
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 4,
+                    height: 32,
+                    bgcolor: "#ff7849",
+                    mr: 2,
+                  }}
+                />
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 600,
+                    color: "#333",
+                    fontSize: { xs: "1.3rem", md: "1.8rem" },
+                    lineHeight: 1.2,
+                  }}
+                >
+                  Products you may
+                  <br />
+                  like
+                </Typography>
+              </Box>
+            </Box>
+            {/* Right Side - Loading Skeletons */}
+            <Box
+              sx={{
+                display: "flex",
+                gap: 2,
+                flex: 1,
+                overflow: "hidden",
+              }}
+            >
+              {Array.from({ length: 4 }).map((_, index) => (
+                <ProductCardSkeleton key={index} />
+              ))}
+            </Box>
+          </Box>
+        </Container>
+      </Box>
+    )
+  }
+
+  // Error state
+  if (error && !loading) {
+    return (
+      <Box
+        sx={{
+          bgcolor: "white",
+          py: { xs: 4, md: 6 },
+        }}
+      >
+        <Container maxWidth="lg">
+          <Alert severity="warning" sx={{ borderRadius: 2 }}>
+            <Typography variant="h6">Unable to load products</Typography>
+            <Typography variant="body2">{error}</Typography>
+          </Alert>
+        </Container>
+      </Box>
+    )
+  }
+
+  // Empty state
+  if (products.length === 0 && !loading) {
+    return (
+      <Box
+        sx={{
+          bgcolor: "white",
+          py: { xs: 4, md: 6 },
+        }}
+      >
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: "center", py: 4 }}>
+            <Typography variant="h6" sx={{ color: "#666", mb: 1 }}>
+              No products available
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#999" }}>
+              Check back later for our latest products.
+            </Typography>
+          </Box>
+        </Container>
+      </Box>
+    )
+  }
 
   return (
     <>
@@ -414,8 +537,8 @@ const ProductsSection: React.FC = () => {
             >
               {visibleProducts.map((product) => (
                 <ProductCard
-                  key={product.id}
-                  {...product}
+                  key={product._id}
+                  product={product}
                   onClick={handleCardClick}
                   onButtonClick={handleButtonClick}
                   isAuthenticated={isAuthenticated}

@@ -50,7 +50,9 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
       sx={{
         borderRadius: "12px",
         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-        width: "13em",
+        width: "13.6rem", // Dynamic width ~250px
+        minWidth: "12.6rem", // Ensure consistent minimum width
+        height: "4.5rem", // Dynamic height ~75px
         bgcolor: isHighlighted ? "#ff7849" : "white",
         color: isHighlighted ? "white" : "#333",
         transition: "all 0.3s ease",
@@ -67,10 +69,11 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
           display: "flex",
           alignItems: "center",
           gap: 2,
-          py: 3,
+          py: 1.5,
           px: 3,
+          height: "100%",
           "&:last-child": {
-            pb: 3,
+            pb: 1.5,
           },
         }}
       >
@@ -86,16 +89,23 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
           sx={{
             width: 28,
             height: 28,
+            minWidth: 28, // Prevent image from shrinking
             filter: isHighlighted ? "brightness(0) invert(1)" : "none",
             objectFit: "contain",
           }}
         />
         <Typography
           variant="body1"
+          title={category.name} // Tooltip on hover
           sx={{
             fontWeight: 500,
             fontSize: "1rem",
             lineHeight: 1.2,
+            flex: 1, // Take remaining space
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+            textOverflow: "ellipsis",
+            cursor: "pointer",
           }}
         >
           {category.name}
