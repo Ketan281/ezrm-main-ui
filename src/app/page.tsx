@@ -8,7 +8,7 @@ import ProductsSection from "@/components/ProductsSection";
 import ServicesSection from "@/components/ServiceSection";
 import FlashSaleSection from "@/components/FlashSaleSection";
 import ProductsGridSection from "@/components/ProductsGridSection";
-import ProductsYouMayLike from "@/components/ProductsYouMayLike";
+// import ProductsYouMayLike from "@/components/ProductsYouMayLike";
 import ReviewsSection from "@/components/ReviewSection";
 
 const HomePage: React.FC = () => {
