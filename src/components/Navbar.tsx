@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
+import type React from "react";
+import { useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -22,7 +22,7 @@ import {
   ListItem,
   ListItemText,
   Chip,
-} from "@mui/material"
+} from "@mui/material";
 import {
   Search as SearchIcon,
   FavoriteBorder as HeartIcon,
@@ -31,84 +31,111 @@ import {
   ExitToApp as LogoutIcon,
   KeyboardArrowDown as ArrowDownIcon,
   Clear as ClearIcon,
-} from "@mui/icons-material"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useAppStore } from "@/store/use-app-store"
-import { useCustomerLogout } from "@/api/handlers"
-import { useCartSummary } from "@/api/handlers/cartHandler"
-import { useWishlist } from "@/api/handlers/wishlistHandler"
+} from "@mui/icons-material";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAppStore } from "@/store/use-app-store";
+import { useCustomerLogout } from "@/api/handlers";
+import { useCartSummary } from "@/api/handlers/cartHandler";
+import { useWishlist } from "@/api/handlers/wishlistHandler";
+import { useCompanyDetails } from "@/hooks/use-company-details";
 
 interface SearchResult {
-  id: string
-  title: string
-  category: string
-  type: "product" | "category"
+  id: string;
+  title: string;
+  category: string;
+  type: "product" | "category";
 }
 
 const Navbar: React.FC = () => {
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"))
-  const router = useRouter()
-  const { customer, isAuthenticated } = useAppStore()
-  const logoutMutation = useCustomerLogout()
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const router = useRouter();
+  const { customer, isAuthenticated } = useAppStore();
+  const logoutMutation = useCustomerLogout();
+  const { companyDetails } = useCompanyDetails();
 
   // Search expansion state
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
-  const [isSearching, setIsSearching] = useState(false)
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   // Mock search results - replace with actual search logic
   const mockResults: SearchResult[] = [
     { id: "1", title: "Vitamin C", category: "Vitamins", type: "product" },
-    { id: "2", title: "Amino Acids", category: "Supplements", type: "category" },
-    { id: "3", title: "Liposomal Formulations", category: "Advanced", type: "product" },
-    { id: "4", title: "Microencapsulation", category: "Technology", type: "product" },
+    {
+      id: "2",
+      title: "Amino Acids",
+      category: "Supplements",
+      type: "category",
+    },
+    {
+      id: "3",
+      title: "Liposomal Formulations",
+      category: "Advanced",
+      type: "product",
+    },
+    {
+      id: "4",
+      title: "Microencapsulation",
+      category: "Technology",
+      type: "product",
+    },
     { id: "5", title: "Omega-3", category: "Fatty Acids", type: "product" },
-    { id: "6", title: "Probiotics", category: "Digestive Health", type: "category" },
-  ]
+    {
+      id: "6",
+      title: "Probiotics",
+      category: "Digestive Health",
+      type: "category",
+    },
+  ];
 
   // Fetch cart and wishlist counts when authenticated
   const { data: cartSummary } = useCartSummary(customer?.id || "", {
     enabled: isAuthenticated && !!customer?.id,
-  })
+  });
 
   const { data: wishlistData } = useWishlist(
     { customerId: customer?.id || "" },
-    { enabled: isAuthenticated && !!customer?.id },
-  )
+    { enabled: isAuthenticated && !!customer?.id }
+  );
 
   // Extract counts
-  const cartCount = cartSummary?.data?.totalItems || 0
-  const wishlistCount = wishlistData?.data?.products?.length || 0
+  const cartCount = cartSummary?.data?.totalItems || 0;
+  const wishlistCount = wishlistData?.data?.products?.length || 0;
 
-  const [profileMenuAnchor, setProfileMenuAnchor] = useState<null | HTMLElement>(null)
-  const isProfileMenuOpen = Boolean(profileMenuAnchor)
+  const [profileMenuAnchor, setProfileMenuAnchor] =
+    useState<null | HTMLElement>(null);
+  const isProfileMenuOpen = Boolean(profileMenuAnchor);
+
+  // Tools dropdown state
+  const [toolsAnchor, setToolsAnchor] = useState<null | HTMLElement>(null);
+  const isToolsOpen = Boolean(toolsAnchor);
 
   const handleSignInClick = () => {
-    router.push("/sign_in")
-  }
+    router.push("/sign_in");
+  };
 
   const handleFavouriteClick = () => {
-    router.push("/favourite")
-  }
+    router.push("/favourite");
+  };
 
   const handleCartClick = () => {
-    router.push("/cart")
-  }
+    router.push("/cart");
+  };
 
   const handleSearchToggle = () => {
-    setIsSearchExpanded(!isSearchExpanded)
+    setIsSearchExpanded(!isSearchExpanded);
     if (isSearchExpanded) {
-      setSearchQuery("")
-      setSearchResults([])
+      setSearchQuery("");
+      setSearchResults([]);
     }
-  }
+  };
 
   const handleSearch = (query: string) => {
-    setSearchQuery(query)
-    setIsSearching(true)
+    setSearchQuery(query);
+    setIsSearching(true);
 
     // Simulate search delay
     setTimeout(() => {
@@ -116,69 +143,77 @@ const Navbar: React.FC = () => {
         const filtered = mockResults.filter(
           (item) =>
             item.title.toLowerCase().includes(query.toLowerCase()) ||
-            item.category.toLowerCase().includes(query.toLowerCase()),
-        )
-        setSearchResults(filtered)
+            item.category.toLowerCase().includes(query.toLowerCase())
+        );
+        setSearchResults(filtered);
       } else {
-        setSearchResults([])
+        setSearchResults([]);
       }
-      setIsSearching(false)
-    }, 300)
-  }
+      setIsSearching(false);
+    }, 300);
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (searchQuery.trim()) {
       // Handle search logic here
-      console.log("Searching for:", searchQuery)
+      console.log("Searching for:", searchQuery);
       // You can navigate to search results page or trigger search
-      router.push(`/search?q=${encodeURIComponent(searchQuery)}`)
-      setIsSearchExpanded(false)
-      setSearchQuery("")
-      setSearchResults([])
+      router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+      setIsSearchExpanded(false);
+      setSearchQuery("");
+      setSearchResults([]);
     }
-  }
+  };
 
   const handleSearchClear = () => {
-    setSearchQuery("")
-    setSearchResults([])
-  }
+    setSearchQuery("");
+    setSearchResults([]);
+  };
 
   const handleResultClick = (result: SearchResult) => {
-    console.log("Selected:", result)
+    console.log("Selected:", result);
     // Handle navigation based on result type
     if (result.type === "product") {
-      router.push(`/product/${result.id}`)
+      router.push(`/product/${result.id}`);
     } else {
-      router.push(`/category/${result.id}`)
+      router.push(`/category/${result.id}`);
     }
-    setIsSearchExpanded(false)
-    setSearchQuery("")
-    setSearchResults([])
-  }
+    setIsSearchExpanded(false);
+    setSearchQuery("");
+    setSearchResults([]);
+  };
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setProfileMenuAnchor(event.currentTarget)
-  }
+    setProfileMenuAnchor(event.currentTarget);
+  };
 
   const handleProfileMenuClose = () => {
-    setProfileMenuAnchor(null)
-  }
+    setProfileMenuAnchor(null);
+  };
+
+  const handleToolsMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setToolsAnchor(event.currentTarget);
+  };
+
+  const handleToolsMenuClose = () => {
+    setToolsAnchor(null);
+  };
 
   const handleProfileClick = () => {
-    handleProfileMenuClose()
-    router.push("/profile")
-  }
+    handleProfileMenuClose();
+    router.push("/profile");
+  };
 
   const handleLogout = async () => {
-    handleProfileMenuClose()
+    handleProfileMenuClose();
     try {
-      await logoutMutation.mutateAsync()
-      router.push("/")
+      await logoutMutation.mutateAsync();
+      router.push("/");
     } catch (error) {
-      console.error("Logout failed:", error)
+      console.error("Logout failed:", error);
     }
-  }
+  };
 
   const getInitials = (name: string) => {
     return name
@@ -186,8 +221,8 @@ const Navbar: React.FC = () => {
       .map((n) => n[0])
       .join("")
       .toUpperCase()
-      .slice(0, 2)
-  }
+      .slice(0, 2);
+  };
 
   return (
     <AppBar
@@ -210,7 +245,9 @@ const Navbar: React.FC = () => {
           <Box
             component="img"
             src="/ezrm-logo.png"
-            alt="EZRM - Raw Materials Simplified"
+            alt={`${
+              companyDetails?.fullName || "EZRM"
+            } - Raw Materials Simplified`}
             sx={{
               height: { xs: 32, md: 40 },
               width: "auto",
@@ -223,28 +260,259 @@ const Navbar: React.FC = () => {
         <Box display={"flex"} alignItems={"center"} gap={4}>
           {/* Navigation Links - Hidden on mobile */}
           {!isMobile && (
-            <Box sx={{ display: "flex", gap: 3, alignItems: "center", position: "relative" }}>
-              {["About", "Product", "Tools", "Certifications"].map((item) => (
-                <Link key={item} href={`/${item.toLowerCase()}`} passHref>
-                  <Typography
+            <Box
+              sx={{
+                display: "flex",
+                gap: 3,
+                alignItems: "center",
+                position: "relative",
+              }}
+            >
+              {/* About */}
+              <Link href="/about" passHref>
+                <Typography
+                  sx={{
+                    color: "white",
+                    textDecoration: "none",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    "&:hover": {
+                      opacity: 0.8,
+                    },
+                  }}
+                >
+                  About
+                </Typography>
+              </Link>
+
+              {/* Product */}
+              <Link href="/product" passHref>
+                <Typography
+                  sx={{
+                    color: "white",
+                    textDecoration: "none",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    "&:hover": {
+                      opacity: 0.8,
+                    },
+                  }}
+                >
+                  Product
+                </Typography>
+              </Link>
+
+              {/* Tools with Dropdown */}
+              <Box
+                onMouseEnter={handleToolsMenuOpen}
+                onMouseLeave={handleToolsMenuClose}
+                sx={{ position: "relative" }}
+              >
+                <Typography
+                  sx={{
+                    color: "white",
+                    textDecoration: "none",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                    "&:hover": {
+                      opacity: 0.8,
+                    },
+                  }}
+                >
+                  Tools
+                  <ArrowDownIcon sx={{ fontSize: 16 }} />
+                </Typography>
+
+                {/* Tools Dropdown Menu */}
+                <Menu
+                  anchorEl={toolsAnchor}
+                  open={isToolsOpen}
+                  onClose={handleToolsMenuClose}
+                  MenuListProps={{
+                    onMouseLeave: handleToolsMenuClose,
+                  }}
+                  PaperProps={{
+                    sx: {
+                      mt: 1,
+                      borderRadius: "12px",
+                      boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12)",
+                      border: "1px solid #e0e0e0",
+                      minWidth: 280,
+                      py: 1,
+                    },
+                  }}
+                  transformOrigin={{ horizontal: "left", vertical: "top" }}
+                  anchorOrigin={{ horizontal: "left", vertical: "bottom" }}
+                >
+                  <MenuItem
+                    onClick={() => {
+                      handleToolsMenuClose();
+                      router.push("/tools/e-numbers");
+                    }}
                     sx={{
-                      color: "white",
-                      textDecoration: "none",
-                      fontSize: "14px",
-                      cursor: "pointer",
-                      whiteSpace: "nowrap",
+                      py: 1.5,
+                      px: 2,
                       "&:hover": {
-                        opacity: 0.8,
+                        backgroundColor: "#f8f9fa",
                       },
                     }}
                   >
-                    {item}
-                  </Typography>
-                </Link>
-              ))}
+                    <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
+                      E Numbers
+                    </Typography>
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      handleToolsMenuClose();
+                      router.push("/tools/capsule-sizes");
+                    }}
+                    sx={{
+                      py: 1.5,
+                      px: 2,
+                      "&:hover": {
+                        backgroundColor: "#f8f9fa",
+                      },
+                    }}
+                  >
+                    <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
+                      Capsule Sizes
+                    </Typography>
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      handleToolsMenuClose();
+                      router.push("/tools/dietary-reference-values");
+                    }}
+                    sx={{
+                      py: 1.5,
+                      px: 2,
+                      "&:hover": {
+                        backgroundColor: "#f8f9fa",
+                      },
+                    }}
+                  >
+                    <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
+                      Dietary Reference Values (NRV RDA)
+                    </Typography>
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      handleToolsMenuClose();
+                      router.push("/tools/enzyme-applications");
+                    }}
+                    sx={{
+                      py: 1.5,
+                      px: 2,
+                      "&:hover": {
+                        backgroundColor: "#f8f9fa",
+                      },
+                    }}
+                  >
+                    <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
+                      Enzyme Applications, Units and Info
+                    </Typography>
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      handleToolsMenuClose();
+                      router.push("/tools/health-claims");
+                    }}
+                    sx={{
+                      py: 1.5,
+                      px: 2,
+                      "&:hover": {
+                        backgroundColor: "#f8f9fa",
+                      },
+                    }}
+                  >
+                    <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
+                      Health Claims - EFSA
+                    </Typography>
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      handleToolsMenuClose();
+                      router.push("/tools/mineral-activity");
+                    }}
+                    sx={{
+                      py: 1.5,
+                      px: 2,
+                      "&:hover": {
+                        backgroundColor: "#f8f9fa",
+                      },
+                    }}
+                  >
+                    <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
+                      Mineral Activity and Solubility in Water
+                    </Typography>
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      handleToolsMenuClose();
+                      router.push("/tools/scoville-heat-units");
+                    }}
+                    sx={{
+                      py: 1.5,
+                      px: 2,
+                      "&:hover": {
+                        backgroundColor: "#f8f9fa",
+                      },
+                    }}
+                  >
+                    <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
+                      Scoville Heat Units
+                    </Typography>
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      handleToolsMenuClose();
+                      router.push("/tools/vitamin-activity");
+                    }}
+                    sx={{
+                      py: 1.5,
+                      px: 2,
+                      "&:hover": {
+                        backgroundColor: "#f8f9fa",
+                      },
+                    }}
+                  >
+                    <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
+                      Vitamin Activity
+                    </Typography>
+                  </MenuItem>
+                </Menu>
+              </Box>
+
+              {/* Certifications */}
+              <Link href="/certifications" passHref>
+                <Typography
+                  sx={{
+                    color: "white",
+                    textDecoration: "none",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    "&:hover": {
+                      opacity: 0.8,
+                    },
+                  }}
+                >
+                  Certifications
+                </Typography>
+              </Link>
 
               {/* Inline Search Bar */}
-              <Collapse in={isSearchExpanded} orientation="horizontal" timeout={300}>
+              <Collapse
+                in={isSearchExpanded}
+                orientation="horizontal"
+                timeout={300}
+              >
                 <Box
                   sx={{
                     ml: 3,
@@ -354,8 +622,17 @@ const Navbar: React.FC = () => {
                             >
                               <ListItemText
                                 primary={
-                                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 1,
+                                    }}
+                                  >
+                                    <Typography
+                                      variant="body1"
+                                      sx={{ fontWeight: 500 }}
+                                    >
                                       {result.title}
                                     </Typography>
                                     <Chip
@@ -365,8 +642,14 @@ const Navbar: React.FC = () => {
                                       sx={{
                                         fontSize: "10px",
                                         height: "20px",
-                                        color: result.type === "product" ? "#ff6b35" : "#4a90e2",
-                                        borderColor: result.type === "product" ? "#ff6b35" : "#4a90e2",
+                                        color:
+                                          result.type === "product"
+                                            ? "#ff6b35"
+                                            : "#4a90e2",
+                                        borderColor:
+                                          result.type === "product"
+                                            ? "#ff6b35"
+                                            : "#4a90e2",
                                       }}
                                     />
                                   </Box>
@@ -432,7 +715,8 @@ const Navbar: React.FC = () => {
                     borderRadius: "9px",
                     border: "2px solid white",
                     boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                    background: "linear-gradient(135deg, #d14d20 0%, #b8431c 100%)",
+                    background:
+                      "linear-gradient(135deg, #d14d20 0%, #b8431c 100%)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -480,7 +764,8 @@ const Navbar: React.FC = () => {
                     borderRadius: "9px",
                     border: "2px solid white",
                     boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                    background: "linear-gradient(135deg, #e55a2b 0%, #d14d20 100%)",
+                    background:
+                      "linear-gradient(135deg, #e55a2b 0%, #d14d20 100%)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -555,7 +840,9 @@ const Navbar: React.FC = () => {
                     sx={{
                       fontSize: 16,
                       color: "#ff7849",
-                      transform: isProfileMenuOpen ? "rotate(180deg)" : "rotate(0deg)",
+                      transform: isProfileMenuOpen
+                        ? "rotate(180deg)"
+                        : "rotate(0deg)",
                       transition: "transform 0.3s ease",
                     }}
                   />
@@ -612,7 +899,9 @@ const Navbar: React.FC = () => {
                     }}
                   >
                     <PersonIcon sx={{ fontSize: 18, color: "#666", mr: 2 }} />
-                    <Typography sx={{ fontSize: "14px", color: "#333" }}>My Profile</Typography>
+                    <Typography sx={{ fontSize: "14px", color: "#333" }}>
+                      My Profile
+                    </Typography>
                   </MenuItem>
 
                   <Divider sx={{ my: 1 }} />
@@ -628,7 +917,9 @@ const Navbar: React.FC = () => {
                       },
                     }}
                   >
-                    <LogoutIcon sx={{ fontSize: 18, color: "#d32f2f", mr: 2 }} />
+                    <LogoutIcon
+                      sx={{ fontSize: 18, color: "#d32f2f", mr: 2 }}
+                    />
                     <Typography sx={{ fontSize: "14px", color: "#d32f2f" }}>
                       {logoutMutation.isPending ? "Signing out..." : "Sign Out"}
                     </Typography>
@@ -649,7 +940,8 @@ const Navbar: React.FC = () => {
                   py: 1.2,
                   ml: 1,
                   cursor: "pointer",
-                  clipPath: "polygon(0% 0%, calc(100% - 15px) 0%, 100% 50%, calc(100% - 15px) 100%, 0% 100%, 15px 50%)",
+                  clipPath:
+                    "polygon(0% 0%, calc(100% - 15px) 0%, 100% 50%, calc(100% - 15px) 100%, 0% 100%, 15px 50%)",
                   minWidth: "90px",
                   textAlign: "center",
                   transition: "all 0.3s ease",
@@ -669,7 +961,7 @@ const Navbar: React.FC = () => {
         </Box>
       </Toolbar>
     </AppBar>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;

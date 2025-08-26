@@ -15,6 +15,7 @@ export { searchService } from "./search";
 export { countriesService } from "./countries";
 export { customerProfileService } from "./customerProfile";
 export { stripeService } from "./stripe";
+export { getCompanyDetails } from "./companyDetails";
 
 // Product services
 export * from "./products";
@@ -112,3 +113,6 @@ export * from "./customerProfile";
 
 // Stripe services
 export * from "./stripe";
+
+// Company Details services
+export * from "./companyDetails";

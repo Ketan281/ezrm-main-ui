@@ -35,8 +35,11 @@ export interface ProductListingParams {
   sortBy?: string;
   sortOrder?: "asc" | "desc";
   category?: string;
+  subCategory?: string[];
+  application?: string[];
+  tag?: string[];
+  function?: string[];
   search?: string;
-  tag?: string;
   countryOfOrigin?: string;
 }
 
@@ -76,7 +79,12 @@ class ProductService {
 
     Object.entries(defaultParams).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        searchParams.append(key, value.toString());
+        if (Array.isArray(value)) {
+          // Handle array parameters by joining with commas
+          searchParams.append(key, value.join(","));
+        } else {
+          searchParams.append(key, value.toString());
+        }
       }
     });
 

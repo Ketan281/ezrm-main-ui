@@ -19,10 +19,12 @@ import {
   YouTube,
 } from "@mui/icons-material";
 import ContactForm from "./ContactForm";
+import { useCompanyDetails } from "@/hooks/use-company-details";
 
 const FooterSection: React.FC = () => {
   const [snackbarOpen, setSnackbarOpen] = React.useState(false);
   const [snackbarMessage, setSnackbarMessage] = React.useState("");
+  const { companyDetails, loading } = useCompanyDetails();
 
   const handleSuccess = () => {
     setSnackbarMessage("Thank you! Your message has been sent successfully.");
@@ -104,21 +106,27 @@ const FooterSection: React.FC = () => {
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <Email sx={{ color: "white", fontSize: 20 }} />
                 <Typography sx={{ color: "white", fontSize: "0.95rem" }}>
-                  Email@gmail.com
+                  {loading
+                    ? "Loading..."
+                    : companyDetails?.email || "Email@gmail.com"}
                 </Typography>
               </Box>
               {/* Phone */}
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <Phone sx={{ color: "white", fontSize: 20 }} />
                 <Typography sx={{ color: "white", fontSize: "0.95rem" }}>
-                  1 124 152 424
+                  {loading
+                    ? "Loading..."
+                    : companyDetails?.phone || "1 124 152 424"}
                 </Typography>
               </Box>
               {/* Address */}
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <LocationOn sx={{ color: "white", fontSize: 20 }} />
                 <Typography sx={{ color: "white", fontSize: "0.95rem" }}>
-                  J4, Main street, Bristol
+                  {loading
+                    ? "Loading..."
+                    : companyDetails?.address || "J4, Main street, Bristol"}
                 </Typography>
               </Box>
             </Box>
@@ -179,58 +187,84 @@ const FooterSection: React.FC = () => {
               letterSpacing: "0.05em",
             }}
           >
-            ezrm
+            {loading
+              ? "Loading..."
+              : companyDetails?.name?.toLowerCase() || "ezrm"}
           </Typography>
           {/* Right - Social Icons */}
           <Box sx={{ display: "flex", gap: 1 }}>
-            <IconButton
-              sx={{
-                color: "white",
-                width: 36,
-                height: 36,
-                "&:hover": {
-                  bgcolor: "rgba(255, 255, 255, 0.1)",
-                },
-              }}
-            >
-              <LinkedIn sx={{ fontSize: 20 }} />
-            </IconButton>
-            <IconButton
-              sx={{
-                color: "white",
-                width: 36,
-                height: 36,
-                "&:hover": {
-                  bgcolor: "rgba(255, 255, 255, 0.1)",
-                },
-              }}
-            >
-              <Facebook sx={{ fontSize: 20 }} />
-            </IconButton>
-            <IconButton
-              sx={{
-                color: "white",
-                width: 36,
-                height: 36,
-                "&:hover": {
-                  bgcolor: "rgba(255, 255, 255, 0.1)",
-                },
-              }}
-            >
-              <Instagram sx={{ fontSize: 20 }} />
-            </IconButton>
-            <IconButton
-              sx={{
-                color: "white",
-                width: 36,
-                height: 36,
-                "&:hover": {
-                  bgcolor: "rgba(255, 255, 255, 0.1)",
-                },
-              }}
-            >
-              <YouTube sx={{ fontSize: 20 }} />
-            </IconButton>
+            {companyDetails?.linkedin && (
+              <IconButton
+                component="a"
+                href={companyDetails.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{
+                  color: "white",
+                  width: 36,
+                  height: 36,
+                  "&:hover": {
+                    bgcolor: "rgba(255, 255, 255, 0.1)",
+                  },
+                }}
+              >
+                <LinkedIn sx={{ fontSize: 20 }} />
+              </IconButton>
+            )}
+            {companyDetails?.facebook && (
+              <IconButton
+                component="a"
+                href={companyDetails.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{
+                  color: "white",
+                  width: 36,
+                  height: 36,
+                  "&:hover": {
+                    bgcolor: "rgba(255, 255, 255, 0.1)",
+                  },
+                }}
+              >
+                <Facebook sx={{ fontSize: 20 }} />
+              </IconButton>
+            )}
+            {companyDetails?.instagram && (
+              <IconButton
+                component="a"
+                href={companyDetails.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{
+                  color: "white",
+                  width: 36,
+                  height: 36,
+                  "&:hover": {
+                    bgcolor: "rgba(255, 255, 255, 0.1)",
+                  },
+                }}
+              >
+                <Instagram sx={{ fontSize: 20 }} />
+              </IconButton>
+            )}
+            {companyDetails?.youtube && (
+              <IconButton
+                component="a"
+                href={companyDetails.youtube}
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{
+                  color: "white",
+                  width: 36,
+                  height: 36,
+                  "&:hover": {
+                    bgcolor: "rgba(255, 255, 255, 0.1)",
+                  },
+                }}
+              >
+                <YouTube sx={{ fontSize: 20 }} />
+              </IconButton>
+            )}
           </Box>
         </Box>
       </Container>

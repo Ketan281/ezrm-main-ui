@@ -59,6 +59,16 @@ const ProductPage: React.FC = () => {
   const [selectedCategories, setSelectedCategories] = React.useState<string[]>(
     categoryFilter ? [categoryFilter] : []
   );
+  const [selectedSubCategories, setSelectedSubCategories] = React.useState<
+    string[]
+  >([]);
+  const [selectedApplications, setSelectedApplications] = React.useState<
+    string[]
+  >([]);
+  const [selectedTags, setSelectedTags] = React.useState<string[]>([]);
+  const [selectedFunctions, setSelectedFunctions] = React.useState<string[]>(
+    []
+  );
   const [selectedCountries, setSelectedCountries] = React.useState<string[]>(
     countryFilter ? [countryFilter] : []
   );
@@ -113,6 +123,12 @@ const ProductPage: React.FC = () => {
     sortBy: "createdAt",
     sortOrder: "desc",
     category: selectedCategories.length > 0 ? selectedCategories[0] : undefined,
+    subCategory:
+      selectedSubCategories.length > 0 ? selectedSubCategories : undefined,
+    application:
+      selectedApplications.length > 0 ? selectedApplications : undefined,
+    tag: selectedTags.length > 0 ? selectedTags : undefined,
+    function: selectedFunctions.length > 0 ? selectedFunctions : undefined,
     countryOfOrigin:
       selectedCountries.length > 0 ? selectedCountries[0] : undefined,
   });
@@ -125,11 +141,49 @@ const ProductPage: React.FC = () => {
   };
 
   // Filter handling functions
-  const handleCategoryFilter = (categoryId: string, checked: boolean) => {
-    const newCategories = checked ? [categoryId] : [];
+  const handleCategoryFilter = (categorySlug: string, checked: boolean) => {
+    const newCategories = checked ? [categorySlug] : [];
     setSelectedCategories(newCategories);
     setPage(1); // Reset to first page when filter changes
     updateURL(newCategories, selectedCountries);
+  };
+
+  const handleSubCategoryFilter = (
+    subCategorySlug: string,
+    checked: boolean
+  ) => {
+    const newSubCategories = checked
+      ? [...selectedSubCategories, subCategorySlug]
+      : selectedSubCategories.filter((slug) => slug !== subCategorySlug);
+    setSelectedSubCategories(newSubCategories);
+    setPage(1);
+  };
+
+  const handleApplicationFilter = (
+    applicationSlug: string,
+    checked: boolean
+  ) => {
+    const newApplications = checked
+      ? [...selectedApplications, applicationSlug]
+      : selectedApplications.filter((slug) => slug !== applicationSlug);
+    setSelectedApplications(newApplications);
+    setPage(1);
+  };
+
+  const handleTagFilter = (tagSlug: string, checked: boolean) => {
+    const newTags = checked
+      ? [...selectedTags, tagSlug]
+      : selectedTags.filter((slug) => slug !== tagSlug);
+    setSelectedTags(newTags);
+    setPage(1);
+  };
+
+  const handleFunctionFilter = (functionSlug: string, checked: boolean) => {
+    const newFunctions = checked
+      ? [...selectedFunctions, functionSlug]
+      : selectedFunctions.filter((slug) => slug !== functionSlug);
+    setSelectedFunctions(newFunctions);
+    setPage(1);
   };
 
   const handleCountryFilter = (countryCode: string, checked: boolean) => {
@@ -141,6 +195,10 @@ const ProductPage: React.FC = () => {
 
   const clearAllFilters = () => {
     setSelectedCategories([]);
+    setSelectedSubCategories([]);
+    setSelectedApplications([]);
+    setSelectedTags([]);
+    setSelectedFunctions([]);
     setSelectedCountries([]);
     setPage(1);
     updateURL([], []);
@@ -349,14 +407,16 @@ const ProductPage: React.FC = () => {
                             }}
                             onClick={() =>
                               handleCategoryFilter(
-                                category.id,
-                                !selectedCategories.includes(category.id)
+                                category.slug,
+                                !selectedCategories.includes(category.slug)
                               )
                             }
                           >
                             <input
                               type="checkbox"
-                              checked={selectedCategories.includes(category.id)}
+                              checked={selectedCategories.includes(
+                                category.slug
+                              )}
                               onChange={() => {}}
                               style={{ cursor: "pointer" }}
                             />
@@ -371,6 +431,329 @@ const ProductPage: React.FC = () => {
                     </AccordionDetails>
                   </Accordion>
                 )}
+
+              {/* Sub Category Filter */}
+              {filtersData?.data?.subCategory &&
+                filtersData.data.subCategory.length > 0 && (
+                  <Accordion
+                    sx={{
+                      boxShadow: "none",
+                      "&:before": { display: "none" },
+                      backgroundColor: "rgba(217, 217, 217, 0.21)",
+                      marginBottom: "5px",
+                    }}
+                  >
+                    <AccordionSummary
+                      expandIcon={<ExpandMore sx={{ color: "#666" }} />}
+                      sx={{
+                        minHeight: 48,
+                        px: 2,
+                        py: 1,
+                        "&.Mui-expanded": {
+                          minHeight: 48,
+                        },
+                        "& .MuiAccordionSummary-content": {
+                          margin: "8px 0",
+                          "&.Mui-expanded": {
+                            margin: "8px 0",
+                          },
+                        },
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: "14px",
+                          fontWeight: 500,
+                          color: "#333",
+                        }}
+                      >
+                        Sub Category
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ px: 2, py: 1 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 1,
+                        }}
+                      >
+                        {filtersData.data.subCategory.map((subCategory) => (
+                          <Box
+                            key={subCategory.id}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                              cursor: "pointer",
+                            }}
+                            onClick={() =>
+                              handleSubCategoryFilter(
+                                subCategory.slug,
+                                !selectedSubCategories.includes(
+                                  subCategory.slug
+                                )
+                              )
+                            }
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedSubCategories.includes(
+                                subCategory.slug
+                              )}
+                              onChange={() => {}}
+                              style={{ cursor: "pointer" }}
+                            />
+                            <Typography
+                              sx={{ fontSize: "12px", color: "#666" }}
+                            >
+                              {subCategory.name}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    </AccordionDetails>
+                  </Accordion>
+                )}
+
+              {/* Application Filter */}
+              {filtersData?.data?.application &&
+                filtersData.data.application.length > 0 && (
+                  <Accordion
+                    sx={{
+                      boxShadow: "none",
+                      "&:before": { display: "none" },
+                      backgroundColor: "rgba(217, 217, 217, 0.21)",
+                      marginBottom: "5px",
+                    }}
+                  >
+                    <AccordionSummary
+                      expandIcon={<ExpandMore sx={{ color: "#666" }} />}
+                      sx={{
+                        minHeight: 48,
+                        px: 2,
+                        py: 1,
+                        "&.Mui-expanded": {
+                          minHeight: 48,
+                        },
+                        "& .MuiAccordionSummary-content": {
+                          margin: "8px 0",
+                          "&.Mui-expanded": {
+                            margin: "8px 0",
+                          },
+                        },
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: "14px",
+                          fontWeight: 500,
+                          color: "#333",
+                        }}
+                      >
+                        Application
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ px: 2, py: 1 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 1,
+                        }}
+                      >
+                        {filtersData.data.application.map((application) => (
+                          <Box
+                            key={application.id}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                              cursor: "pointer",
+                            }}
+                            onClick={() =>
+                              handleApplicationFilter(
+                                application.slug,
+                                !selectedApplications.includes(application.slug)
+                              )
+                            }
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedApplications.includes(
+                                application.slug
+                              )}
+                              onChange={() => {}}
+                              style={{ cursor: "pointer" }}
+                            />
+                            <Typography
+                              sx={{ fontSize: "12px", color: "#666" }}
+                            >
+                              {application.name}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    </AccordionDetails>
+                  </Accordion>
+                )}
+
+              {/* Function Filter */}
+              {filtersData?.data?.function &&
+                filtersData.data.function.length > 0 && (
+                  <Accordion
+                    sx={{
+                      boxShadow: "none",
+                      "&:before": { display: "none" },
+                      backgroundColor: "rgba(217, 217, 217, 0.21)",
+                      marginBottom: "5px",
+                    }}
+                  >
+                    <AccordionSummary
+                      expandIcon={<ExpandMore sx={{ color: "#666" }} />}
+                      sx={{
+                        minHeight: 48,
+                        px: 2,
+                        py: 1,
+                        "&.Mui-expanded": {
+                          minHeight: 48,
+                        },
+                        "& .MuiAccordionSummary-content": {
+                          margin: "8px 0",
+                          "&.Mui-expanded": {
+                            margin: "8px 0",
+                          },
+                        },
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: "14px",
+                          fontWeight: 500,
+                          color: "#333",
+                        }}
+                      >
+                        Function
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ px: 2, py: 1 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 1,
+                        }}
+                      >
+                        {filtersData.data.function.map((func) => (
+                          <Box
+                            key={func.id}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                              cursor: "pointer",
+                            }}
+                            onClick={() =>
+                              handleFunctionFilter(
+                                func.slug,
+                                !selectedFunctions.includes(func.slug)
+                              )
+                            }
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedFunctions.includes(func.slug)}
+                              onChange={() => {}}
+                              style={{ cursor: "pointer" }}
+                            />
+                            <Typography
+                              sx={{ fontSize: "12px", color: "#666" }}
+                            >
+                              {func.name}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    </AccordionDetails>
+                  </Accordion>
+                )}
+
+              {/* Tag Filter */}
+              {filtersData?.data?.tag && filtersData.data.tag.length > 0 && (
+                <Accordion
+                  sx={{
+                    boxShadow: "none",
+                    "&:before": { display: "none" },
+                    backgroundColor: "rgba(217, 217, 217, 0.21)",
+                    marginBottom: "5px",
+                  }}
+                >
+                  <AccordionSummary
+                    expandIcon={<ExpandMore sx={{ color: "#666" }} />}
+                    sx={{
+                      minHeight: 48,
+                      px: 2,
+                      py: 1,
+                      "&.Mui-expanded": {
+                        minHeight: 48,
+                      },
+                      "& .MuiAccordionSummary-content": {
+                        margin: "8px 0",
+                        "&.Mui-expanded": {
+                          margin: "8px 0",
+                        },
+                      },
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: "14px",
+                        fontWeight: 500,
+                        color: "#333",
+                      }}
+                    >
+                      Tags
+                    </Typography>
+                  </AccordionSummary>
+                  <AccordionDetails sx={{ px: 2, py: 1 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 1,
+                      }}
+                    >
+                      {filtersData.data.tag.map((tag) => (
+                        <Box
+                          key={tag.id}
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            cursor: "pointer",
+                          }}
+                          onClick={() =>
+                            handleTagFilter(
+                              tag.slug,
+                              !selectedTags.includes(tag.slug)
+                            )
+                          }
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedTags.includes(tag.slug)}
+                            onChange={() => {}}
+                            style={{ cursor: "pointer" }}
+                          />
+                          <Typography sx={{ fontSize: "12px", color: "#666" }}>
+                            {tag.name}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Box>
+                  </AccordionDetails>
+                </Accordion>
+              )}
 
               {/* Country of Origin Filter */}
               {filtersData?.data?.countryOfOrigin &&
@@ -457,6 +840,10 @@ const ProductPage: React.FC = () => {
 
               {/* Clear Filters Button */}
               {(selectedCategories.length > 0 ||
+                selectedSubCategories.length > 0 ||
+                selectedApplications.length > 0 ||
+                selectedTags.length > 0 ||
+                selectedFunctions.length > 0 ||
                 selectedCountries.length > 0) && (
                 <Box sx={{ p: 2 }}>
                   <Button
@@ -527,57 +914,181 @@ const ProductPage: React.FC = () => {
             </Typography>
 
             {/* Active Filters */}
-            {selectedCategories.length > 0 && (
-              <Chip
-                label={`Category: ${
-                  filtersData?.data?.category?.find(
-                    (c) => c.id === selectedCategories[0]
-                  )?.name || selectedCategories[0]
-                }`}
-                onDelete={() => {
-                  setSelectedCategories([]);
-                  setPage(1);
-                  updateURL([], selectedCountries);
-                }}
-                sx={{
-                  backgroundColor: "#ff7849",
-                  color: "white",
-                  fontWeight: 500,
-                  "& .MuiChip-deleteIcon": {
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 1,
+                alignItems: "flex-start",
+              }}
+            >
+              {selectedCategories.length > 0 && (
+                <Chip
+                  label={`Category: ${
+                    filtersData?.data?.category?.find(
+                      (c) => c.slug === selectedCategories[0]
+                    )?.name || selectedCategories[0]
+                  }`}
+                  onDelete={() => {
+                    setSelectedCategories([]);
+                    setPage(1);
+                    updateURL([], selectedCountries);
+                  }}
+                  sx={{
+                    backgroundColor: "#ff7849",
                     color: "white",
-                    "&:hover": {
-                      color: "#f5f5f5",
+                    fontWeight: 500,
+                    "& .MuiChip-deleteIcon": {
+                      color: "white",
+                      "&:hover": {
+                        color: "#f5f5f5",
+                      },
                     },
-                  },
-                }}
-              />
-            )}
+                  }}
+                />
+              )}
 
-            {selectedCountries.length > 0 && (
-              <Chip
-                label={`Country: ${
-                  filtersData?.data?.countryOfOrigin?.find(
-                    (c) => c.countryCode === selectedCountries[0]
-                  )?.name || selectedCountries[0]
-                }`}
-                onDelete={() => {
-                  setSelectedCountries([]);
-                  setPage(1);
-                  updateURL(selectedCategories, []);
-                }}
-                sx={{
-                  backgroundColor: "#ff7849",
-                  color: "white",
-                  fontWeight: 500,
-                  "& .MuiChip-deleteIcon": {
+              {selectedCountries.length > 0 && (
+                <Chip
+                  label={`Country: ${
+                    filtersData?.data?.countryOfOrigin?.find(
+                      (c) => c.countryCode === selectedCountries[0]
+                    )?.name || selectedCountries[0]
+                  }`}
+                  onDelete={() => {
+                    setSelectedCountries([]);
+                    setPage(1);
+                    updateURL(selectedCategories, []);
+                  }}
+                  sx={{
+                    backgroundColor: "#ff7849",
                     color: "white",
-                    "&:hover": {
-                      color: "#f5f5f5",
+                    fontWeight: 500,
+                    "& .MuiChip-deleteIcon": {
+                      color: "white",
+                      "&:hover": {
+                        color: "#f5f5f5",
+                      },
                     },
-                  },
-                }}
-              />
-            )}
+                  }}
+                />
+              )}
+
+              {selectedSubCategories.map((subCategorySlug) => (
+                <Chip
+                  key={subCategorySlug}
+                  label={`Sub Category: ${
+                    filtersData?.data?.subCategory?.find(
+                      (c) => c.slug === subCategorySlug
+                    )?.name || subCategorySlug
+                  }`}
+                  onDelete={() => {
+                    setSelectedSubCategories(
+                      selectedSubCategories.filter(
+                        (slug) => slug !== subCategorySlug
+                      )
+                    );
+                    setPage(1);
+                  }}
+                  sx={{
+                    backgroundColor: "#ff7849",
+                    color: "white",
+                    fontWeight: 500,
+                    "& .MuiChip-deleteIcon": {
+                      color: "white",
+                      "&:hover": {
+                        color: "#f5f5f5",
+                      },
+                    },
+                  }}
+                />
+              ))}
+
+              {selectedApplications.map((applicationSlug) => (
+                <Chip
+                  key={applicationSlug}
+                  label={`Application: ${
+                    filtersData?.data?.application?.find(
+                      (c) => c.slug === applicationSlug
+                    )?.name || applicationSlug
+                  }`}
+                  onDelete={() => {
+                    setSelectedApplications(
+                      selectedApplications.filter(
+                        (slug) => slug !== applicationSlug
+                      )
+                    );
+                    setPage(1);
+                  }}
+                  sx={{
+                    backgroundColor: "#ff7849",
+                    color: "white",
+                    fontWeight: 500,
+                    "& .MuiChip-deleteIcon": {
+                      color: "white",
+                      "&:hover": {
+                        color: "#f5f5f5",
+                      },
+                    },
+                  }}
+                />
+              ))}
+
+              {selectedTags.map((tagSlug) => (
+                <Chip
+                  key={tagSlug}
+                  label={`Tag: ${
+                    filtersData?.data?.tag?.find((c) => c.slug === tagSlug)
+                      ?.name || tagSlug
+                  }`}
+                  onDelete={() => {
+                    setSelectedTags(
+                      selectedTags.filter((slug) => slug !== tagSlug)
+                    );
+                    setPage(1);
+                  }}
+                  sx={{
+                    backgroundColor: "#ff7849",
+                    color: "white",
+                    fontWeight: 500,
+                    "& .MuiChip-deleteIcon": {
+                      color: "white",
+                      "&:hover": {
+                        color: "#f5f5f5",
+                      },
+                    },
+                  }}
+                />
+              ))}
+
+              {selectedFunctions.map((functionSlug) => (
+                <Chip
+                  key={functionSlug}
+                  label={`Function: ${
+                    filtersData?.data?.function?.find(
+                      (c) => c.slug === functionSlug
+                    )?.name || functionSlug
+                  }`}
+                  onDelete={() => {
+                    setSelectedFunctions(
+                      selectedFunctions.filter((slug) => slug !== functionSlug)
+                    );
+                    setPage(1);
+                  }}
+                  sx={{
+                    backgroundColor: "#ff7849",
+                    color: "white",
+                    fontWeight: 500,
+                    "& .MuiChip-deleteIcon": {
+                      color: "white",
+                      "&:hover": {
+                        color: "#f5f5f5",
+                      },
+                    },
+                  }}
+                />
+              ))}
+            </Box>
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>

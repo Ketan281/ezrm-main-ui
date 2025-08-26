@@ -1,8 +1,9 @@
 import axios from "axios";
 import { API_CONFIG } from "../config";
 
-export interface FilterCategory {
+export interface FilterItem {
   id: string;
+  slug: string;
   name: string;
 }
 
@@ -19,7 +20,11 @@ export interface FilterCountry {
 export interface FiltersResponse {
   success: boolean;
   data: {
-    category: FilterCategory[];
+    category: FilterItem[];
+    subCategory: FilterItem[];
+    application: FilterItem[];
+    tag: FilterItem[];
+    function: FilterItem[];
     countryOfOrigin: FilterCountry[];
   };
 }
