@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
-import type React from "react";
-import { useState } from "react";
+import type React from "react"
+import { useState } from "react"
 import {
   AppBar,
   Toolbar,
@@ -14,98 +14,171 @@ import {
   MenuItem,
   Avatar,
   Divider,
-  Badge,
-  Fade,
-  Slide,
-} from "@mui/material";
+  TextField,
+  InputAdornment,
+  Collapse,
+  Paper,
+  List,
+  ListItem,
+  ListItemText,
+  Chip,
+} from "@mui/material"
 import {
   Search as SearchIcon,
   FavoriteBorder as HeartIcon,
   ShoppingCartOutlined as CartIcon,
   Person as PersonIcon,
-  // ShoppingBag as OrdersIcon,
   ExitToApp as LogoutIcon,
   KeyboardArrowDown as ArrowDownIcon,
-  Close as CloseIcon,
-} from "@mui/icons-material";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useAppStore } from "@/store/use-app-store";
-import { useCustomerLogout } from "@/api/handlers";
-import { useCartSummary } from "@/api/handlers/cartHandler";
-import { useWishlist } from "@/api/handlers/wishlistHandler";
-import SearchBox from "./SearchBox";
+  Clear as ClearIcon,
+} from "@mui/icons-material"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useAppStore } from "@/store/use-app-store"
+import { useCustomerLogout } from "@/api/handlers"
+import { useCartSummary } from "@/api/handlers/cartHandler"
+import { useWishlist } from "@/api/handlers/wishlistHandler"
+
+interface SearchResult {
+  id: string
+  title: string
+  category: string
+  type: "product" | "category"
+}
 
 const Navbar: React.FC = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const router = useRouter();
-  const { customer, isAuthenticated } = useAppStore();
-  const logoutMutation = useCustomerLogout();
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"))
+  const router = useRouter()
+  const { customer, isAuthenticated } = useAppStore()
+  const logoutMutation = useCustomerLogout()
 
   // Search expansion state
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+
+  // Mock search results - replace with actual search logic
+  const mockResults: SearchResult[] = [
+    { id: "1", title: "Vitamin C", category: "Vitamins", type: "product" },
+    { id: "2", title: "Amino Acids", category: "Supplements", type: "category" },
+    { id: "3", title: "Liposomal Formulations", category: "Advanced", type: "product" },
+    { id: "4", title: "Microencapsulation", category: "Technology", type: "product" },
+    { id: "5", title: "Omega-3", category: "Fatty Acids", type: "product" },
+    { id: "6", title: "Probiotics", category: "Digestive Health", type: "category" },
+  ]
 
   // Fetch cart and wishlist counts when authenticated
   const { data: cartSummary } = useCartSummary(customer?.id || "", {
     enabled: isAuthenticated && !!customer?.id,
-  });
+  })
 
   const { data: wishlistData } = useWishlist(
     { customerId: customer?.id || "" },
-    { enabled: isAuthenticated && !!customer?.id }
-  );
+    { enabled: isAuthenticated && !!customer?.id },
+  )
 
   // Extract counts
-  const cartCount = cartSummary?.data?.totalItems || 0;
-  const wishlistCount = wishlistData?.data?.products?.length || 0;
+  const cartCount = cartSummary?.data?.totalItems || 0
+  const wishlistCount = wishlistData?.data?.products?.length || 0
 
-  const [profileMenuAnchor, setProfileMenuAnchor] =
-    useState<null | HTMLElement>(null);
-  const isProfileMenuOpen = Boolean(profileMenuAnchor);
+  const [profileMenuAnchor, setProfileMenuAnchor] = useState<null | HTMLElement>(null)
+  const isProfileMenuOpen = Boolean(profileMenuAnchor)
 
   const handleSignInClick = () => {
-    router.push("/sign_in");
-  };
+    router.push("/sign_in")
+  }
 
   const handleFavouriteClick = () => {
-    router.push("/favourite");
-  };
+    router.push("/favourite")
+  }
 
   const handleCartClick = () => {
-    router.push("/cart");
-  };
+    router.push("/cart")
+  }
 
-  const handleSearchClick = () => {
-    setIsSearchExpanded(true);
-  };
+  const handleSearchToggle = () => {
+    setIsSearchExpanded(!isSearchExpanded)
+    if (isSearchExpanded) {
+      setSearchQuery("")
+      setSearchResults([])
+    }
+  }
 
-  const handleSearchClose = () => {
-    setIsSearchExpanded(false);
-  };
+  const handleSearch = (query: string) => {
+    setSearchQuery(query)
+    setIsSearching(true)
+
+    // Simulate search delay
+    setTimeout(() => {
+      if (query.trim()) {
+        const filtered = mockResults.filter(
+          (item) =>
+            item.title.toLowerCase().includes(query.toLowerCase()) ||
+            item.category.toLowerCase().includes(query.toLowerCase()),
+        )
+        setSearchResults(filtered)
+      } else {
+        setSearchResults([])
+      }
+      setIsSearching(false)
+    }, 300)
+  }
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      // Handle search logic here
+      console.log("Searching for:", searchQuery)
+      // You can navigate to search results page or trigger search
+      router.push(`/search?q=${encodeURIComponent(searchQuery)}`)
+      setIsSearchExpanded(false)
+      setSearchQuery("")
+      setSearchResults([])
+    }
+  }
+
+  const handleSearchClear = () => {
+    setSearchQuery("")
+    setSearchResults([])
+  }
+
+  const handleResultClick = (result: SearchResult) => {
+    console.log("Selected:", result)
+    // Handle navigation based on result type
+    if (result.type === "product") {
+      router.push(`/product/${result.id}`)
+    } else {
+      router.push(`/category/${result.id}`)
+    }
+    setIsSearchExpanded(false)
+    setSearchQuery("")
+    setSearchResults([])
+  }
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setProfileMenuAnchor(event.currentTarget);
-  };
+    setProfileMenuAnchor(event.currentTarget)
+  }
 
   const handleProfileMenuClose = () => {
-    setProfileMenuAnchor(null);
-  };
+    setProfileMenuAnchor(null)
+  }
 
   const handleProfileClick = () => {
-    handleProfileMenuClose();
-    router.push("/profile");
-  };
+    handleProfileMenuClose()
+    router.push("/profile")
+  }
 
   const handleLogout = async () => {
-    handleProfileMenuClose();
+    handleProfileMenuClose()
     try {
-      await logoutMutation.mutateAsync();
-      router.push("/");
+      await logoutMutation.mutateAsync()
+      router.push("/")
     } catch (error) {
-      console.error("Logout failed:", error);
+      console.error("Logout failed:", error)
     }
-  };
+  }
 
   const getInitials = (name: string) => {
     return name
@@ -113,80 +186,221 @@ const Navbar: React.FC = () => {
       .map((n) => n[0])
       .join("")
       .toUpperCase()
-      .slice(0, 2);
-  };
+      .slice(0, 2)
+  }
 
   return (
-    <>
-      <AppBar
-        position="static"
-        elevation={0}
+    <AppBar
+      position="static"
+      elevation={0}
+      sx={{
+        py: 1,
+        background: "linear-gradient(90deg, #F58A4E 0%, #F16A3C 100%)",
+      }}
+    >
+      <Toolbar
         sx={{
-          py: 1,
-          background: "linear-gradient(90deg, #F58A4E 0%, #F16A3C 100%)",
+          justifyContent: "space-between",
+          px: { xs: 2, md: 3 },
+          minHeight: { xs: 64, md: 70 },
         }}
       >
-        <Toolbar
-          sx={{
-            justifyContent: "space-between",
-            px: { xs: 2, md: 3 },
-          }}
-        >
-          {/* Logo */}
-          <Link href="/" passHref>
-            <Box
-              component="img"
-              src="/ezrm-logo.png"
-              alt="EZRM - Raw Materials Simplified"
-              sx={{
-                height: { xs: 32, md: 40 },
-                width: "auto",
-                filter: "brightness(0) invert(1)", // Makes the logo white
-                cursor: "pointer",
-              }}
-            />
-          </Link>
+        {/* Logo */}
+        <Link href="/" passHref>
+          <Box
+            component="img"
+            src="/ezrm-logo.png"
+            alt="EZRM - Raw Materials Simplified"
+            sx={{
+              height: { xs: 32, md: 40 },
+              width: "auto",
+              filter: "brightness(0) invert(1)", // Makes the logo white
+              cursor: "pointer",
+            }}
+          />
+        </Link>
 
-          <Box display={"flex"} alignItems={"center"} gap={4}>
-            {/* Navigation Links - Hidden on mobile */}
-            {!isMobile && (
-              <Box sx={{ display: "flex", gap: 3 }}>
-                {["About", "Product", "Tools", "Certifications"].map((item) => (
-                  <Link key={item} href={`/${item.toLowerCase()}`} passHref>
-                    <Typography
+        <Box display={"flex"} alignItems={"center"} gap={4}>
+          {/* Navigation Links - Hidden on mobile */}
+          {!isMobile && (
+            <Box sx={{ display: "flex", gap: 3, alignItems: "center", position: "relative" }}>
+              {["About", "Product", "Tools", "Certifications"].map((item) => (
+                <Link key={item} href={`/${item.toLowerCase()}`} passHref>
+                  <Typography
+                    sx={{
+                      color: "white",
+                      textDecoration: "none",
+                      fontSize: "14px",
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                      "&:hover": {
+                        opacity: 0.8,
+                      },
+                    }}
+                  >
+                    {item}
+                  </Typography>
+                </Link>
+              ))}
+
+              {/* Inline Search Bar */}
+              <Collapse in={isSearchExpanded} orientation="horizontal" timeout={300}>
+                <Box
+                  sx={{
+                    ml: 3,
+                    position: "relative",
+                  }}
+                >
+                  <Box component="form" onSubmit={handleSearchSubmit}>
+                    <TextField
+                      value={searchQuery}
+                      onChange={(e) => handleSearch(e.target.value)}
+                      placeholder="Search for products, categories..."
+                      variant="outlined"
+                      size="small"
+                      autoFocus
                       sx={{
-                        color: "white",
-                        textDecoration: "none",
-                        fontSize: "14px",
-                        cursor: "pointer",
-                        "&:hover": {
-                          opacity: 0.8,
+                        width: 320,
+                        "& .MuiOutlinedInput-root": {
+                          backgroundColor: "white",
+                          borderRadius: "12px",
+                          fontSize: "14px",
+                          height: "36px",
+                          "& fieldset": {
+                            borderColor: "#e0e0e0",
+                          },
+                          "&:hover fieldset": {
+                            borderColor: "#ff6b35",
+                          },
+                          "&.Mui-focused fieldset": {
+                            borderColor: "#ff6b35",
+                            borderWidth: "2px",
+                          },
+                        },
+                        "& .MuiOutlinedInput-input": {
+                          padding: "8px 14px",
+                          color: "#333",
+                          "&::placeholder": {
+                            color: "#666",
+                            opacity: 1,
+                          },
                         },
                       }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <SearchIcon sx={{ color: "#666", fontSize: 18 }} />
+                          </InputAdornment>
+                        ),
+                        endAdornment: searchQuery && (
+                          <InputAdornment position="end">
+                            <IconButton
+                              onClick={handleSearchClear}
+                              size="small"
+                              sx={{
+                                color: "#666",
+                                "&:hover": {
+                                  backgroundColor: "rgba(0,0,0,0.04)",
+                                },
+                              }}
+                            >
+                              <ClearIcon fontSize="small" />
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Box>
+
+                  {/* Search Results Dropdown */}
+                  {(searchResults.length > 0 || isSearching) && (
+                    <Paper
+                      elevation={8}
+                      sx={{
+                        position: "absolute",
+                        top: "100%",
+                        left: 0,
+                        right: 0,
+                        mt: 1,
+                        borderRadius: "12px",
+                        maxHeight: "300px",
+                        overflow: "auto",
+                        zIndex: 1000,
+                        border: "1px solid #e0e0e0",
+                      }}
                     >
-                      {item}
-                    </Typography>
-                  </Link>
-                ))}
-              </Box>
-            )}
+                      {isSearching ? (
+                        <Box sx={{ p: 2, textAlign: "center" }}>
+                          <Typography variant="body2" color="text.secondary">
+                            Searching...
+                          </Typography>
+                        </Box>
+                      ) : (
+                        <List sx={{ py: 0 }}>
+                          {searchResults.map((result) => (
+                            <ListItem
+                              key={result.id}
+                              button
+                              onClick={() => handleResultClick(result)}
+                              sx={{
+                                "&:hover": {
+                                  backgroundColor: "#f5f5f5",
+                                },
+                                borderBottom: "1px solid #f0f0f0",
+                                "&:last-child": {
+                                  borderBottom: "none",
+                                },
+                              }}
+                            >
+                              <ListItemText
+                                primary={
+                                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                      {result.title}
+                                    </Typography>
+                                    <Chip
+                                      label={result.type}
+                                      size="small"
+                                      variant="outlined"
+                                      sx={{
+                                        fontSize: "10px",
+                                        height: "20px",
+                                        color: result.type === "product" ? "#ff6b35" : "#4a90e2",
+                                        borderColor: result.type === "product" ? "#ff6b35" : "#4a90e2",
+                                      }}
+                                    />
+                                  </Box>
+                                }
+                                secondary={result.category}
+                              />
+                            </ListItem>
+                          ))}
+                        </List>
+                      )}
+                    </Paper>
+                  )}
+                </Box>
+              </Collapse>
+            </Box>
+          )}
 
-            {/* Right Side Icons */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-              <IconButton
-                onClick={handleSearchClick}
-                sx={{
-                  bgcolor: "white",
-                  width: 40,
-                  height: 40,
-                  "&:hover": {
-                    bgcolor: "#f5f5f5",
-                  },
-                }}
-              >
-                <SearchIcon sx={{ color: "#666", fontSize: 20 }} />
-              </IconButton>
+          {/* Right Side Icons */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+            <IconButton
+              onClick={handleSearchToggle}
+              sx={{
+                bgcolor: "white",
+                width: 40,
+                height: 40,
+                "&:hover": {
+                  bgcolor: "#f5f5f5",
+                },
+              }}
+            >
+              <SearchIcon sx={{ color: "#666", fontSize: 20 }} />
+            </IconButton>
 
+            <Box sx={{ position: "relative" }}>
               <IconButton
                 onClick={handleFavouriteClick}
                 sx={{
@@ -198,27 +412,43 @@ const Navbar: React.FC = () => {
                   },
                 }}
               >
-                <Badge
-                  badgeContent={
-                    isAuthenticated && wishlistCount > 0 ? wishlistCount : 0
-                  }
-                  color="error"
-                  sx={{
-                    "& .MuiBadge-badge": {
-                      backgroundColor: "#ff6b35",
-                      color: "white",
-                      fontSize: "10px",
-                      fontWeight: 600,
-                      minWidth: "16px",
-                      height: "16px",
-                      borderRadius: "8px",
-                    },
-                  }}
-                >
-                  <HeartIcon sx={{ color: "#666", fontSize: 20 }} />
-                </Badge>
+                <HeartIcon sx={{ color: "#666", fontSize: 20 }} />
               </IconButton>
 
+              {/* Custom Wishlist Badge */}
+              {isAuthenticated && wishlistCount > 0 && (
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: "15%",
+                    right: "15%",
+                    transform: "translate(50%, -50%)",
+                    backgroundColor: "#d14d20",
+                    color: "white",
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    minWidth: "18px",
+                    height: "18px",
+                    borderRadius: "9px",
+                    border: "2px solid white",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                    background: "linear-gradient(135deg, #d14d20 0%, #b8431c 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transition: "all 0.2s ease-in-out",
+                    "&:hover": {
+                      transform: "translate(50%, -50%) scale(1.1)",
+                    },
+                    zIndex: 1,
+                  }}
+                >
+                  {wishlistCount > 99 ? "99+" : wishlistCount}
+                </Box>
+              )}
+            </Box>
+
+            <Box sx={{ position: "relative" }}>
               <IconButton
                 onClick={handleCartClick}
                 sx={{
@@ -230,194 +460,62 @@ const Navbar: React.FC = () => {
                   },
                 }}
               >
-                <Badge
-                  badgeContent={
-                    isAuthenticated && cartCount > 0 ? cartCount : 0
-                  }
-                  color="error"
-                  sx={{
-                    "& .MuiBadge-badge": {
-                      backgroundColor: "#ff6b35",
-                      color: "white",
-                      fontSize: "10px",
-                      fontWeight: 600,
-                      minWidth: "16px",
-                      height: "16px",
-                      borderRadius: "8px",
-                    },
-                  }}
-                >
-                  <CartIcon sx={{ color: "#666", fontSize: 20 }} />
-                </Badge>
+                <CartIcon sx={{ color: "#666", fontSize: 20 }} />
               </IconButton>
 
-              {/* Conditional Rendering: Profile Dropdown or Sign In Button */}
-              {isAuthenticated && customer ? (
-                <>
-                  {/* Profile Dropdown Button */}
-                  <Box
-                    onClick={handleProfileMenuOpen}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      bgcolor: "white",
-                      color: "#ff7849",
-                      fontWeight: 600,
-                      fontSize: "14px",
-                      px: 2,
-                      py: 1,
-                      ml: 1,
-                      cursor: "pointer",
-                      borderRadius: "8px",
-                      minWidth: "120px",
-                      transition: "all 0.3s ease",
-                      "&:hover": {
-                        bgcolor: "#f5f5f5",
-                        transform: "scale(1.02)",
-                      },
-                      "&:active": {
-                        transform: "scale(0.98)",
-                      },
-                    }}
-                  >
-                    <Avatar
-                      sx={{
-                        width: 24,
-                        height: 24,
-                        bgcolor: "#ff7849",
-                        color: "white",
-                        fontSize: "10px",
-                        fontWeight: 600,
-                      }}
-                    >
-                      {getInitials(customer.name)}
-                    </Avatar>
-                    <Typography
-                      sx={{
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        color: "#ff7849",
-                        maxWidth: "80px",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {customer.name.split(" ")[0]}
-                    </Typography>
-                    <ArrowDownIcon
-                      sx={{
-                        fontSize: 16,
-                        color: "#ff7849",
-                        transform: isProfileMenuOpen
-                          ? "rotate(180deg)"
-                          : "rotate(0deg)",
-                        transition: "transform 0.3s ease",
-                      }}
-                    />
-                  </Box>
-
-                  {/* Profile Dropdown Menu */}
-                  <Menu
-                    anchorEl={profileMenuAnchor}
-                    open={isProfileMenuOpen}
-                    onClose={handleProfileMenuClose}
-                    PaperProps={{
-                      sx: {
-                        mt: 1,
-                        minWidth: 200,
-                        borderRadius: "12px",
-                        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                        border: "1px solid #f0f0f0",
-                      },
-                    }}
-                    transformOrigin={{ horizontal: "right", vertical: "top" }}
-                    anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-                  >
-                    {/* User Info Header */}
-                    <Box
-                      sx={{ px: 3, py: 2, borderBottom: "1px solid #f0f0f0" }}
-                    >
-                      <Typography
-                        sx={{
-                          fontSize: "14px",
-                          fontWeight: 600,
-                          color: "#333",
-                          mb: 0.5,
-                        }}
-                      >
-                        {customer.name}
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontSize: "12px",
-                          color: "#666",
-                        }}
-                      >
-                        {customer.email}
-                      </Typography>
-                    </Box>
-
-                    {/* Menu Items */}
-                    <MenuItem
-                      onClick={handleProfileClick}
-                      sx={{
-                        px: 3,
-                        py: 1.5,
-                        "&:hover": {
-                          backgroundColor: "#f8f9fa",
-                        },
-                      }}
-                    >
-                      <PersonIcon sx={{ fontSize: 18, color: "#666", mr: 2 }} />
-                      <Typography sx={{ fontSize: "14px", color: "#333" }}>
-                        My Profile
-                      </Typography>
-                    </MenuItem>
-
-                    <Divider sx={{ my: 1 }} />
-
-                    <MenuItem
-                      onClick={handleLogout}
-                      disabled={logoutMutation.isPending}
-                      sx={{
-                        px: 3,
-                        py: 1.5,
-                        "&:hover": {
-                          backgroundColor: "#ffeaea",
-                        },
-                      }}
-                    >
-                      <LogoutIcon
-                        sx={{ fontSize: 18, color: "#d32f2f", mr: 2 }}
-                      />
-                      <Typography sx={{ fontSize: "14px", color: "#d32f2f" }}>
-                        {logoutMutation.isPending
-                          ? "Signing out..."
-                          : "Sign Out"}
-                      </Typography>
-                    </MenuItem>
-                  </Menu>
-                </>
-              ) : (
-                /* Sign In Button */
+              {/* Custom Cart Badge */}
+              {isAuthenticated && cartCount > 0 && (
                 <Box
-                  onClick={handleSignInClick}
                   sx={{
-                    position: "relative",
+                    position: "absolute",
+                    top: "15%",
+                    right: "15%",
+                    transform: "translate(50%, -50%)",
+                    backgroundColor: "#e55a2b",
+                    color: "white",
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    minWidth: "18px",
+                    height: "18px",
+                    borderRadius: "9px",
+                    border: "2px solid white",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                    background: "linear-gradient(135deg, #e55a2b 0%, #d14d20 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transition: "all 0.2s ease-in-out",
+                    "&:hover": {
+                      transform: "translate(50%, -50%) scale(1.1)",
+                    },
+                    zIndex: 1,
+                  }}
+                >
+                  {cartCount > 99 ? "99+" : cartCount}
+                </Box>
+              )}
+            </Box>
+
+            {/* Conditional Rendering: Profile Dropdown or Sign In Button */}
+            {isAuthenticated && customer ? (
+              <>
+                {/* Profile Dropdown Button */}
+                <Box
+                  onClick={handleProfileMenuOpen}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
                     bgcolor: "white",
                     color: "#ff7849",
-                    fontWeight: 700,
+                    fontWeight: 600,
                     fontSize: "14px",
-                    px: 3,
-                    py: 1.2,
+                    px: 2,
+                    py: 1,
                     ml: 1,
                     cursor: "pointer",
-                    clipPath:
-                      "polygon(0% 0%, calc(100% - 15px) 0%, 100% 50%, calc(100% - 15px) 100%, 0% 100%, 15px 50%)",
-                    minWidth: "90px",
-                    textAlign: "center",
+                    borderRadius: "8px",
+                    minWidth: "120px",
                     transition: "all 0.3s ease",
                     "&:hover": {
                       bgcolor: "#f5f5f5",
@@ -428,82 +526,150 @@ const Navbar: React.FC = () => {
                     },
                   }}
                 >
-                  SIGN IN
+                  <Avatar
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      bgcolor: "#ff7849",
+                      color: "white",
+                      fontSize: "10px",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {getInitials(customer.name)}
+                  </Avatar>
+                  <Typography
+                    sx={{
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      color: "#ff7849",
+                      maxWidth: "80px",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {customer.name.split(" ")[0]}
+                  </Typography>
+                  <ArrowDownIcon
+                    sx={{
+                      fontSize: 16,
+                      color: "#ff7849",
+                      transform: isProfileMenuOpen ? "rotate(180deg)" : "rotate(0deg)",
+                      transition: "transform 0.3s ease",
+                    }}
+                  />
                 </Box>
-              )}
-            </Box>
-          </Box>
-        </Toolbar>
-      </AppBar>
 
-      {/* Animated Search Overlay */}
-      <Fade in={isSearchExpanded} timeout={300}>
-        <Box
-          sx={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.8)",
-            zIndex: 1300,
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "center",
-            pt: { xs: 2, md: 4 },
-          }}
-          onClick={handleSearchClose}
-        >
-          <Slide direction="down" in={isSearchExpanded} timeout={400}>
-            <Box
-              sx={{
-                width: "90%",
-                maxWidth: 600,
-                backgroundColor: "white",
-                borderRadius: 3,
-                p: 3,
-                boxShadow: "0 20px 40px rgba(0,0,0,0.3)",
-                position: "relative",
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Close Button */}
-              <IconButton
-                onClick={handleSearchClose}
+                {/* Profile Dropdown Menu */}
+                <Menu
+                  anchorEl={profileMenuAnchor}
+                  open={isProfileMenuOpen}
+                  onClose={handleProfileMenuClose}
+                  PaperProps={{
+                    sx: {
+                      mt: 1,
+                      minWidth: 200,
+                      borderRadius: "12px",
+                      boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                      border: "1px solid #f0f0f0",
+                    },
+                  }}
+                  transformOrigin={{ horizontal: "right", vertical: "top" }}
+                  anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+                >
+                  {/* User Info Header */}
+                  <Box sx={{ px: 3, py: 2, borderBottom: "1px solid #f0f0f0" }}>
+                    <Typography
+                      sx={{
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        color: "#333",
+                        mb: 0.5,
+                      }}
+                    >
+                      {customer.name}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontSize: "12px",
+                        color: "#666",
+                      }}
+                    >
+                      {customer.email}
+                    </Typography>
+                  </Box>
+
+                  {/* Menu Items */}
+                  <MenuItem
+                    onClick={handleProfileClick}
+                    sx={{
+                      px: 3,
+                      py: 1.5,
+                      "&:hover": {
+                        backgroundColor: "#f8f9fa",
+                      },
+                    }}
+                  >
+                    <PersonIcon sx={{ fontSize: 18, color: "#666", mr: 2 }} />
+                    <Typography sx={{ fontSize: "14px", color: "#333" }}>My Profile</Typography>
+                  </MenuItem>
+
+                  <Divider sx={{ my: 1 }} />
+
+                  <MenuItem
+                    onClick={handleLogout}
+                    disabled={logoutMutation.isPending}
+                    sx={{
+                      px: 3,
+                      py: 1.5,
+                      "&:hover": {
+                        backgroundColor: "#ffeaea",
+                      },
+                    }}
+                  >
+                    <LogoutIcon sx={{ fontSize: 18, color: "#d32f2f", mr: 2 }} />
+                    <Typography sx={{ fontSize: "14px", color: "#d32f2f" }}>
+                      {logoutMutation.isPending ? "Signing out..." : "Sign Out"}
+                    </Typography>
+                  </MenuItem>
+                </Menu>
+              </>
+            ) : (
+              /* Sign In Button */
+              <Box
+                onClick={handleSignInClick}
                 sx={{
-                  position: "absolute",
-                  top: 16,
-                  right: 16,
-                  color: "#666",
+                  position: "relative",
+                  bgcolor: "white",
+                  color: "#ff7849",
+                  fontWeight: 700,
+                  fontSize: "14px",
+                  px: 3,
+                  py: 1.2,
+                  ml: 1,
+                  cursor: "pointer",
+                  clipPath: "polygon(0% 0%, calc(100% - 15px) 0%, 100% 50%, calc(100% - 15px) 100%, 0% 100%, 15px 50%)",
+                  minWidth: "90px",
+                  textAlign: "center",
+                  transition: "all 0.3s ease",
                   "&:hover": {
-                    backgroundColor: "#f5f5f5",
+                    bgcolor: "#f5f5f5",
+                    transform: "scale(1.02)",
+                  },
+                  "&:active": {
+                    transform: "scale(0.98)",
                   },
                 }}
               >
-                <CloseIcon />
-              </IconButton>
-
-              {/* Search Header */}
-              <Typography
-                variant="h5"
-                sx={{
-                  fontWeight: 600,
-                  color: "#333",
-                  mb: 3,
-                  textAlign: "center",
-                }}
-              >
-                Search Products & Categories
-              </Typography>
-
-              {/* Search Box */}
-              <SearchBox />
-            </Box>
-          </Slide>
+                SIGN IN
+              </Box>
+            )}
+          </Box>
         </Box>
-      </Fade>
-    </>
-  );
-};
+      </Toolbar>
+    </AppBar>
+  )
+}
 
-export default Navbar;
+export default Navbar
