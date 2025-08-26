@@ -41,8 +41,10 @@ import Image from "next/image";
 import { useProductDetail } from "@/api/handlers/productDetailsHandler";
 import { useAddToWishlist } from "@/api/handlers/wishlistHandler";
 import { useAddToCart } from "@/api/handlers/cartHandler";
+import { useProductFAQs } from "@/api/handlers/faqHandler";
 import { useAppStore } from "@/store/use-app-store";
 import QuoteFormModal from "@/components/quote-form-modal";
+import FAQSection from "@/components/FAQSection";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -87,8 +89,17 @@ export default function ProductDetailPage() {
   // Cart mutation
   const addToCartMutation = useAddToCart();
 
+  // FAQ data
+  const {
+    data: faqResponse,
+    isLoading: faqLoading,
+    error: faqError,
+  } = useProductFAQs(productId);
+
+  const faqs = (faqResponse as any)?.data || [];
+
   // Tab state
-  const [tabValue, setTabValue] = useState(1); // Product Description is active by default
+  const [tabValue, setTabValue] = useState(0); // Product Description is active by default
 
   // Quote modal state
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
@@ -380,12 +391,11 @@ export default function ProductDetailPage() {
               </TabPanel>
 
               <TabPanel value={tabValue} index={2}>
-                <Typography
-                  variant="body2"
-                  sx={{ lineHeight: 1.6, color: "#666" }}
-                >
-                  Frequently Asked Questions content will be displayed here.
-                </Typography>
+                <FAQSection
+                  faqs={faqs}
+                  isLoading={faqLoading}
+                  error={faqError}
+                />
               </TabPanel>
             </Box>
 

@@ -1,90 +1,123 @@
-import { API_CONFIG } from "../config"
+import { API_CONFIG, ENDPOINTS } from "../config";
 
-export interface CreateRFQRequest {
-  customerName: string
-  customerEmail: string
-  customerPhone: string
-  customerPhoneCountryCode: string
-  productId?: string
-  productName: string
-  quantity: number
-  description?: string
-  urgency: "low" | "medium" | "high"
-  status: "pending"
-  expectedDeliveryDate?: string
-  budget?: number
-  additionalRequirements?: string
-  attachments?: string[]
-  companyWebsiteLink?: string
-  department: string
-  companyName?: string
-  companyAddress?: string
-  availabilityDay?: string
-  availabilityTime?: string
+export interface RFQRequest {
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  customerPhoneCountryCode: string;
+  productId?: string;
+  productName: string;
+  quantity: number;
+  description: string;
+  urgency: "low" | "medium" | "high";
+  status: "pending" | "approved" | "rejected" | "completed";
+  expectedDeliveryDate: string;
+  budget: number;
+  additionalRequirements?: string;
+  attachments?: string[];
+  companyWebsiteLink?: string;
+  department?: string;
+  companyName?: string;
+  companyAddress?: string;
+  availabilityDay?: string;
+  availabilityTime?: string;
 }
 
-export interface CreateRFQResponse {
-  success: boolean
-  message: string
-  data: {
-    uniqueId: string
-    customerName: string
-    customerEmail: string
-    customerPhone: string
-    customerPhoneCountryCode: string
-    productId: string
-    productName: string
-    quantity: number
-    description: string
-    urgency: string
-    status: string
-    expectedDeliveryDate: string
-    budget: number
-    additionalRequirements: string
-    attachments: string[]
-    createdAt: string
-  }
+export interface RFQResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    uniqueId: string;
+    customerName: string;
+    customerEmail: string;
+    customerPhone: string;
+    customerPhoneCountryCode: string;
+    productId?: string;
+    productName: string;
+    quantity: number;
+    description: string;
+    urgency: "low" | "medium" | "high";
+    status: "pending" | "approved" | "rejected" | "completed";
+    expectedDeliveryDate: string;
+    budget: number;
+    additionalRequirements?: string;
+    attachments: string[];
+    companyWebsiteLink?: string;
+    department?: string;
+    companyName?: string;
+    companyAddress?: string;
+    availabilityDay?: string;
+    availabilityTime?: string;
+    createdAt: string;
+    updatedAt: string;
+  };
 }
 
-// Export alias for backward compatibility
-export type RFQResponse = CreateRFQResponse
-export type RFQRequest = CreateRFQRequest
+export interface RFQListingItem {
+  _id: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  customerPhoneCountryCode: string;
+  productId?: string;
+  productName: string;
+  quantity: number;
+  description: string;
+  urgency: "low" | "medium" | "high";
+  status: "pending" | "approved" | "rejected" | "completed";
+  expectedDeliveryDate: string;
+  budget: number;
+  additionalRequirements?: string;
+  attachments: string[];
+  companyWebsiteLink?: string;
+  department?: string;
+  companyName?: string;
+  companyAddress?: string;
+  availabilityDay?: string;
+  availabilityTime?: string;
+  createdAt: string;
+  updatedAt: string;
+  uniqueId: string;
+  __v: number;
+}
+
+export interface RFQListingResponse {
+  success: boolean;
+  message: string;
+  data: RFQListingItem[];
+}
 
 class RFQService {
-  private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    console.log(`Making request to: ${API_CONFIG.baseURL}${endpoint}`)
+  private async request<T>(
+    endpoint: string,
+    options?: RequestInit
+  ): Promise<T> {
+    const response = await fetch(`${API_CONFIG.baseURL}${endpoint}`, {
+      ...options,
+      headers: {
+        ...API_CONFIG.headers,
+        ...options?.headers,
+      },
+    });
 
-    try {
-      const response = await fetch(`${API_CONFIG.baseURL}${endpoint}`, {
-        ...options,
-        headers: {
-          ...API_CONFIG.headers,
-          ...options?.headers,
-        },
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || `HTTP error! status: ${response.status} - ${response.statusText}`)
-      }
-
-      const data = await response.json()
-      console.log("RFQ API Response:", data)
-      return data
-    } catch (error) {
-      console.error("RFQ API Request failed:", error)
-      throw error
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    return response.json();
   }
 
-  async createRFQ(rfqData: CreateRFQRequest): Promise<CreateRFQResponse> {
-    const endpoint = "/public/rfq/request-for-quotation"
-
-    return this.request<CreateRFQResponse>(endpoint, {
+  async submitRFQ(data: RFQRequest): Promise<RFQResponse> {
+    return this.request<RFQResponse>(ENDPOINTS.RFQ.SUBMIT, {
       method: "POST",
-      body: JSON.stringify(rfqData),
-    })
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getRFQListing(customerPhone: string): Promise<RFQListingResponse> {
+    const endpoint = `${ENDPOINTS.RFQ.LISTING}?customerPhone=${customerPhone}`;
+    return this.request<RFQListingResponse>(endpoint);
   }
 }
 
-export const rfqService = new RFQService()
+export const rfqService = new RFQService();

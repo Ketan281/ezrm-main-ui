@@ -1,14 +1,16 @@
-import { useMutation } from "@tanstack/react-query"
-import { rfqService, type CreateRFQRequest, type CreateRFQResponse } from "../services/rfq"
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { rfqService, type RFQRequest, type RFQListingResponse } from "../services/rfq";
 
-export const useCreateRFQ = () => {
-  return useMutation<CreateRFQResponse, Error, CreateRFQRequest>({
-    mutationFn: (data: CreateRFQRequest) => rfqService.createRFQ(data),
-    onSuccess: (data) => {
-      console.log("RFQ created successfully:", data)
-    },
-    onError: (error) => {
-      console.error("Failed to create RFQ:", error)
-    },
-  })
-}
+export const useSubmitRFQ = () => {
+  return useMutation({
+    mutationFn: (data: RFQRequest) => rfqService.submitRFQ(data),
+  });
+};
+
+export const useRFQListing = (customerPhone: string) => {
+  return useQuery({
+    queryKey: ["rfq-listing", customerPhone],
+    queryFn: () => rfqService.getRFQListing(customerPhone),
+    enabled: !!customerPhone,
+  });
+};

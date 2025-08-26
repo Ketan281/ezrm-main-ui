@@ -16,8 +16,8 @@ import {
   Alert,
 } from "@mui/material"
 import { Close } from "@mui/icons-material"
-import { useCreateRFQ } from "../api/handlers/rfqHandler"
-import type { CreateRFQRequest } from "../api/services/rfq"
+import { useSubmitRFQ } from "../api/handlers/rfqHandler"
+import type { RFQRequest } from "../api/services/rfq"
 
 interface QuoteFormModalProps {
   isOpen: boolean
@@ -47,7 +47,7 @@ interface FormErrors {
 }
 
 const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, productName = "", productId = "" }) => {
-  const createRFQMutation = useCreateRFQ()
+  const submitRFQMutation = useSubmitRFQ()
 
   const [formData, setFormData] = useState<FormData>({
     customerName: "",
@@ -113,7 +113,7 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
     return Object.keys(newErrors).length === 0
   }
 
-  const mapFormDataToRFQ = (data: FormData): CreateRFQRequest => {
+  const mapFormDataToRFQ = (data: FormData): RFQRequest => {
     // Map timeline to urgency
     const getUrgency = (timeline: string): "low" | "medium" | "high" => {
       switch (timeline) {
@@ -160,7 +160,7 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
 
     try {
       const rfqData = mapFormDataToRFQ(formData)
-      await createRFQMutation.mutateAsync(rfqData)
+      await submitRFQMutation.mutateAsync(rfqData)
 
       // Reset form and show success
       setFormData({
@@ -250,10 +250,10 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
         )}
 
         {/* Error Message */}
-        {createRFQMutation.isError && (
+        {submitRFQMutation.isError && (
           <Box sx={{ px: 3, pb: 2 }}>
             <Alert severity="error" sx={{ borderRadius: "6px" }}>
-              {createRFQMutation.error?.message || "Failed to submit quote request. Please try again."}
+              Failed to submit quote request. Please try again.
             </Alert>
           </Box>
         )}
@@ -925,7 +925,7 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
             type="submit"
             fullWidth
             variant="contained"
-            disabled={createRFQMutation.isPending}
+            disabled={submitRFQMutation.isPending}
             sx={{
               bgcolor: "#F05A25",
               color: "white",
@@ -948,7 +948,7 @@ const QuoteFormModal: React.FC<QuoteFormModalProps> = ({ isOpen, onClose, produc
               },
             }}
           >
-            {createRFQMutation.isPending ? (
+            {submitRFQMutation.isPending ? (
               <>
                 <CircularProgress size={20} sx={{ mr: 1, color: "inherit" }} />
                 Submitting...

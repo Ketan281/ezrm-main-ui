@@ -37,6 +37,7 @@ export interface ProductListingParams {
   category?: string;
   search?: string;
   tag?: string;
+  countryOfOrigin?: string;
 }
 
 class ProductService {

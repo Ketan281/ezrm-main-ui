@@ -17,6 +17,7 @@
     "@stripe/stripe-js": "^7.8.0",
     "@tanstack/react-query": "^5.83.0",
     "@tanstack/react-query-devtools": "^5.83.0",
+    "axios": "^1.11.0",
     "next": "15.3.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

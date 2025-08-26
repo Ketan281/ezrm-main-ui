@@ -45,6 +45,8 @@ import AddressModal from "@/components/AddressModal";
 import SettingsPage from "@/components/SettingsPage";
 import ChangePasswordPage from "@/components/ChangePasswordPage";
 import ProfileUpdateForm from "@/components/ProfileUpdateForm";
+import RFQListing from "@/components/RFQListing";
+import ProfileLayout from "@/components/ProfileLayout";
 import { useAppStore } from "@/store/use-app-store";
 import { customerAddressHandler } from "@/api/handlers/customerAddressHandler";
 import { passwordChangeHandler } from "@/api/handlers/passwordChangeHandler";
@@ -63,6 +65,7 @@ const PixelPerfectClone: React.FC = () => {
     | "settings"
     | "change-password"
     | "edit-profile"
+    | "rfqs"
   >("profile");
   const { customer } = useAppStore();
 
@@ -96,6 +99,10 @@ const PixelPerfectClone: React.FC = () => {
 
   const handleEditProfileClick = () => {
     setCurrentPage("edit-profile");
+  };
+
+  const handleRFQsClick = () => {
+    setCurrentPage("rfqs");
   };
 
   const handleBackToProfile = () => {
@@ -247,6 +254,23 @@ const PixelPerfectClone: React.FC = () => {
 
   if (currentPage === "orders") {
     return <OrdersPage onBack={handleBackToProfile} />;
+  }
+
+  if (currentPage === "rfqs") {
+    return (
+      <ProtectedRoute>
+        <ProfileLayout
+          customer={customer}
+          currentPage={currentPage}
+          onPageChange={setCurrentPage}
+          onBackToProfile={handleBackToProfile}
+          title="Your RFQs"
+          showBackButton={true}
+        >
+          <RFQListing customerPhone={customer?.phone || ""} />
+        </ProfileLayout>
+      </ProtectedRoute>
+    );
   }
 
   if (currentPage === "settings") {
@@ -418,6 +442,33 @@ const PixelPerfectClone: React.FC = () => {
                   }}
                 >
                   My Orders
+                </Typography>
+              </Box>
+
+              {/* Your RFQs */}
+              <Box
+                onClick={handleRFQsClick}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 2,
+                  px: 3,
+                  py: 2.5,
+                  cursor: "pointer",
+                  "&:hover": {
+                    backgroundColor: "#f8f9fa",
+                  },
+                }}
+              >
+                <Work sx={{ fontSize: 20, color: "#666" }} />
+                <Typography
+                  sx={{
+                    fontSize: "15px",
+                    fontWeight: 400,
+                    color: "#666",
+                  }}
+                >
+                  Your RFQs
                 </Typography>
               </Box>
 

@@ -117,4 +117,10 @@ export const ENDPOINTS = {
   STRIPE: {
     CREATE_PAYMENT_INTENT: "/public/stripe/payment-intents",
   },
+
+  // RFQ endpoints
+  RFQ: {
+    SUBMIT: "/public/rfq/request-for-quotation",
+    LISTING: "/public/rfq/get-all-listing",
+  },
 } as const;
