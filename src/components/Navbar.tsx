@@ -608,7 +608,7 @@ const Navbar: React.FC = () => {
                           {searchResults.map((result) => (
                             <ListItem
                               key={result.id}
-                              button
+                              // button
                               onClick={() => handleResultClick(result)}
                               sx={{
                                 "&:hover": {

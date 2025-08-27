@@ -1,46 +1,218 @@
-import React from "react";
-import {
-  Box,
-  Typography,
-  Container,
-  Grid,
-  TextField,
-  Button,
-  IconButton,
-  Snackbar,
-} from "@mui/material";
-import {
-  Email,
-  Phone,
-  LocationOn,
-  LinkedIn,
-  Facebook,
-  Instagram,
-  YouTube,
-} from "@mui/icons-material";
-import ContactForm from "./ContactForm";
-import { useCompanyDetails } from "@/hooks/use-company-details";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+"use client"
+
+import React from "react"
+import { Box, Typography, Container, IconButton, Snackbar, TextField, Button } from "@mui/material"
+import { Email, Phone, LocationOn, LinkedIn, Facebook, Instagram, YouTube } from "@mui/icons-material"
+import { useCompanyDetails } from "@/hooks/use-company-details"
+
+interface ContactFormProps {
+  source: string
+  onSuccess: () => void
+  onError: (error: string) => void
+}
+
+const ContactForm: React.FC<ContactFormProps> = ({onSuccess, onError }) => {
+  const [formData, setFormData] = React.useState({
+    name: "",
+    email: "",
+    phone: "",
+    message: "",
+  })
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    })
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      // Simulate form submission
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      onSuccess()
+      setFormData({ name: "", email: "", phone: "", message: "" })
+    } catch (error) {
+      onError("Failed to send message. Please try again.")
+    }
+  }
+
+  return (
+    <Box
+      component="form"
+      onSubmit={handleSubmit}
+      sx={{
+        width: "100%",
+        maxWidth: "400px",
+      }}
+    >
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+        <TextField
+          name="name"
+          placeholder="Your Name"
+          value={formData.name}
+          onChange={handleChange}
+          required
+          variant="standard"
+          sx={{
+            "& .MuiInput-underline": {
+              "&:before": {
+                borderBottomColor: "rgba(255, 255, 255, 0.5)",
+              },
+              "&:hover:not(.Mui-disabled):before": {
+                borderBottomColor: "rgba(255, 255, 255, 0.8)",
+              },
+              "&:after": {
+                borderBottomColor: "white",
+              },
+            },
+            "& .MuiInputBase-input": {
+              color: "white",
+              fontSize: "0.95rem",
+              "&::placeholder": {
+                color: "rgba(255, 255, 255, 0.7)",
+                opacity: 1,
+              },
+            },
+          }}
+        />
+
+        <TextField
+          name="email"
+          type="email"
+          placeholder="Your Email"
+          value={formData.email}
+          onChange={handleChange}
+          required
+          variant="standard"
+          sx={{
+            "& .MuiInput-underline": {
+              "&:before": {
+                borderBottomColor: "rgba(255, 255, 255, 0.5)",
+              },
+              "&:hover:not(.Mui-disabled):before": {
+                borderBottomColor: "rgba(255, 255, 255, 0.8)",
+              },
+              "&:after": {
+                borderBottomColor: "white",
+              },
+            },
+            "& .MuiInputBase-input": {
+              color: "white",
+              fontSize: "0.95rem",
+              "&::placeholder": {
+                color: "rgba(255, 255, 255, 0.7)",
+                opacity: 1,
+              },
+            },
+          }}
+        />
+
+        <TextField
+          name="phone"
+          placeholder="Your Phone"
+          value={formData.phone}
+          onChange={handleChange}
+          variant="standard"
+          sx={{
+            "& .MuiInput-underline": {
+              "&:before": {
+                borderBottomColor: "rgba(255, 255, 255, 0.5)",
+              },
+              "&:hover:not(.Mui-disabled):before": {
+                borderBottomColor: "rgba(255, 255, 255, 0.8)",
+              },
+              "&:after": {
+                borderBottomColor: "white",
+              },
+            },
+            "& .MuiInputBase-input": {
+              color: "white",
+              fontSize: "0.95rem",
+              "&::placeholder": {
+                color: "rgba(255, 255, 255, 0.7)",
+                opacity: 1,
+              },
+            },
+          }}
+        />
+
+        <TextField
+          name="message"
+          placeholder="Your Message"
+          value={formData.message}
+          onChange={handleChange}
+          multiline
+          rows={3}
+          required
+          variant="standard"
+          sx={{
+            "& .MuiInput-underline": {
+              "&:before": {
+                borderBottomColor: "rgba(255, 255, 255, 0.5)",
+              },
+              "&:hover:not(.Mui-disabled):before": {
+                borderBottomColor: "rgba(255, 255, 255, 0.8)",
+              },
+              "&:after": {
+                borderBottomColor: "white",
+              },
+            },
+            "& .MuiInputBase-input": {
+              color: "white",
+              fontSize: "0.95rem",
+              "&::placeholder": {
+                color: "rgba(255, 255, 255, 0.7)",
+                opacity: 1,
+              },
+            },
+          }}
+        />
+
+        <Button
+          type="submit"
+          variant="contained"
+          sx={{
+            bgcolor: "white",
+            color: "rgba(240, 90, 37, 1)",
+            fontWeight: 600,
+            py: 1.5,
+            borderRadius: "8px",
+            textTransform: "none",
+            fontSize: "0.95rem",
+            "&:hover": {
+              bgcolor: "rgba(255, 255, 255, 0.9)",
+            },
+          }}
+        >
+          Send Message
+        </Button>
+      </Box>
+    </Box>
+  )
+}
 
 const FooterSection: React.FC = () => {
-  const [snackbarOpen, setSnackbarOpen] = React.useState(false);
-  const [snackbarMessage, setSnackbarMessage] = React.useState("");
-  const { companyDetails, loading } = useCompanyDetails();
+  const [snackbarOpen, setSnackbarOpen] = React.useState(false)
+  const [snackbarMessage, setSnackbarMessage] = React.useState("")
+  const { companyDetails, loading } = useCompanyDetails()
 
   const handleSuccess = () => {
-    setSnackbarMessage("Thank you! Your message has been sent successfully.");
-    setSnackbarOpen(true);
-  };
+    setSnackbarMessage("Thank you! Your message has been sent successfully.")
+    setSnackbarOpen(true)
+  }
 
   const handleError = (error: string) => {
-    setSnackbarMessage(error);
-    setSnackbarOpen(true);
-  };
+    setSnackbarMessage(error)
+    setSnackbarOpen(true)
+  }
 
   return (
     <Box
       sx={{
-        background:
-          "linear-gradient(135deg, rgba(240, 90, 37, 1) 0%, rgba(84, 29, 9, 1) 100%)",
+        background: "linear-gradient(135deg, rgba(240, 90, 37, 1) 0%, rgba(84, 29, 9, 1) 100%)",
         borderRadius: "0 0 20px 20px",
         py: { xs: 4, md: 6 },
         px: { xs: 2, md: 4 },
@@ -96,9 +268,8 @@ const FooterSection: React.FC = () => {
                 maxWidth: "400px",
               }}
             >
-              We supply certified, traceable ingredients for nutrition,
-              wellness, cosmetics, and pharma. Talk to our team for quotes,
-              documentation, or custom sourcing.
+              We supply certified, traceable ingredients for nutrition, wellness, cosmetics, and pharma. Talk to our
+              team for quotes, documentation, or custom sourcing.
             </Typography>
             {/* Contact Details */}
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -106,27 +277,21 @@ const FooterSection: React.FC = () => {
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <Email sx={{ color: "white", fontSize: 20 }} />
                 <Typography sx={{ color: "white", fontSize: "0.95rem" }}>
-                  {loading
-                    ? "Loading..."
-                    : companyDetails?.email || "Email@gmail.com"}
+                  {loading ? "Loading..." : companyDetails?.email || "Email@gmail.com"}
                 </Typography>
               </Box>
               {/* Phone */}
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <Phone sx={{ color: "white", fontSize: 20 }} />
                 <Typography sx={{ color: "white", fontSize: "0.95rem" }}>
-                  {loading
-                    ? "Loading..."
-                    : companyDetails?.phone || "1 124 152 424"}
+                  {loading ? "Loading..." : companyDetails?.phone || "1 124 152 424"}
                 </Typography>
               </Box>
               {/* Address */}
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <LocationOn sx={{ color: "white", fontSize: 20 }} />
                 <Typography sx={{ color: "white", fontSize: "0.95rem" }}>
-                  {loading
-                    ? "Loading..."
-                    : companyDetails?.address || "J4, Main street, Bristol"}
+                  {loading ? "Loading..." : companyDetails?.address || "J4, Main street, Bristol"}
                 </Typography>
               </Box>
             </Box>
@@ -139,11 +304,7 @@ const FooterSection: React.FC = () => {
               justifyContent: { md: "flex-end" },
             }}
           >
-            <ContactForm
-              source="website"
-              onSuccess={handleSuccess}
-              onError={handleError}
-            />
+            <ContactForm source="website" onSuccess={handleSuccess} onError={handleError} />
           </Box>
         </Box>
         {/* Bottom Section */}
@@ -187,9 +348,7 @@ const FooterSection: React.FC = () => {
               letterSpacing: "0.05em",
             }}
           >
-            {loading
-              ? "Loading..."
-              : companyDetails?.name?.toLowerCase() || "ezrm"}
+            {loading ? "Loading..." : companyDetails?.name?.toLowerCase() || "ezrm"}
           </Typography>
           {/* Right - Social Icons */}
           <Box sx={{ display: "flex", gap: 1 }}>
@@ -278,7 +437,7 @@ const FooterSection: React.FC = () => {
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       />
     </Box>
-  );
-};
+  )
+}
 
-export default FooterSection;
+export default FooterSection

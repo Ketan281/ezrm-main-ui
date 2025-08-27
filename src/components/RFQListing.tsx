@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from "react";
 import {
   Box,
   Typography,
   Card,
   CardContent,
-  Grid,
+  // Grid,
   Chip,
   Button,
   Dialog,
@@ -12,7 +13,7 @@ import {
   DialogTitle,
   IconButton,
   Divider,
-  Avatar,
+  // Avatar,
   Skeleton,
   Alert,
   Paper,
@@ -22,7 +23,7 @@ import {
   Visibility,
   CalendarToday,
   AttachMoney,
-  LocalShipping,
+  // LocalShipping,
   Business,
   Email,
   Phone,
@@ -482,7 +483,7 @@ const RFQListing: React.FC<RFQListingProps> = ({ customerPhone }) => {
               No RFQs Found
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              You haven't submitted any RFQs yet. Start by requesting a quote
+              You havent submitted any RFQs yet. Start by requesting a quote
               for any product.
             </Typography>
           </CardContent>

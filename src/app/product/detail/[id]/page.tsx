@@ -26,7 +26,7 @@ import {
   CircularProgress,
   Alert,
   Snackbar,
-  InputLabel,
+  // InputLabel,
 } from "@mui/material";
 import {
   FavoriteBorder,
@@ -96,6 +96,7 @@ export default function ProductDetailPage() {
     error: faqError,
   } = useProductFAQs(productId);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const faqs = (faqResponse as any)?.data || [];
 
   // Tab state
@@ -221,6 +222,7 @@ export default function ProductDetailPage() {
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const product: any = response?.data ?? {};
 
   if (!product) {
