@@ -565,8 +565,8 @@ const RFQModal: React.FC<RFQModalProps> = ({ open, onClose, productId, productNa
                   color: "#333",
                   mb: 2,
                   mt: 2,
-                  background: "linear-gradient(135deg, rgba(245, 138, 78, 1) 0%, rgba(241, 106, 60, 1) 100%)",
-                  color: "white",
+                  // background: "linear-gradient(135deg, rgba(245, 138, 78, 1) 0%, rgba(241, 106, 60, 1) 100%)",
+                  // color: "black",
                   p: 2,
                   borderRadius: 0,
                 }}
@@ -598,7 +598,7 @@ const RFQModal: React.FC<RFQModalProps> = ({ open, onClose, productId, productNa
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid >
               <Typography sx={{ fontSize: "14px", fontWeight: 500, color: "#333", mb: 1 }}>
                 Time (Timezone-EST)
               </Typography>
@@ -623,7 +623,7 @@ const RFQModal: React.FC<RFQModalProps> = ({ open, onClose, productId, productNa
               </FormControl>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid >
               <Typography sx={{ fontSize: "14px", fontWeight: 500, color: "#333", mb: 1 }}>
                 <span style={{ color: "#d32f2f" }}>*</span> Description
               </Typography>
