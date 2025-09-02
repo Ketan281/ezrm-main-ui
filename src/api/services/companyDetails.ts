@@ -25,7 +25,7 @@ export interface CompanyDetailsResponse {
 export const getCompanyDetails = async (): Promise<CompanyDetails> => {
   try {
     const response = await axios.get<CompanyDetailsResponse>(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/public/constants/company-details`
+      `${process.env.NEXT_PUBLIC_API_URL}/public/constants/company-details`
     );
 
     if (response.data.success) {
