@@ -1,12 +1,22 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import { Box, Typography, TextField, Button, Link, Container, Alert, CircularProgress } from "@mui/material"
-import { ThemeProvider, createTheme } from "@mui/material/styles"
-import Image from "next/image"
-import { useRouter } from "next/navigation"
-import { useCustomerLogin } from "@/api/handlers"
+import type React from "react";
+import { useState } from "react";
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Link,
+  Container,
+  Alert,
+  CircularProgress,
+} from "@mui/material";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useCustomerLogin } from "@/api/handlers";
+import ChatWidget from "@/components/ChatWidget";
 
 const theme = createTheme({
   palette: {
@@ -17,59 +27,61 @@ const theme = createTheme({
   typography: {
     fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
   },
-})
+});
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
+    {}
+  );
 
-  const loginMutation = useCustomerLogin()
+  const loginMutation = useCustomerLogin();
 
   const validateForm = () => {
-    const newErrors: { email?: string; password?: string } = {}
+    const newErrors: { email?: string; password?: string } = {};
 
     if (!email) {
-      newErrors.email = "Email is required"
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Email is invalid"
+      newErrors.email = "Email is invalid";
     }
 
     if (!password) {
-      newErrors.password = "Password is required"
+      newErrors.password = "Password is required";
     } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters"
+      newErrors.password = "Password must be at least 6 characters";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!validateForm()) {
-      return
+      return;
     }
 
     try {
       await loginMutation.mutateAsync({
         email,
         password,
-      })
+      });
 
       // Redirect to home page on successful login
-      router.push("/")
+      router.push("/");
     } catch (error) {
-      console.error("Login error:", error)
+      console.error("Login error:", error);
       // Error is handled by the mutation's onError callback
     }
-  }
+  };
 
   const handleSignUpClick = () => {
-    router.push("/sign_up")
-  }
+    router.push("/sign_up");
+  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -177,7 +189,13 @@ export default function LoginPage() {
             >
               {/* Logo */}
               <Box sx={{ mb: 1, mt: 4 }}>
-                <Image src="/ezrm-logo.png" alt="EZRM Logo" width={200} height={60} style={{ objectFit: "contain" }} />
+                <Image
+                  src="/ezrm-logo.png"
+                  alt="EZRM Logo"
+                  width={200}
+                  height={60}
+                  style={{ objectFit: "contain" }}
+                />
               </Box>
 
               {/* Welcome Text */}
@@ -204,7 +222,10 @@ export default function LoginPage() {
 
               {/* Error Alert */}
               {loginMutation.isError && (
-                <Alert severity="error" sx={{ width: "100%", maxWidth: "500px", mb: 3 }}>
+                <Alert
+                  severity="error"
+                  sx={{ width: "100%", maxWidth: "500px", mb: 3 }}
+                >
                   {loginMutation.error instanceof Error
                     ? loginMutation.error.message
                     : "Login failed. Please try again."}
@@ -213,13 +234,20 @@ export default function LoginPage() {
 
               {/* Success Alert */}
               {loginMutation.isSuccess && (
-                <Alert severity="success" sx={{ width: "100%", maxWidth: "500px", mb: 3 }}>
+                <Alert
+                  severity="success"
+                  sx={{ width: "100%", maxWidth: "500px", mb: 3 }}
+                >
                   Login successful! Redirecting...
                 </Alert>
               )}
 
               {/* Login Form */}
-              <Box component="form" onSubmit={handleLogin} sx={{ width: "100%", maxWidth: "500px" }}>
+              <Box
+                component="form"
+                onSubmit={handleLogin}
+                sx={{ width: "100%", maxWidth: "500px" }}
+              >
                 <TextField
                   fullWidth
                   placeholder="Email"
@@ -372,7 +400,10 @@ export default function LoginPage() {
             zIndex: 1,
           }}
         />
+
+        {/* Chat Widget */}
+        <ChatWidget />
       </Box>
     </ThemeProvider>
-  )
+  );
 }

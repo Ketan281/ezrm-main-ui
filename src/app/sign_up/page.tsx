@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 import {
   Box,
   Typography,
@@ -13,11 +13,12 @@ import {
   RadioGroup,
   FormControlLabel,
   FormControl,
-} from "@mui/material"
-import { ThemeProvider, createTheme } from "@mui/material/styles"
-import Image from "next/image"
-import { useRouter } from "next/navigation"
-import { useInitiateSignup, useCompleteSignup } from "@/api/handlers"
+} from "@mui/material";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useInitiateSignup, useCompleteSignup } from "@/api/handlers";
+import ChatWidget from "@/components/ChatWidget";
 
 const theme = createTheme({
   palette: {
@@ -28,33 +29,33 @@ const theme = createTheme({
   typography: {
     fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
   },
-})
+});
 
-type SignupStep = "email" | "details" | "success"
+type SignupStep = "email" | "details" | "success";
 
 export default function RegisterPage() {
-  const router = useRouter()
-  const [currentStep, setCurrentStep] = useState<SignupStep>("email")
-  const [email, setEmail] = useState("")
-  const [phone, setPhone] = useState("")
-  const [name, setName] = useState("")
-  const [organizationName, setOrganizationName] = useState("")
-  const [address, setAddress] = useState("")
-  const [connectBy, setConnectBy] = useState("email") // Include in UI state but not in API
-  
-  const [emailError, setEmailError] = useState("")
-  const [phoneError, setPhoneError] = useState("")
-  const [nameError, setNameError] = useState("")
-  const [organizationError, setOrganizationError] = useState("")
-  const [addressError, setAddressError] = useState("")
+  const router = useRouter();
+  const [currentStep, setCurrentStep] = useState<SignupStep>("email");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [name, setName] = useState("");
+  const [organizationName, setOrganizationName] = useState("");
+  const [address, setAddress] = useState("");
+  const [connectBy, setConnectBy] = useState("email"); // Include in UI state but not in API
+
+  const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [organizationError, setOrganizationError] = useState("");
+  const [addressError, setAddressError] = useState("");
 
   // API hooks
-  const initiateSignupMutation = useInitiateSignup()
-  const completeSignupMutation = useCompleteSignup()
+  const initiateSignupMutation = useInitiateSignup();
+  const completeSignupMutation = useCompleteSignup();
 
   // Email validation function
   const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const publicDomains = [
       "hotmail.com",
       "outlook.com",
@@ -63,63 +64,63 @@ export default function RegisterPage() {
       "live.com",
       "msn.com",
       "rediffmail.com",
-    ]
+    ];
 
     if (!email) {
-      return "Email is required"
+      return "Email is required";
     }
     if (!emailRegex.test(email)) {
-      return "Please enter a valid email address"
+      return "Please enter a valid email address";
     }
-    const domain = email.split("@")[1]?.toLowerCase()
+    const domain = email.split("@")[1]?.toLowerCase();
     if (publicDomains.includes(domain)) {
-      return "Public email domains are not allowed. Please enter a valid company email address."
+      return "Public email domains are not allowed. Please enter a valid company email address.";
     }
-    return ""
-  }
+    return "";
+  };
 
   const validatePhone = (phone: string) => {
     if (!phone) {
-      return "Phone number is required"
+      return "Phone number is required";
     }
     if (phone.length < 10) {
-      return "Please enter a valid phone number"
+      return "Please enter a valid phone number";
     }
-    return ""
-  }
+    return "";
+  };
 
   // Handle step 1 submission (email, phone, name) - connectBy NOT included in API
   const handleStep1Submit = async () => {
-    const emailErr = validateEmail(email)
-    const phoneErr = validatePhone(phone)
-    const nameErr = !name ? "Name is required" : ""
+    const emailErr = validateEmail(email);
+    const phoneErr = validatePhone(phone);
+    const nameErr = !name ? "Name is required" : "";
 
-    setEmailError(emailErr)
-    setPhoneError(phoneErr)
-    setNameError(nameErr)
+    setEmailError(emailErr);
+    setPhoneError(phoneErr);
+    setNameError(nameErr);
 
     if (!emailErr && !phoneErr && !nameErr) {
       try {
-        await initiateSignupMutation.mutateAsync({ 
+        await initiateSignupMutation.mutateAsync({
           email,
           phone,
-          name
+          name,
           // connectBy is NOT sent to API
-        })
-        setCurrentStep("details")
+        });
+        setCurrentStep("details");
       } catch (error) {
-        console.error("Step 1 submission failed:", error)
+        console.error("Step 1 submission failed:", error);
       }
     }
-  }
+  };
 
   // Handle step 2 submission (organization name, address) - connectBy NOT included in API
   const handleStep2Submit = async () => {
-    const orgErr = !organizationName ? "Organization Name is required" : ""
-    const addressErr = !address ? "Address is required" : ""
+    const orgErr = !organizationName ? "Organization Name is required" : "";
+    const addressErr = !address ? "Address is required" : "";
 
-    setOrganizationError(orgErr)
-    setAddressError(addressErr)
+    setOrganizationError(orgErr);
+    setAddressError(addressErr);
 
     if (!orgErr && !addressErr) {
       try {
@@ -139,18 +140,18 @@ export default function RegisterPage() {
           contactPerson: "",
           contactPersonPhone: "",
           contactPersonEmail: "",
-          notes: ""
-        })
-        setCurrentStep("success")
+          notes: "",
+        });
+        setCurrentStep("success");
       } catch (error) {
-        console.error("Step 2 submission failed:", error)
+        console.error("Step 2 submission failed:", error);
       }
     }
-  }
+  };
 
   const handleBackToHome = () => {
-    router.push("/")
-  }
+    router.push("/");
+  };
 
   const renderStep1 = () => (
     <>
@@ -192,9 +193,9 @@ export default function RegisterPage() {
           variant="standard"
           value={name}
           onChange={(e) => {
-            setName(e.target.value)
+            setName(e.target.value);
             if (nameError) {
-              setNameError("")
+              setNameError("");
             }
           }}
           error={!!nameError}
@@ -242,9 +243,9 @@ export default function RegisterPage() {
           variant="standard"
           value={email}
           onChange={(e) => {
-            setEmail(e.target.value)
+            setEmail(e.target.value);
             if (emailError) {
-              setEmailError("")
+              setEmailError("");
             }
           }}
           error={!!emailError}
@@ -292,10 +293,10 @@ export default function RegisterPage() {
           variant="standard"
           value={phone}
           onChange={(e) => {
-            const value = e.target.value.replace(/\D/g, "")
-            setPhone(value)
+            const value = e.target.value.replace(/\D/g, "");
+            setPhone(value);
             if (phoneError) {
-              setPhoneError("")
+              setPhoneError("");
             }
           }}
           error={!!phoneError}
@@ -445,11 +446,12 @@ export default function RegisterPage() {
             width: "100%",
           }}
         >
-          Public email domains are not allowed. Please enter a valid company email address.
+          Public email domains are not allowed. Please enter a valid company
+          email address.
         </Typography>
       </Box>
     </>
-  )
+  );
 
   const renderStep2 = () => (
     <>
@@ -491,9 +493,9 @@ export default function RegisterPage() {
           variant="standard"
           value={organizationName}
           onChange={(e) => {
-            setOrganizationName(e.target.value)
+            setOrganizationName(e.target.value);
             if (organizationError) {
-              setOrganizationError("")
+              setOrganizationError("");
             }
           }}
           error={!!organizationError}
@@ -543,9 +545,9 @@ export default function RegisterPage() {
           rows={4}
           value={address}
           onChange={(e) => {
-            setAddress(e.target.value)
+            setAddress(e.target.value);
             if (addressError) {
-              setAddressError("")
+              setAddressError("");
             }
           }}
           error={!!addressError}
@@ -629,11 +631,12 @@ export default function RegisterPage() {
             width: "100%",
           }}
         >
-          Public email domains are not allowed. Please enter a valid company email address.
+          Public email domains are not allowed. Please enter a valid company
+          email address.
         </Typography>
       </Box>
     </>
-  )
+  );
 
   const renderSuccessStep = () => (
     <Box
@@ -692,7 +695,9 @@ export default function RegisterPage() {
             justifyContent: "center",
           }}
         >
-          <Typography sx={{ color: "#FF7A59", fontSize: "16px", fontWeight: "bold" }}>
+          <Typography
+            sx={{ color: "#FF7A59", fontSize: "16px", fontWeight: "bold" }}
+          >
             ✓
           </Typography>
         </Box>
@@ -773,7 +778,7 @@ export default function RegisterPage() {
         Back To Home
       </Button>
     </Box>
-  )
+  );
 
   return (
     <ThemeProvider theme={theme}>
@@ -912,7 +917,10 @@ export default function RegisterPage() {
             zIndex: 1,
           }}
         />
+
+        {/* Chat Widget */}
+        <ChatWidget />
       </Box>
     </ThemeProvider>
-  )
+  );
 }

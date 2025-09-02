@@ -1,24 +1,25 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { usePathname } from "next/navigation"
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
-import { ThemeProvider } from "@mui/material"
-import { theme } from "@/theme/theme"
-import Navbar from "@/components/Navbar"
-import FooterSection from "@/components/FooterSection"
-import { useAppStore } from "@/store/use-app-store"
-import { customerAuthService } from "@/api/services/customerAuth"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { ThemeProvider } from "@mui/material";
+import { theme } from "@/theme/theme";
+import Navbar from "@/components/Navbar";
+import FooterSection from "@/components/FooterSection";
+import ChatWidget from "@/components/ChatWidget";
+import { useAppStore } from "@/store/use-app-store";
+import { customerAuthService } from "@/api/services/customerAuth";
 
 interface ClientLayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
-  const pathname = usePathname()
-  const { setCustomer, clearCustomer } = useAppStore()
+  const pathname = usePathname();
+  const { setCustomer, clearCustomer } = useAppStore();
 
   // Create QueryClient instance
   const [queryClient] = useState(
@@ -34,34 +35,39 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
             retry: 1,
           },
         },
-      }),
-  )
+      })
+  );
 
   // Handle hydration
-  const [mounted, setMounted] = useState(false)
+  const [mounted, setMounted] = useState(false);
   useEffect(() => {
-    setMounted(true)
+    setMounted(true);
 
     // Check for stored authentication data on mount
-    const storedToken = customerAuthService.getStoredToken()
-    const storedCustomer = customerAuthService.getStoredCustomer()
+    const storedToken = customerAuthService.getStoredToken();
+    const storedCustomer = customerAuthService.getStoredCustomer();
 
     if (storedToken && storedCustomer) {
       // Restore authentication state
-      setCustomer(storedCustomer)
+      setCustomer(storedCustomer);
     } else {
       // Clear any invalid state
-      clearCustomer()
+      clearCustomer();
     }
-  }, [setCustomer, clearCustomer])
+  }, [setCustomer, clearCustomer]);
 
   // Define routes where navbar and footer should be hidden
-  const hideNavbarFooterRoutes = ["/sign_in", "/register", "/sign-in", "/sign_up"]
-  const shouldHideNavbarFooter = hideNavbarFooterRoutes.includes(pathname)
+  const hideNavbarFooterRoutes = [
+    "/sign_in",
+    "/register",
+    "/sign-in",
+    "/sign_up",
+  ];
+  const shouldHideNavbarFooter = hideNavbarFooterRoutes.includes(pathname);
 
   // Prevent hydration mismatch
   if (!mounted) {
-    return null
+    return null;
   }
 
   return (
@@ -84,9 +90,12 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
 
         {/* React Query DevTools */}
         <ReactQueryDevtools initialIsOpen={false} />
+
+        {/* Chat Widget - Available on all pages */}
+        <ChatWidget />
       </ThemeProvider>
     </QueryClientProvider>
-  )
-}
+  );
+};
 
-export default ClientLayout
+export default ClientLayout;
