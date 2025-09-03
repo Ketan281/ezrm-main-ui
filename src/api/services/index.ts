@@ -15,6 +15,7 @@ export { searchService } from "./search";
 export { countriesService } from "./countries";
 export { customerProfileService } from "./customerProfile";
 export { stripeService } from "./stripe";
+export { checkoutSessionsService } from "./checkoutSessions";
 export { getCompanyDetails } from "./companyDetails";
 
 // Product services

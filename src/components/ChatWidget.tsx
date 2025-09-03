@@ -6,7 +6,7 @@ import { useAppStore } from "@/store/use-app-store";
 
 declare global {
   interface Window {
-    initChatWidget: (config: any, delay?: number) => void;
+    initNoupeWidget: (config: any) => void;
   }
 }
 
@@ -26,45 +26,58 @@ const ChatWidget: React.FC = () => {
     });
 
     // Check if script is already loaded
-    if (window.initChatWidget) {
+    if (typeof window.initNoupeWidget === "function") {
       console.log("ChatWidget: Script already available");
       setScriptLoaded(true);
       initializeWidget();
       return;
     }
 
-    // Load the MSG91 chat widget script
-    const script = document.createElement("script");
-    script.src = "https://blacksea.msg91.com/chat-widget.js";
-    script.async = true;
-    script.onload = () => {
-      console.log("ChatWidget: Script loaded successfully");
-      setScriptLoaded(true);
-      setScriptError(null);
+    // Load the noupe.com chat widget script
+    const loadScript = () => {
+      // Create script element for noupe.com chat widget
+      const script = document.createElement("script");
+      script.type = "text/javascript";
+      script.src =
+        "https://www.noupe.com/embed/01990a23106070eda6a2a9924c06b4f03856.js";
+      script.async = true;
 
-      // Initialize the chat widget once the script is loaded
-      if (typeof window.initChatWidget === "function") {
-        initializeWidget();
-      } else {
+      script.onload = () => {
+        console.log("ChatWidget: Noupe script loaded successfully");
+        setScriptLoaded(true);
+        setScriptError(null);
+
+        // Wait a bit for the script to fully initialize
+        setTimeout(() => {
+          if (typeof window.initNoupeWidget === "function") {
+            initializeWidget();
+          } else {
+            console.error(
+              "ChatWidget: Script loaded but initNoupeWidget function not found"
+            );
+            setScriptError(
+              "Script loaded but initialization function not found"
+            );
+          }
+        }, 500);
+      };
+
+      script.onerror = () => {
         console.error(
-          "ChatWidget: Script loaded but initChatWidget function not found"
+          "ChatWidget: Failed to load noupe.com chat widget script"
         );
-        setScriptError("Script loaded but initialization function not found");
-      }
+        setScriptError("Failed to load noupe.com chat widget script");
+      };
+
+      // Add the noupe script to document head
+      document.head.appendChild(script);
     };
 
-    script.onerror = () => {
-      console.error("ChatWidget: Failed to load MSG91 chat widget script");
-      setScriptError("Failed to load chat widget script");
-    };
-
-    document.head.appendChild(script);
+    loadScript();
 
     // Cleanup function
     return () => {
-      if (document.head.contains(script)) {
-        document.head.removeChild(script);
-      }
+      // Note: We don't remove the script as it might be used by other components
     };
   }, []);
 
@@ -90,38 +103,30 @@ const ChatWidget: React.FC = () => {
 
   const initializeWidget = () => {
     try {
-      if (!window.initChatWidget) {
-        console.error("ChatWidget: initChatWidget function not available");
+      if (typeof window.initNoupeWidget !== "function") {
+        console.error("ChatWidget: initNoupeWidget function not available");
         return;
       }
 
-      const helloConfig = {
-        widgetToken: "1e8f9",
-        hide_launcher: false,
-        show_widget_form: true,
-        show_close_button: true,
-        launch_widget: false,
-        show_send_button: true,
-        unique_id: customer?.id || `guest_${Date.now()}`,
-        name:
-          customer?.firstName && customer?.lastName
-            ? `${customer.firstName} ${customer.lastName}`
-            : undefined,
-        number: customer?.phone || undefined,
-        mail: customer?.email || companyDetails?.email || undefined,
-        country: "UK", // Default country
-        city: "Bristol", // Default city
-        region: "England", // Default region
+      const noupeConfig = {
+        // Basic configuration for noupe widget
+        enabled: true,
+        position: "bottom-right",
+        theme: "light",
+        // Add any other configuration options that noupe widget supports
       };
 
-      console.log("ChatWidget: Initializing with config", helloConfig);
+      console.log(
+        "ChatWidget: Initializing noupe widget with config",
+        noupeConfig
+      );
 
-      // Initialize with a 2 second delay for better UX
-      window.initChatWidget(helloConfig, 2000);
+      // Initialize the noupe widget
+      window.initNoupeWidget(noupeConfig);
       setWidgetInitialized(true);
-      console.log("ChatWidget: Widget initialized successfully");
+      console.log("ChatWidget: Noupe widget initialized successfully");
     } catch (error) {
-      console.error("ChatWidget: Error initializing MSG91 chat widget:", error);
+      console.error("ChatWidget: Error initializing noupe chat widget:", error);
       setScriptError(`Initialization error: ${error}`);
     }
   };
@@ -174,10 +179,10 @@ const ChatWidget: React.FC = () => {
         <button
           onClick={() => {
             console.log("Manual initialization attempt");
-            if (typeof window.initChatWidget === "function") {
+            if (typeof window.initNoupeWidget === "function") {
               initializeWidget();
             } else {
-              console.log("initChatWidget not available");
+              console.log("initNoupeWidget not available");
             }
           }}
           style={{

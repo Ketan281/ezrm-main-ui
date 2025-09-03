@@ -112,6 +112,11 @@ export default function ProductDetailPage() {
   // Cart quantity state
   const [cartQuantity, setCartQuantity] = useState(1);
 
+  // Image gallery state
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [isMagnified, setIsMagnified] = useState(false);
+  const [magnifierPosition, setMagnifierPosition] = useState({ x: 0, y: 0 });
+
   // Dropdown states
   const [companySpecific, setCompanySpecific] = useState(
     "Documents - Company Specific"
@@ -233,20 +238,66 @@ export default function ProductDetailPage() {
     );
   }
 
-  // Get product image
-  const getProductImage = () => {
+  // Get product images array
+  const getProductImages = () => {
+    const images = [];
+
+    // Add banner image if exists
     if (product.bannerImage) {
-      return product.bannerImage.startsWith("http")
-        ? product.bannerImage
-        : `${process.env.NEXT_PUBLIC_API_URL}/${product.bannerImage}`;
+      images.push({
+        src: product.bannerImage.startsWith("http")
+          ? product.bannerImage
+          : `${process.env.NEXT_PUBLIC_API_URL}/${product.bannerImage}`,
+        alt: `${product.name} - Banner`,
+        type: "banner",
+      });
     }
+
+    // Add other images if exist
     if (product.images && product.images.length > 0) {
-      const firstImage = product.images[0];
-      return firstImage.startsWith("http")
-        ? firstImage
-        : `${process.env.NEXT_PUBLIC_API_URL}/${firstImage}`;
+      product.images.forEach((image: string, index: number) => {
+        images.push({
+          src: image.startsWith("http")
+            ? image
+            : `${process.env.NEXT_PUBLIC_API_URL}/${image}`,
+          alt: `${product.name} - Image ${index + 1}`,
+          type: "gallery",
+        });
+      });
     }
-    return "/placeholder.svg?height=400&width=600";
+
+    // If no images, add placeholder
+    if (images.length === 0) {
+      images.push({
+        src: "/placeholder.svg?height=400&width=600",
+        alt: "Product placeholder",
+        type: "placeholder",
+      });
+    }
+
+    return images;
+  };
+
+  // Get current selected image
+  const getCurrentImage = () => {
+    const images = getProductImages();
+    return images[selectedImageIndex] || images[0];
+  };
+
+  // Handle image selection
+  const handleImageSelect = (index: number) => {
+    setSelectedImageIndex(index);
+  };
+
+  // Handle mouse move for magnification
+  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!isMagnified) return;
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+
+    setMagnifierPosition({ x, y });
   };
 
   // Data
@@ -311,18 +362,143 @@ export default function ProductDetailPage() {
                 position: "relative",
                 width: "100%",
                 height: 400,
-                borderRadius: "30px 0px 0px 30px",
+                borderRadius: "20px",
                 overflow: "hidden",
                 backgroundColor: "#f5f5f5",
                 mb: 3,
               }}
             >
-              <Image
-                src={getProductImage() || "/placeholder.svg"}
-                alt={product.name}
-                fill
-                style={{ objectFit: "cover" }}
-              />
+              {/* Main Image with Magnification */}
+              <Box
+                sx={{
+                  position: "relative",
+                  width: "100%",
+                  height: "100%",
+                  cursor: isMagnified ? "zoom-out" : "zoom-in",
+                }}
+                onMouseEnter={() => setIsMagnified(true)}
+                onMouseLeave={() => setIsMagnified(false)}
+                onMouseMove={handleMouseMove}
+              >
+                <Image
+                  src={getCurrentImage().src}
+                  alt={getCurrentImage().alt}
+                  fill
+                  style={{ objectFit: "cover" }}
+                />
+
+                {/* Magnification Overlay */}
+                {isMagnified && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: "100%",
+                      background: `url(${getCurrentImage().src})`,
+                      backgroundSize: "300%",
+                      backgroundPosition: `${magnifierPosition.x}% ${magnifierPosition.y}%`,
+                      pointerEvents: "none",
+                      zIndex: 2,
+                    }}
+                  />
+                )}
+              </Box>
+            </Box>
+
+            {/* Thumbnail Gallery */}
+            <Box sx={{ mb: 3 }}>
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  fontWeight: 600,
+                  color: "#333",
+                  mb: 2,
+                  fontSize: "14px",
+                }}
+              >
+                Product Images ({getProductImages().length})
+              </Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 1.5,
+                  overflowX: "auto",
+                  pb: 1,
+                  "&::-webkit-scrollbar": {
+                    height: "8px",
+                  },
+                  "&::-webkit-scrollbar-track": {
+                    background: "#f5f5f5",
+                    borderRadius: "4px",
+                  },
+                  "&::-webkit-scrollbar-thumb": {
+                    background: "#c1c1c1",
+                    borderRadius: "4px",
+                    "&:hover": {
+                      background: "#a8a8a8",
+                    },
+                  },
+                }}
+              >
+                {getProductImages().map((image, index) => (
+                  <Box
+                    key={index}
+                    onClick={() => handleImageSelect(index)}
+                    sx={{
+                      position: "relative",
+                      minWidth: 90,
+                      height: 90,
+                      borderRadius: "12px",
+                      overflow: "hidden",
+                      cursor: "pointer",
+                      border:
+                        selectedImageIndex === index
+                          ? "3px solid #ff6b35"
+                          : "2px solid #e0e0e0",
+                      transition: "all 0.3s ease",
+                      boxShadow:
+                        selectedImageIndex === index
+                          ? "0 4px 20px rgba(255, 107, 53, 0.3)"
+                          : "0 2px 8px rgba(0, 0, 0, 0.1)",
+                      "&:hover": {
+                        borderColor: "#ff6b35",
+                        transform: "scale(1.08)",
+                        boxShadow: "0 6px 25px rgba(255, 107, 53, 0.2)",
+                      },
+                    }}
+                  >
+                    <Image
+                      src={image.src}
+                      alt={image.alt}
+                      fill
+                      style={{ objectFit: "cover" }}
+                    />
+
+                    {/* Image Type Badge */}
+                    {image.type === "banner" && (
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          top: 6,
+                          left: 6,
+                          backgroundColor: "rgba(255, 107, 53, 0.95)",
+                          color: "white",
+                          fontSize: "11px",
+                          fontWeight: 600,
+                          px: 1.5,
+                          py: 0.5,
+                          borderRadius: "6px",
+                          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
+                        }}
+                      >
+                        Main
+                      </Box>
+                    )}
+                  </Box>
+                ))}
+              </Box>
             </Box>
 
             {/* Three Tabs Container */}

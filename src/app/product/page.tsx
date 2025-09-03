@@ -1,5 +1,5 @@
-"use client"
-import React, { useState } from "react"
+"use client";
+import React, { useState } from "react";
 import {
   Box,
   Typography,
@@ -13,95 +13,112 @@ import {
   AccordionDetails,
   Chip,
   Snackbar,
-} from "@mui/material"
-import { ExpandMore, Favorite, FavoriteBorder } from "@mui/icons-material"
-import { useProductListing } from "@/api/handlers"
-import { useAppStore } from "@/store/use-app-store"
-import { useRouter, useSearchParams } from "next/navigation"
-import { useWishlist, useAddToWishlist, useRemoveFromWishlist, useFilters } from "@/api/handlers"
-import type { Product } from "@/api/services"
-import Image from "next/image"
-import ShimmerLoader from "@/components/ShimmerLoader"
-import FilterShimmerLoader from "@/components/FilterShimmerLoader"
-import ContactFormModal from "@/components/ContactFormModal"
-import RFQModal from "@/components/RFQModal"
+} from "@mui/material";
+import { ExpandMore, Favorite, FavoriteBorder } from "@mui/icons-material";
+import { useProductListing } from "@/api/handlers";
+import { useAppStore } from "@/store/use-app-store";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  useWishlist,
+  useAddToWishlist,
+  useRemoveFromWishlist,
+  useFilters,
+} from "@/api/handlers";
+import type { Product } from "@/api/services";
+import Image from "next/image";
+import ShimmerLoader from "@/components/ShimmerLoader";
+import FilterShimmerLoader from "@/components/FilterShimmerLoader";
+import ContactFormModal from "@/components/ContactFormModal";
+import RFQModal from "@/components/RFQModal";
 
 const ProductPage: React.FC = () => {
-  const [page, setPage] = React.useState(1)
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const { customer, isAuthenticated } = useAppStore()
+  const [page, setPage] = React.useState(1);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { customer, isAuthenticated } = useAppStore();
 
   // Get filters from URL
-  const categoryFilter = searchParams.get("category")
-  const countryFilter = searchParams.get("country")
+  const categoryFilter = searchParams.get("category");
+  const countryFilter = searchParams.get("country");
 
   // Snackbar state for feedback
-  const [snackbarOpen, setSnackbarOpen] = React.useState(false)
-  const [snackbarMessage, setSnackbarMessage] = React.useState("")
+  const [snackbarOpen, setSnackbarOpen] = React.useState(false);
+  const [snackbarMessage, setSnackbarMessage] = React.useState("");
 
   // Contact form modal state
-  const [contactModalOpen, setContactModalOpen] = React.useState(false)
+  const [contactModalOpen, setContactModalOpen] = React.useState(false);
 
   // RFQ modal state
-  const [rfqModalOpen, setRfqModalOpen] = React.useState(false)
+  const [rfqModalOpen, setRfqModalOpen] = React.useState(false);
   const [selectedProduct, setSelectedProduct] = React.useState<{
-    id: string
-    name: string
-  } | null>(null)
+    id: string;
+    name: string;
+  } | null>(null);
 
   // Selected filters state - initialize from URL params
-  const [selectedCategories, setSelectedCategories] = React.useState<string[]>(categoryFilter ? [categoryFilter] : [])
-  const [selectedSubCategories, setSelectedSubCategories] = React.useState<string[]>([])
-  const [selectedApplications, setSelectedApplications] = React.useState<string[]>([])
-  const [selectedTags, setSelectedTags] = React.useState<string[]>([])
-  const [selectedFunctions, setSelectedFunctions] = React.useState<string[]>([])
-  const [selectedCountries, setSelectedCountries] = React.useState<string[]>(countryFilter ? [countryFilter] : [])
+  const [selectedCategories, setSelectedCategories] = React.useState<string[]>(
+    categoryFilter ? [categoryFilter] : []
+  );
+  const [selectedSubCategories, setSelectedSubCategories] = React.useState<
+    string[]
+  >([]);
+  const [selectedApplications, setSelectedApplications] = React.useState<
+    string[]
+  >([]);
+  const [selectedTags, setSelectedTags] = React.useState<string[]>([]);
+  const [selectedFunctions, setSelectedFunctions] = React.useState<string[]>(
+    []
+  );
+  const [selectedCountries, setSelectedCountries] = React.useState<string[]>(
+    countryFilter ? [countryFilter] : []
+  );
   // Add this state for accordion management
-  const [expandedAccordion, setExpandedAccordion] = useState(null)
+  const [expandedAccordion, setExpandedAccordion] = useState(null);
 
   // Add this function to handle accordion changes
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleAccordionChange = (panel:any) => {
-    setExpandedAccordion(expandedAccordion === panel ? null : panel)
-  }
+  const handleAccordionChange = (panel: any) => {
+    setExpandedAccordion(expandedAccordion === panel ? null : panel);
+  };
 
   // Update URL when filters change
   const updateURL = React.useCallback(
     (categories: string[], countries: string[]) => {
-      const params = new URLSearchParams()
+      const params = new URLSearchParams();
       if (categories.length > 0) {
-        params.set("category", categories[0])
+        params.set("category", categories[0]);
       }
       if (countries.length > 0) {
-        params.set("country", countries[0])
+        params.set("country", countries[0]);
       }
 
-      const newURL = params.toString() ? `/product?${params.toString()}` : "/product"
-      router.replace(newURL, { scroll: false })
+      const newURL = params.toString()
+        ? `/product?${params.toString()}`
+        : "/product";
+      router.replace(newURL, { scroll: false });
     },
-    [router],
-  )
+    [router]
+  );
 
   // Sync URL parameters with state when URL changes
   React.useEffect(() => {
-    const newCategories = categoryFilter ? [categoryFilter] : []
-    const newCountries = countryFilter ? [countryFilter] : []
+    const newCategories = categoryFilter ? [categoryFilter] : [];
+    const newCountries = countryFilter ? [countryFilter] : [];
 
-    setSelectedCategories(newCategories)
-    setSelectedCountries(newCountries)
-  }, [categoryFilter, countryFilter])
+    setSelectedCategories(newCategories);
+    setSelectedCountries(newCountries);
+  }, [categoryFilter, countryFilter]);
 
   // Wishlist hooks
   const { data: wishlistData } = useWishlist(
     { customerId: customer?.id || "" },
-    { enabled: isAuthenticated && !!customer?.id },
-  )
-  const addToWishlistMutation = useAddToWishlist()
-  const removeFromWishlistMutation = useRemoveFromWishlist()
+    { enabled: isAuthenticated && !!customer?.id }
+  );
+  const addToWishlistMutation = useAddToWishlist();
+  const removeFromWishlistMutation = useRemoveFromWishlist();
 
   // Filters data
-  const { data: filtersData, isLoading: filtersLoading } = useFilters()
+  const { data: filtersData, isLoading: filtersLoading } = useFilters();
 
   const {
     data: response,
@@ -114,152 +131,179 @@ const ProductPage: React.FC = () => {
     sortBy: "createdAt",
     sortOrder: "desc",
     category: selectedCategories.length > 0 ? selectedCategories[0] : undefined,
-    subCategory: selectedSubCategories.length > 0 ? selectedSubCategories : undefined,
-    application: selectedApplications.length > 0 ? selectedApplications : undefined,
+    subCategory:
+      selectedSubCategories.length > 0 ? selectedSubCategories : undefined,
+    application:
+      selectedApplications.length > 0 ? selectedApplications : undefined,
     tag: selectedTags.length > 0 ? selectedTags : undefined,
     function: selectedFunctions.length > 0 ? selectedFunctions : undefined,
-    countryOfOrigin: selectedCountries.length > 0 ? selectedCountries[0] : undefined,
-  })
+    countryOfOrigin:
+      selectedCountries.length > 0 ? selectedCountries[0] : undefined,
+  });
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    setPage(value)
-  }
+  const handlePageChange = (
+    event: React.ChangeEvent<unknown>,
+    value: number
+  ) => {
+    setPage(value);
+  };
 
   // Filter handling functions
   const handleCategoryFilter = (categorySlug: string, checked: boolean) => {
-    const newCategories = checked ? [categorySlug] : []
-    setSelectedCategories(newCategories)
-    setPage(1) // Reset to first page when filter changes
-    updateURL(newCategories, selectedCountries)
-  }
+    const newCategories = checked ? [categorySlug] : [];
+    setSelectedCategories(newCategories);
+    setPage(1); // Reset to first page when filter changes
+    updateURL(newCategories, selectedCountries);
+  };
 
-  const handleSubCategoryFilter = (subCategorySlug: string, checked: boolean) => {
+  const handleSubCategoryFilter = (
+    subCategorySlug: string,
+    checked: boolean
+  ) => {
     const newSubCategories = checked
       ? [...selectedSubCategories, subCategorySlug]
-      : selectedSubCategories.filter((slug) => slug !== subCategorySlug)
-    setSelectedSubCategories(newSubCategories)
-    setPage(1)
-  }
+      : selectedSubCategories.filter((slug) => slug !== subCategorySlug);
+    setSelectedSubCategories(newSubCategories);
+    setPage(1);
+  };
 
-  const handleApplicationFilter = (applicationSlug: string, checked: boolean) => {
+  const handleApplicationFilter = (
+    applicationSlug: string,
+    checked: boolean
+  ) => {
     const newApplications = checked
       ? [...selectedApplications, applicationSlug]
-      : selectedApplications.filter((slug) => slug !== applicationSlug)
-    setSelectedApplications(newApplications)
-    setPage(1)
-  }
+      : selectedApplications.filter((slug) => slug !== applicationSlug);
+    setSelectedApplications(newApplications);
+    setPage(1);
+  };
 
   const handleTagFilter = (tagSlug: string, checked: boolean) => {
-    const newTags = checked ? [...selectedTags, tagSlug] : selectedTags.filter((slug) => slug !== tagSlug)
-    setSelectedTags(newTags)
-    setPage(1)
-  }
+    const newTags = checked
+      ? [...selectedTags, tagSlug]
+      : selectedTags.filter((slug) => slug !== tagSlug);
+    setSelectedTags(newTags);
+    setPage(1);
+  };
 
   const handleFunctionFilter = (functionSlug: string, checked: boolean) => {
     const newFunctions = checked
       ? [...selectedFunctions, functionSlug]
-      : selectedFunctions.filter((slug) => slug !== functionSlug)
-    setSelectedFunctions(newFunctions)
-    setPage(1)
-  }
+      : selectedFunctions.filter((slug) => slug !== functionSlug);
+    setSelectedFunctions(newFunctions);
+    setPage(1);
+  };
 
   const handleCountryFilter = (countryCode: string, checked: boolean) => {
-    const newCountries = checked ? [countryCode] : []
-    setSelectedCountries(newCountries)
-    setPage(1) // Reset to first page when filter changes
-    updateURL(selectedCategories, newCountries)
-  }
+    const newCountries = checked ? [countryCode] : [];
+    setSelectedCountries(newCountries);
+    setPage(1); // Reset to first page when filter changes
+    updateURL(selectedCategories, newCountries);
+  };
 
   const clearAllFilters = () => {
-    setSelectedCategories([])
-    setSelectedSubCategories([])
-    setSelectedApplications([])
-    setSelectedTags([])
-    setSelectedFunctions([])
-    setSelectedCountries([])
-    setPage(1)
-    updateURL([], [])
-  }
+    setSelectedCategories([]);
+    setSelectedSubCategories([]);
+    setSelectedApplications([]);
+    setSelectedTags([]);
+    setSelectedFunctions([]);
+    setSelectedCountries([]);
+    setPage(1);
+    updateURL([], []);
+  };
 
   const getProductImage = (product: Product) => {
     if (product.bannerImage) {
       return product.bannerImage.startsWith("http")
         ? product.bannerImage
-        : `${process.env.NEXT_PUBLIC_API_URL}/${product.bannerImage}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/${product.bannerImage}`;
     }
     if (product.images && product.images.length > 0) {
-      const firstImage = product.images[0]
-      return firstImage.startsWith("http") ? firstImage : `${process.env.NEXT_PUBLIC_API_URL}/${firstImage}`
+      const firstImage = product.images[0];
+      return firstImage.startsWith("http")
+        ? firstImage
+        : `${process.env.NEXT_PUBLIC_API_URL}/${firstImage}`;
     }
-    return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-74QCQcvTRt24IoUWE9VvnZptqiMfUS.png"
-  }
+    return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-74QCQcvTRt24IoUWE9VvnZptqiMfUS.png";
+  };
 
   // Check if product is in wishlist
   const isInWishlist = (productId: string): boolean => {
-    if (!wishlistData?.data?.products) return false
-    return wishlistData.data.products.some((product) => product._id === productId)
-  }
+    if (!wishlistData?.data?.products) return false;
+    return wishlistData.data.products.some(
+      (product) => product._id === productId
+    );
+  };
 
   // Handle wishlist toggle
-  const handleWishlistToggle = async (productId: string, event: React.MouseEvent) => {
-    event.stopPropagation()
+  const handleWishlistToggle = async (
+    productId: string,
+    event: React.MouseEvent
+  ) => {
+    event.stopPropagation();
 
     // Check if user is authenticated
     if (!isAuthenticated || !customer?.id) {
       // Redirect to login page
-      router.push("/sign_in")
-      return
+      router.push("/sign_in");
+      return;
     }
 
-    const isCurrentlyInWishlist = isInWishlist(productId)
+    const isCurrentlyInWishlist = isInWishlist(productId);
     try {
       if (isCurrentlyInWishlist) {
         await removeFromWishlistMutation.mutateAsync({
           customerId: customer.id,
           productId,
-        })
-        setSnackbarMessage("Product removed from wishlist successfully!")
-        setSnackbarOpen(true)
+        });
+        setSnackbarMessage("Product removed from wishlist successfully!");
+        setSnackbarOpen(true);
       } else {
         await addToWishlistMutation.mutateAsync({
           customerId: customer.id,
           productId,
-        })
-        setSnackbarMessage("Product added to wishlist successfully!")
-        setSnackbarOpen(true)
+        });
+        setSnackbarMessage("Product added to wishlist successfully!");
+        setSnackbarOpen(true);
       }
     } catch (error) {
-      console.error("Wishlist operation failed:", error)
-      setSnackbarMessage("Failed to update wishlist. Please try again.")
-      setSnackbarOpen(true)
+      console.error("Wishlist operation failed:", error);
+      setSnackbarMessage("Failed to update wishlist. Please try again.");
+      setSnackbarOpen(true);
     }
-  }
+  };
 
   if (filtersLoading) {
     return (
-      <Container maxWidth="xl" sx={{ py: 4, display: "flex", justifyContent: "center" }}>
+      <Container
+        maxWidth="xl"
+        sx={{ py: 4, display: "flex", justifyContent: "center" }}
+      >
         <CircularProgress />
       </Container>
-    )
+    );
   }
 
   if (isError) {
     return (
       <Container maxWidth="xl" sx={{ py: 4 }}>
         <Alert severity="error">
-          Error loading products: {error instanceof Error ? error.message : "Something went wrong"}
+          Error loading products:{" "}
+          {error instanceof Error ? error.message : "Something went wrong"}
         </Alert>
       </Container>
-    )
+    );
   }
 
-  const products = response?.products || []
-  const pagination = response?.pagination
+  const products = response?.products || [];
+  const pagination = response?.pagination;
 
   // Remove the static filterSections array as we'll use dynamic data
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", backgroundColor: "#f8f9fa" }}>
+    <Box
+      sx={{ display: "flex", minHeight: "100vh", backgroundColor: "#f8f9fa" }}
+    >
       {/* Left Sidebar - Filters */}
       <Box
         sx={{
@@ -298,7 +342,9 @@ const ProductPage: React.FC = () => {
               justifyContent: "center",
             }}
           >
-            <Typography sx={{ fontSize: "12px", fontWeight: 600 }}>×</Typography>
+            <Typography sx={{ fontSize: "12px", fontWeight: 600 }}>
+              ×
+            </Typography>
           </Box>
         </Box>
         {/* Filter Sections */}
@@ -332,382 +378,424 @@ const ProductPage: React.FC = () => {
           ) : (
             <>
               {/* Category Filter */}
-              {filtersData?.data?.category && filtersData.data.category.length > 0 && (
-                <Accordion
-                  expanded={expandedAccordion === "category"}
-                  onChange={() => handleAccordionChange("category")}
-                  sx={{
-                    boxShadow: "none",
-                    "&:before": { display: "none" },
-                    backgroundColor: "rgba(217, 217, 217, 0.21)",
-                    marginBottom: "5px",
-                  }}
-                >
-                  <AccordionSummary
-                    expandIcon={<ExpandMore sx={{ color: "#666" }} />}
+              {filtersData?.data?.category &&
+                filtersData.data.category.length > 0 && (
+                  <Accordion
+                    expanded={expandedAccordion === "category"}
+                    onChange={() => handleAccordionChange("category")}
                     sx={{
-                      minHeight: 48,
-                      px: 2,
-                      py: 1,
-                      "&.Mui-expanded": {
-                        minHeight: 48,
-                      },
-                      "& .MuiAccordionSummary-content": {
-                        margin: "8px 0",
-                        "&.Mui-expanded": {
-                          margin: "8px 0",
-                        },
-                      },
+                      boxShadow: "none",
+                      "&:before": { display: "none" },
+                      backgroundColor: "rgba(217, 217, 217, 0.21)",
+                      marginBottom: "5px",
                     }}
                   >
-                    <Typography
+                    <AccordionSummary
+                      expandIcon={<ExpandMore sx={{ color: "#666" }} />}
                       sx={{
-                        fontSize: "14px",
-                        fontWeight: 500,
-                        color: "#333",
-                      }}
-                    >
-                      Category
-                    </Typography>
-                  </AccordionSummary>
-                  <AccordionDetails sx={{ px: 2, py: 1 }}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 1,
-                        maxHeight: "200px",
-                        overflowY: "auto",
-                        overflowX: "hidden",
-                        // Custom scrollbar styling
-                        "&::-webkit-scrollbar": {
-                          width: "6px",
+                        minHeight: 48,
+                        px: 2,
+                        py: 1,
+                        "&.Mui-expanded": {
+                          minHeight: 48,
                         },
-                        "&::-webkit-scrollbar-track": {
-                          background: "rgba(0,0,0,0.05)",
-                          borderRadius: "3px",
-                        },
-                        "&::-webkit-scrollbar-thumb": {
-                          background: "rgba(0,0,0,0.2)",
-                          borderRadius: "3px",
-                          "&:hover": {
-                            background: "rgba(0,0,0,0.4)",
+                        "& .MuiAccordionSummary-content": {
+                          margin: "8px 0",
+                          "&.Mui-expanded": {
+                            margin: "8px 0",
                           },
                         },
-                        // For Firefox
-                        scrollbarWidth: "thin",
-                        scrollbarColor: "rgba(0,0,0,0.2) rgba(0,0,0,0.05)",
                       }}
                     >
-                      {filtersData.data.category.map((category) => (
-                        <Box
-                          key={category.id}
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                            cursor: "pointer",
-                          }}
-                          onClick={() =>
-                            handleCategoryFilter(category.slug, !selectedCategories.includes(category.slug))
-                          }
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedCategories.includes(category.slug)}
-                            onChange={() => {}}
-                            style={{ cursor: "pointer" }}
-                          />
-                          <Typography sx={{ fontSize: "12px", color: "#666" }}>{category.name}</Typography>
-                        </Box>
-                      ))}
-                    </Box>
-                  </AccordionDetails>
-                </Accordion>
-              )}
+                      <Typography
+                        sx={{
+                          fontSize: "14px",
+                          fontWeight: 500,
+                          color: "#333",
+                        }}
+                      >
+                        Category
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ px: 2, py: 1 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 1,
+                          maxHeight: "200px",
+                          overflowY: "auto",
+                          overflowX: "hidden",
+                          // Custom scrollbar styling
+                          "&::-webkit-scrollbar": {
+                            width: "6px",
+                          },
+                          "&::-webkit-scrollbar-track": {
+                            background: "rgba(0,0,0,0.05)",
+                            borderRadius: "3px",
+                          },
+                          "&::-webkit-scrollbar-thumb": {
+                            background: "rgba(0,0,0,0.2)",
+                            borderRadius: "3px",
+                            "&:hover": {
+                              background: "rgba(0,0,0,0.4)",
+                            },
+                          },
+                          // For Firefox
+                          scrollbarWidth: "thin",
+                          scrollbarColor: "rgba(0,0,0,0.2) rgba(0,0,0,0.05)",
+                        }}
+                      >
+                        {filtersData.data.category.map((category) => (
+                          <Box
+                            key={category.id}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                              cursor: "pointer",
+                            }}
+                            onClick={() =>
+                              handleCategoryFilter(
+                                category.slug,
+                                !selectedCategories.includes(category.slug)
+                              )
+                            }
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedCategories.includes(
+                                category.slug
+                              )}
+                              onChange={() => {}}
+                              style={{ cursor: "pointer" }}
+                            />
+                            <Typography
+                              sx={{ fontSize: "12px", color: "#666" }}
+                            >
+                              {category.name}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    </AccordionDetails>
+                  </Accordion>
+                )}
 
               {/* Sub Category Filter */}
-              {filtersData?.data?.subCategory && filtersData.data.subCategory.length > 0 && (
-                <Accordion
-                  expanded={expandedAccordion === "subCategory"}
-                  onChange={() => handleAccordionChange("subCategory")}
-                  sx={{
-                    boxShadow: "none",
-                    "&:before": { display: "none" },
-                    backgroundColor: "rgba(217, 217, 217, 0.21)",
-                    marginBottom: "5px",
-                  }}
-                >
-                  <AccordionSummary
-                    expandIcon={<ExpandMore sx={{ color: "#666" }} />}
+              {filtersData?.data?.subCategory &&
+                filtersData.data.subCategory.length > 0 && (
+                  <Accordion
+                    expanded={expandedAccordion === "subCategory"}
+                    onChange={() => handleAccordionChange("subCategory")}
                     sx={{
-                      minHeight: 48,
-                      px: 2,
-                      py: 1,
-                      "&.Mui-expanded": {
-                        minHeight: 48,
-                      },
-                      "& .MuiAccordionSummary-content": {
-                        margin: "8px 0",
-                        "&.Mui-expanded": {
-                          margin: "8px 0",
-                        },
-                      },
+                      boxShadow: "none",
+                      "&:before": { display: "none" },
+                      backgroundColor: "rgba(217, 217, 217, 0.21)",
+                      marginBottom: "5px",
                     }}
                   >
-                    <Typography
+                    <AccordionSummary
+                      expandIcon={<ExpandMore sx={{ color: "#666" }} />}
                       sx={{
-                        fontSize: "14px",
-                        fontWeight: 500,
-                        color: "#333",
-                      }}
-                    >
-                      Sub Category
-                    </Typography>
-                  </AccordionSummary>
-                  <AccordionDetails sx={{ px: 2, py: 1 }}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 1,
-                        maxHeight: "200px",
-                        overflowY: "auto",
-                        overflowX: "hidden",
-                        // Custom scrollbar styling
-                        "&::-webkit-scrollbar": {
-                          width: "6px",
+                        minHeight: 48,
+                        px: 2,
+                        py: 1,
+                        "&.Mui-expanded": {
+                          minHeight: 48,
                         },
-                        "&::-webkit-scrollbar-track": {
-                          background: "rgba(0,0,0,0.05)",
-                          borderRadius: "3px",
-                        },
-                        "&::-webkit-scrollbar-thumb": {
-                          background: "rgba(0,0,0,0.2)",
-                          borderRadius: "3px",
-                          "&:hover": {
-                            background: "rgba(0,0,0,0.4)",
+                        "& .MuiAccordionSummary-content": {
+                          margin: "8px 0",
+                          "&.Mui-expanded": {
+                            margin: "8px 0",
                           },
                         },
-                        // For Firefox
-                        scrollbarWidth: "thin",
-                        scrollbarColor: "rgba(0,0,0,0.2) rgba(0,0,0,0.05)",
                       }}
                     >
-                      {filtersData.data.subCategory.map((subCategory) => (
-                        <Box
-                          key={subCategory.id}
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                            cursor: "pointer",
-                          }}
-                          onClick={() =>
-                            handleSubCategoryFilter(subCategory.slug, !selectedSubCategories.includes(subCategory.slug))
-                          }
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedSubCategories.includes(subCategory.slug)}
-                            onChange={() => {}}
-                            style={{ cursor: "pointer" }}
-                          />
-                          <Typography sx={{ fontSize: "12px", color: "#666" }}>{subCategory.name}</Typography>
-                        </Box>
-                      ))}
-                    </Box>
-                  </AccordionDetails>
-                </Accordion>
-              )}
+                      <Typography
+                        sx={{
+                          fontSize: "14px",
+                          fontWeight: 500,
+                          color: "#333",
+                        }}
+                      >
+                        Sub Category
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ px: 2, py: 1 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 1,
+                          maxHeight: "200px",
+                          overflowY: "auto",
+                          overflowX: "hidden",
+                          // Custom scrollbar styling
+                          "&::-webkit-scrollbar": {
+                            width: "6px",
+                          },
+                          "&::-webkit-scrollbar-track": {
+                            background: "rgba(0,0,0,0.05)",
+                            borderRadius: "3px",
+                          },
+                          "&::-webkit-scrollbar-thumb": {
+                            background: "rgba(0,0,0,0.2)",
+                            borderRadius: "3px",
+                            "&:hover": {
+                              background: "rgba(0,0,0,0.4)",
+                            },
+                          },
+                          // For Firefox
+                          scrollbarWidth: "thin",
+                          scrollbarColor: "rgba(0,0,0,0.2) rgba(0,0,0,0.05)",
+                        }}
+                      >
+                        {filtersData.data.subCategory.map((subCategory) => (
+                          <Box
+                            key={subCategory.id}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                              cursor: "pointer",
+                            }}
+                            onClick={() =>
+                              handleSubCategoryFilter(
+                                subCategory.slug,
+                                !selectedSubCategories.includes(
+                                  subCategory.slug
+                                )
+                              )
+                            }
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedSubCategories.includes(
+                                subCategory.slug
+                              )}
+                              onChange={() => {}}
+                              style={{ cursor: "pointer" }}
+                            />
+                            <Typography
+                              sx={{ fontSize: "12px", color: "#666" }}
+                            >
+                              {subCategory.name}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    </AccordionDetails>
+                  </Accordion>
+                )}
 
               {/* Application Filter */}
-              {filtersData?.data?.application && filtersData.data.application.length > 0 && (
-                <Accordion
-                  expanded={expandedAccordion === "application"}
-                  onChange={() => handleAccordionChange("application")}
-                  sx={{
-                    boxShadow: "none",
-                    "&:before": { display: "none" },
-                    backgroundColor: "rgba(217, 217, 217, 0.21)",
-                    marginBottom: "5px",
-                  }}
-                >
-                  <AccordionSummary
-                    expandIcon={<ExpandMore sx={{ color: "#666" }} />}
+              {filtersData?.data?.application &&
+                filtersData.data.application.length > 0 && (
+                  <Accordion
+                    expanded={expandedAccordion === "application"}
+                    onChange={() => handleAccordionChange("application")}
                     sx={{
-                      minHeight: 48,
-                      px: 2,
-                      py: 1,
-                      "&.Mui-expanded": {
-                        minHeight: 48,
-                      },
-                      "& .MuiAccordionSummary-content": {
-                        margin: "8px 0",
-                        "&.Mui-expanded": {
-                          margin: "8px 0",
-                        },
-                      },
+                      boxShadow: "none",
+                      "&:before": { display: "none" },
+                      backgroundColor: "rgba(217, 217, 217, 0.21)",
+                      marginBottom: "5px",
                     }}
                   >
-                    <Typography
+                    <AccordionSummary
+                      expandIcon={<ExpandMore sx={{ color: "#666" }} />}
                       sx={{
-                        fontSize: "14px",
-                        fontWeight: 500,
-                        color: "#333",
-                      }}
-                    >
-                      Application
-                    </Typography>
-                  </AccordionSummary>
-                  <AccordionDetails sx={{ px: 2, py: 1 }}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 1,
-                        maxHeight: "200px",
-                        overflowY: "auto",
-                        overflowX: "hidden",
-                        // Custom scrollbar styling
-                        "&::-webkit-scrollbar": {
-                          width: "6px",
+                        minHeight: 48,
+                        px: 2,
+                        py: 1,
+                        "&.Mui-expanded": {
+                          minHeight: 48,
                         },
-                        "&::-webkit-scrollbar-track": {
-                          background: "rgba(0,0,0,0.05)",
-                          borderRadius: "3px",
-                        },
-                        "&::-webkit-scrollbar-thumb": {
-                          background: "rgba(0,0,0,0.2)",
-                          borderRadius: "3px",
-                          "&:hover": {
-                            background: "rgba(0,0,0,0.4)",
+                        "& .MuiAccordionSummary-content": {
+                          margin: "8px 0",
+                          "&.Mui-expanded": {
+                            margin: "8px 0",
                           },
                         },
-                        // For Firefox
-                        scrollbarWidth: "thin",
-                        scrollbarColor: "rgba(0,0,0,0.2) rgba(0,0,0,0.05)",
                       }}
                     >
-                      {filtersData.data.application.map((application) => (
-                        <Box
-                          key={application.id}
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                            cursor: "pointer",
-                          }}
-                          onClick={() =>
-                            handleApplicationFilter(application.slug, !selectedApplications.includes(application.slug))
-                          }
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedApplications.includes(application.slug)}
-                            onChange={() => {}}
-                            style={{ cursor: "pointer" }}
-                          />
-                          <Typography sx={{ fontSize: "12px", color: "#666" }}>{application.name}</Typography>
-                        </Box>
-                      ))}
-                    </Box>
-                  </AccordionDetails>
-                </Accordion>
-              )}
+                      <Typography
+                        sx={{
+                          fontSize: "14px",
+                          fontWeight: 500,
+                          color: "#333",
+                        }}
+                      >
+                        Application
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ px: 2, py: 1 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 1,
+                          maxHeight: "200px",
+                          overflowY: "auto",
+                          overflowX: "hidden",
+                          // Custom scrollbar styling
+                          "&::-webkit-scrollbar": {
+                            width: "6px",
+                          },
+                          "&::-webkit-scrollbar-track": {
+                            background: "rgba(0,0,0,0.05)",
+                            borderRadius: "3px",
+                          },
+                          "&::-webkit-scrollbar-thumb": {
+                            background: "rgba(0,0,0,0.2)",
+                            borderRadius: "3px",
+                            "&:hover": {
+                              background: "rgba(0,0,0,0.4)",
+                            },
+                          },
+                          // For Firefox
+                          scrollbarWidth: "thin",
+                          scrollbarColor: "rgba(0,0,0,0.2) rgba(0,0,0,0.05)",
+                        }}
+                      >
+                        {filtersData.data.application.map((application) => (
+                          <Box
+                            key={application.id}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                              cursor: "pointer",
+                            }}
+                            onClick={() =>
+                              handleApplicationFilter(
+                                application.slug,
+                                !selectedApplications.includes(application.slug)
+                              )
+                            }
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedApplications.includes(
+                                application.slug
+                              )}
+                              onChange={() => {}}
+                              style={{ cursor: "pointer" }}
+                            />
+                            <Typography
+                              sx={{ fontSize: "12px", color: "#666" }}
+                            >
+                              {application.name}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    </AccordionDetails>
+                  </Accordion>
+                )}
 
               {/* Function Filter */}
-              {filtersData?.data?.function && filtersData.data.function.length > 0 && (
-                <Accordion
-                  expanded={expandedAccordion === "function"}
-                  onChange={() => handleAccordionChange("function")}
-                  sx={{
-                    boxShadow: "none",
-                    "&:before": { display: "none" },
-                    backgroundColor: "rgba(217, 217, 217, 0.21)",
-                    marginBottom: "5px",
-                  }}
-                >
-                  <AccordionSummary
-                    expandIcon={<ExpandMore sx={{ color: "#666" }} />}
+              {filtersData?.data?.function &&
+                filtersData.data.function.length > 0 && (
+                  <Accordion
+                    expanded={expandedAccordion === "function"}
+                    onChange={() => handleAccordionChange("function")}
                     sx={{
-                      minHeight: 48,
-                      px: 2,
-                      py: 1,
-                      "&.Mui-expanded": {
-                        minHeight: 48,
-                      },
-                      "& .MuiAccordionSummary-content": {
-                        margin: "8px 0",
-                        "&.Mui-expanded": {
-                          margin: "8px 0",
-                        },
-                      },
+                      boxShadow: "none",
+                      "&:before": { display: "none" },
+                      backgroundColor: "rgba(217, 217, 217, 0.21)",
+                      marginBottom: "5px",
                     }}
                   >
-                    <Typography
+                    <AccordionSummary
+                      expandIcon={<ExpandMore sx={{ color: "#666" }} />}
                       sx={{
-                        fontSize: "14px",
-                        fontWeight: 500,
-                        color: "#333",
-                      }}
-                    >
-                      Function
-                    </Typography>
-                  </AccordionSummary>
-                  <AccordionDetails sx={{ px: 2, py: 1 }}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 1,
-                        maxHeight: "200px",
-                        overflowY: "auto",
-                        overflowX: "hidden",
-                        // Custom scrollbar styling
-                        "&::-webkit-scrollbar": {
-                          width: "6px",
+                        minHeight: 48,
+                        px: 2,
+                        py: 1,
+                        "&.Mui-expanded": {
+                          minHeight: 48,
                         },
-                        "&::-webkit-scrollbar-track": {
-                          background: "rgba(0,0,0,0.05)",
-                          borderRadius: "3px",
-                        },
-                        "&::-webkit-scrollbar-thumb": {
-                          background: "rgba(0,0,0,0.2)",
-                          borderRadius: "3px",
-                          "&:hover": {
-                            background: "rgba(0,0,0,0.4)",
+                        "& .MuiAccordionSummary-content": {
+                          margin: "8px 0",
+                          "&.Mui-expanded": {
+                            margin: "8px 0",
                           },
                         },
-                        // For Firefox
-                        scrollbarWidth: "thin",
-                        scrollbarColor: "rgba(0,0,0,0.2) rgba(0,0,0,0.05)",
                       }}
                     >
-                      {filtersData.data.function.map((func) => (
-                        <Box
-                          key={func.id}
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                            cursor: "pointer",
-                          }}
-                          onClick={() => handleFunctionFilter(func.slug, !selectedFunctions.includes(func.slug))}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedFunctions.includes(func.slug)}
-                            onChange={() => {}}
-                            style={{ cursor: "pointer" }}
-                          />
-                          <Typography sx={{ fontSize: "12px", color: "#666" }}>{func.name}</Typography>
-                        </Box>
-                      ))}
-                    </Box>
-                  </AccordionDetails>
-                </Accordion>
-              )}
+                      <Typography
+                        sx={{
+                          fontSize: "14px",
+                          fontWeight: 500,
+                          color: "#333",
+                        }}
+                      >
+                        Function
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ px: 2, py: 1 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 1,
+                          maxHeight: "200px",
+                          overflowY: "auto",
+                          overflowX: "hidden",
+                          // Custom scrollbar styling
+                          "&::-webkit-scrollbar": {
+                            width: "6px",
+                          },
+                          "&::-webkit-scrollbar-track": {
+                            background: "rgba(0,0,0,0.05)",
+                            borderRadius: "3px",
+                          },
+                          "&::-webkit-scrollbar-thumb": {
+                            background: "rgba(0,0,0,0.2)",
+                            borderRadius: "3px",
+                            "&:hover": {
+                              background: "rgba(0,0,0,0.4)",
+                            },
+                          },
+                          // For Firefox
+                          scrollbarWidth: "thin",
+                          scrollbarColor: "rgba(0,0,0,0.2) rgba(0,0,0,0.05)",
+                        }}
+                      >
+                        {filtersData.data.function.map((func) => (
+                          <Box
+                            key={func.id}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                              cursor: "pointer",
+                            }}
+                            onClick={() =>
+                              handleFunctionFilter(
+                                func.slug,
+                                !selectedFunctions.includes(func.slug)
+                              )
+                            }
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedFunctions.includes(func.slug)}
+                              onChange={() => {}}
+                              style={{ cursor: "pointer" }}
+                            />
+                            <Typography
+                              sx={{ fontSize: "12px", color: "#666" }}
+                            >
+                              {func.name}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    </AccordionDetails>
+                  </Accordion>
+                )}
 
               {/* Tag Filter */}
               {filtersData?.data?.tag && filtersData.data.tag.length > 0 && (
@@ -786,7 +874,12 @@ const ProductPage: React.FC = () => {
                             gap: 1,
                             cursor: "pointer",
                           }}
-                          onClick={() => handleTagFilter(tag.slug, !selectedTags.includes(tag.slug))}
+                          onClick={() =>
+                            handleTagFilter(
+                              tag.slug,
+                              !selectedTags.includes(tag.slug)
+                            )
+                          }
                         >
                           <input
                             type="checkbox"
@@ -794,7 +887,9 @@ const ProductPage: React.FC = () => {
                             onChange={() => {}}
                             style={{ cursor: "pointer" }}
                           />
-                          <Typography sx={{ fontSize: "12px", color: "#666" }}>{tag.name}</Typography>
+                          <Typography sx={{ fontSize: "12px", color: "#666" }}>
+                            {tag.name}
+                          </Typography>
                         </Box>
                       ))}
                     </Box>
@@ -803,101 +898,109 @@ const ProductPage: React.FC = () => {
               )}
 
               {/* Country of Origin Filter */}
-              {filtersData?.data?.countryOfOrigin && filtersData.data.countryOfOrigin.length > 0 && (
-                <Accordion
-                  expanded={expandedAccordion === "countryOfOrigin"}
-                  onChange={() => handleAccordionChange("countryOfOrigin")}
-                  sx={{
-                    boxShadow: "none",
-                    "&:before": { display: "none" },
-                    backgroundColor: "rgba(217, 217, 217, 0.21)",
-                    marginBottom: "5px",
-                  }}
-                >
-                  <AccordionSummary
-                    expandIcon={<ExpandMore sx={{ color: "#666" }} />}
+              {filtersData?.data?.countryOfOrigin &&
+                filtersData.data.countryOfOrigin.length > 0 && (
+                  <Accordion
+                    expanded={expandedAccordion === "countryOfOrigin"}
+                    onChange={() => handleAccordionChange("countryOfOrigin")}
                     sx={{
-                      minHeight: 48,
-                      px: 2,
-                      py: 1,
-                      "&.Mui-expanded": {
-                        minHeight: 48,
-                      },
-                      "& .MuiAccordionSummary-content": {
-                        margin: "8px 0",
-                        "&.Mui-expanded": {
-                          margin: "8px 0",
-                        },
-                      },
+                      boxShadow: "none",
+                      "&:before": { display: "none" },
+                      backgroundColor: "rgba(217, 217, 217, 0.21)",
+                      marginBottom: "5px",
                     }}
                   >
-                    <Typography
+                    <AccordionSummary
+                      expandIcon={<ExpandMore sx={{ color: "#666" }} />}
                       sx={{
-                        fontSize: "14px",
-                        fontWeight: 500,
-                        color: "#333",
-                      }}
-                    >
-                      Country of Origin
-                    </Typography>
-                  </AccordionSummary>
-                  <AccordionDetails sx={{ px: 2, py: 1 }}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 1,
-                        maxHeight: "200px",
-                        overflowY: "auto",
-                        overflowX: "hidden",
-                        // Custom scrollbar styling
-                        "&::-webkit-scrollbar": {
-                          width: "6px",
+                        minHeight: 48,
+                        px: 2,
+                        py: 1,
+                        "&.Mui-expanded": {
+                          minHeight: 48,
                         },
-                        "&::-webkit-scrollbar-track": {
-                          background: "rgba(0,0,0,0.05)",
-                          borderRadius: "3px",
-                        },
-                        "&::-webkit-scrollbar-thumb": {
-                          background: "rgba(0,0,0,0.2)",
-                          borderRadius: "3px",
-                          "&:hover": {
-                            background: "rgba(0,0,0,0.4)",
+                        "& .MuiAccordionSummary-content": {
+                          margin: "8px 0",
+                          "&.Mui-expanded": {
+                            margin: "8px 0",
                           },
                         },
-                        // For Firefox
-                        scrollbarWidth: "thin",
-                        scrollbarColor: "rgba(0,0,0,0.2) rgba(0,0,0,0.05)",
                       }}
                     >
-                      {filtersData.data.countryOfOrigin.map((country) => (
-                        <Box
-                          key={country.countryCode}
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                            cursor: "pointer",
-                          }}
-                          onClick={() =>
-                            handleCountryFilter(country.countryCode, !selectedCountries.includes(country.countryCode))
-                          }
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedCountries.includes(country.countryCode)}
-                            onChange={() => {}}
-                            style={{ cursor: "pointer" }}
-                          />
-                          <Typography sx={{ fontSize: "12px", color: "#666" }}>
-                            {country.emoji} {country.name}
-                          </Typography>
-                        </Box>
-                      ))}
-                    </Box>
-                  </AccordionDetails>
-                </Accordion>
-              )}
+                      <Typography
+                        sx={{
+                          fontSize: "14px",
+                          fontWeight: 500,
+                          color: "#333",
+                        }}
+                      >
+                        Country of Origin
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ px: 2, py: 1 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 1,
+                          maxHeight: "200px",
+                          overflowY: "auto",
+                          overflowX: "hidden",
+                          // Custom scrollbar styling
+                          "&::-webkit-scrollbar": {
+                            width: "6px",
+                          },
+                          "&::-webkit-scrollbar-track": {
+                            background: "rgba(0,0,0,0.05)",
+                            borderRadius: "3px",
+                          },
+                          "&::-webkit-scrollbar-thumb": {
+                            background: "rgba(0,0,0,0.2)",
+                            borderRadius: "3px",
+                            "&:hover": {
+                              background: "rgba(0,0,0,0.4)",
+                            },
+                          },
+                          // For Firefox
+                          scrollbarWidth: "thin",
+                          scrollbarColor: "rgba(0,0,0,0.2) rgba(0,0,0,0.05)",
+                        }}
+                      >
+                        {filtersData.data.countryOfOrigin.map((country) => (
+                          <Box
+                            key={country.countryCode}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                              cursor: "pointer",
+                            }}
+                            onClick={() =>
+                              handleCountryFilter(
+                                country.countryCode,
+                                !selectedCountries.includes(country.countryCode)
+                              )
+                            }
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedCountries.includes(
+                                country.countryCode
+                              )}
+                              onChange={() => {}}
+                              style={{ cursor: "pointer" }}
+                            />
+                            <Typography
+                              sx={{ fontSize: "12px", color: "#666" }}
+                            >
+                              {country.emoji} {country.name}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    </AccordionDetails>
+                  </Accordion>
+                )}
 
               {/* Clear Filters Button */}
               {(selectedCategories.length > 0 ||
@@ -930,8 +1033,10 @@ const ProductPage: React.FC = () => {
               )}
 
               {/* No filters available message */}
-              {(!filtersData?.data?.category || filtersData.data.category.length === 0) &&
-                (!filtersData?.data?.countryOfOrigin || filtersData.data.countryOfOrigin.length === 0) && (
+              {(!filtersData?.data?.category ||
+                filtersData.data.category.length === 0) &&
+                (!filtersData?.data?.countryOfOrigin ||
+                  filtersData.data.countryOfOrigin.length === 0) && (
                   <Box sx={{ p: 2 }}>
                     <Typography
                       sx={{
@@ -1032,64 +1137,85 @@ const ProductPage: React.FC = () => {
                   ...selectedCategories.slice(0, 1).map((slug) => ({
                     type: "Category",
                     slug,
-                    name: filtersData?.data?.category?.find((c) => c.slug === slug)?.name || slug,
+                    name:
+                      filtersData?.data?.category?.find((c) => c.slug === slug)
+                        ?.name || slug,
                     onDelete: () => {
-                      setSelectedCategories([])
-                      setPage(1)
-                      updateURL([], selectedCountries)
+                      setSelectedCategories([]);
+                      setPage(1);
+                      updateURL([], selectedCountries);
                     },
                   })),
                   ...selectedCountries.slice(0, 1).map((slug) => ({
                     type: "Country",
                     slug,
-                    name: filtersData?.data?.countryOfOrigin?.find((c) => c.countryCode === slug)?.name || slug,
+                    name:
+                      filtersData?.data?.countryOfOrigin?.find(
+                        (c) => c.countryCode === slug
+                      )?.name || slug,
                     onDelete: () => {
-                      setSelectedCountries([])
-                      setPage(1)
-                      updateURL(selectedCategories, [])
+                      setSelectedCountries([]);
+                      setPage(1);
+                      updateURL(selectedCategories, []);
                     },
                   })),
                   ...selectedSubCategories.map((slug) => ({
                     type: "Sub Category",
                     slug,
-                    name: filtersData?.data?.subCategory?.find((c) => c.slug === slug)?.name || slug,
+                    name:
+                      filtersData?.data?.subCategory?.find(
+                        (c) => c.slug === slug
+                      )?.name || slug,
                     onDelete: () => {
-                      setSelectedSubCategories(selectedSubCategories.filter((s) => s !== slug))
-                      setPage(1)
+                      setSelectedSubCategories(
+                        selectedSubCategories.filter((s) => s !== slug)
+                      );
+                      setPage(1);
                     },
                   })),
                   ...selectedApplications.map((slug) => ({
                     type: "Application",
                     slug,
-                    name: filtersData?.data?.application?.find((c) => c.slug === slug)?.name || slug,
+                    name:
+                      filtersData?.data?.application?.find(
+                        (c) => c.slug === slug
+                      )?.name || slug,
                     onDelete: () => {
-                      setSelectedApplications(selectedApplications.filter((s) => s !== slug))
-                      setPage(1)
+                      setSelectedApplications(
+                        selectedApplications.filter((s) => s !== slug)
+                      );
+                      setPage(1);
                     },
                   })),
                   ...selectedTags.map((slug) => ({
                     type: "Tag",
                     slug,
-                    name: filtersData?.data?.tag?.find((c) => c.slug === slug)?.name || slug,
+                    name:
+                      filtersData?.data?.tag?.find((c) => c.slug === slug)
+                        ?.name || slug,
                     onDelete: () => {
-                      setSelectedTags(selectedTags.filter((s) => s !== slug))
-                      setPage(1)
+                      setSelectedTags(selectedTags.filter((s) => s !== slug));
+                      setPage(1);
                     },
                   })),
                   ...selectedFunctions.map((slug) => ({
                     type: "Function",
                     slug,
-                    name: filtersData?.data?.function?.find((c) => c.slug === slug)?.name || slug,
+                    name:
+                      filtersData?.data?.function?.find((c) => c.slug === slug)
+                        ?.name || slug,
                     onDelete: () => {
-                      setSelectedFunctions(selectedFunctions.filter((s) => s !== slug))
-                      setPage(1)
+                      setSelectedFunctions(
+                        selectedFunctions.filter((s) => s !== slug)
+                      );
+                      setPage(1);
                     },
                   })),
-                ]
+                ];
 
-                const maxVisible = 6
-                const visibleFilters = allFilters.slice(0, maxVisible)
-                const remainingCount = allFilters.length - maxVisible
+                const maxVisible = 6;
+                const visibleFilters = allFilters.slice(0, maxVisible);
+                const remainingCount = allFilters.length - maxVisible;
 
                 return (
                   <>
@@ -1122,7 +1248,7 @@ const ProductPage: React.FC = () => {
                       />
                     )}
                   </>
-                )
+                );
               })()}
             </Box>
           )}
@@ -1141,7 +1267,7 @@ const ProductPage: React.FC = () => {
             }}
           >
             {products.map((product) => {
-              const productInWishlist = isInWishlist(product._id)
+              const productInWishlist = isInWishlist(product._id);
               // const isWishlistLoading = addToWishlistMutation.isPending || removeFromWishlistMutation.isPending
 
               return (
@@ -1163,13 +1289,79 @@ const ProductPage: React.FC = () => {
                   onClick={() => router.push(`/product/detail/${product._id}`)}
                 >
                   {/* Product Image */}
-                  <Box sx={{ position: "relative", height: 180 }}>
-                    <Image
-                      src={getProductImage(product) || "/placeholder.svg"}
-                      alt={product.name}
-                      fill
-                      style={{ objectFit: "cover" }}
-                    />
+                  <Box
+                    sx={{
+                      position: "relative",
+                      height: 180,
+                      overflow: "hidden",
+                      cursor: "pointer",
+                      "&:hover .default-image": {
+                        transform: "translateX(-100%)",
+                      },
+                      "&:hover .hover-image": {
+                        transform: "translateX(0)",
+                      },
+                    }}
+                  >
+                    {/* Default Image - Show bannerImage first */}
+                    <Box
+                      className="default-image"
+                      sx={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        transition:
+                          "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+                        transform: "translateX(0)",
+                      }}
+                    >
+                      <Image
+                        src={
+                          product.bannerImage
+                            ? product.bannerImage.startsWith("http")
+                              ? product.bannerImage
+                              : `${process.env.NEXT_PUBLIC_API_URL}/${product.bannerImage}`
+                            : "/placeholder.svg"
+                        }
+                        alt={product.name}
+                        fill
+                        style={{
+                          objectFit: "cover",
+                        }}
+                      />
+                    </Box>
+
+                    {/* Hover Image - Show product.images[0] on hover */}
+                    {product.images && product.images.length > 0 && (
+                      <Box
+                        className="hover-image"
+                        sx={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "100%",
+                          transition:
+                            "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+                          transform: "translateX(100%)",
+                        }}
+                      >
+                        <Image
+                          src={
+                            product.images[0].startsWith("http")
+                              ? product.images[0]
+                              : `${process.env.NEXT_PUBLIC_API_URL}/${product.images[0]}`
+                          }
+                          alt={product.name}
+                          fill
+                          style={{
+                            objectFit: "cover",
+                          }}
+                        />
+                      </Box>
+                    )}
 
                     {/* Watermark */}
                     <Box
@@ -1185,7 +1377,7 @@ const ProductPage: React.FC = () => {
                         pointerEvents: "none",
                       }}
                     >
-                      Greenjeeva
+                      EZRM
                     </Box>
 
                     {/* Heart Icon */}
@@ -1252,7 +1444,8 @@ const ProductPage: React.FC = () => {
                         overflow: "hidden",
                       }}
                     >
-                      {product.description || "Premium, lab-tested raw material trusted by manufacturers."}
+                      {product.description ||
+                        "Premium, lab-tested raw material trusted by manufacturers."}
                     </Typography>
 
                     {/* Product Code */}
@@ -1272,12 +1465,12 @@ const ProductPage: React.FC = () => {
                       fullWidth
                       disabled={!product.inStock}
                       onClick={(e) => {
-                        e.stopPropagation()
+                        e.stopPropagation();
                         setSelectedProduct({
                           id: product._id,
                           name: product.name,
-                        })
-                        setRfqModalOpen(true)
+                        });
+                        setRfqModalOpen(true);
                       }}
                       sx={{
                         backgroundColor: product.inStock ? "#ff6b35" : "#ccc",
@@ -1296,7 +1489,7 @@ const ProductPage: React.FC = () => {
                     </Button>
                   </Box>
                 </Box>
-              )
+              );
             })}
           </Box>
         )}
@@ -1339,12 +1532,14 @@ const ProductPage: React.FC = () => {
           onClose={() => setContactModalOpen(false)}
           source="product_page"
           onSuccess={() => {
-            setSnackbarMessage("Thank you! Your message has been sent successfully.")
-            setSnackbarOpen(true)
+            setSnackbarMessage(
+              "Thank you! Your message has been sent successfully."
+            );
+            setSnackbarOpen(true);
           }}
           onError={(error) => {
-            setSnackbarMessage(error)
-            setSnackbarOpen(true)
+            setSnackbarMessage(error);
+            setSnackbarOpen(true);
           }}
         />
 
@@ -1352,23 +1547,25 @@ const ProductPage: React.FC = () => {
         <RFQModal
           open={rfqModalOpen}
           onClose={() => {
-            setRfqModalOpen(false)
-            setSelectedProduct(null)
+            setRfqModalOpen(false);
+            setSelectedProduct(null);
           }}
           productId={selectedProduct?.id}
           productName={selectedProduct?.name || ""}
           onSuccess={() => {
-            setSnackbarMessage("Thank you! Your RFQ has been submitted successfully.")
-            setSnackbarOpen(true)
+            setSnackbarMessage(
+              "Thank you! Your RFQ has been submitted successfully."
+            );
+            setSnackbarOpen(true);
           }}
           onError={(error) => {
-            setSnackbarMessage(error)
-            setSnackbarOpen(true)
+            setSnackbarMessage(error);
+            setSnackbarOpen(true);
           }}
         />
       </Box>
     </Box>
-  )
-}
+  );
+};
 
-export default ProductPage
+export default ProductPage;
